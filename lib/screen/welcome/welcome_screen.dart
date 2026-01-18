@@ -10,6 +10,8 @@ import 'package:kltn_app/screen/welcome/widgets/particle_system.dart';
 
 import 'package:kltn_app/screen/welcome/widgets/page_content.dart';
 
+import '../home/home_wrapper.dart';
+
 
 /// Màn hình chào mừng (Welcome/Onboarding Screen)
 /// Hiển thị 4 trang giới thiệu về ứng dụng với animations và hiệu ứng đẹp mắt
@@ -132,7 +134,6 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     setState(() {
       _currentPage = page;
     });
-
     // Reset và chạy lại animation để tạo hiệu ứng fade in
     _pageTransitionController.reset();
     _pageTransitionController.forward();
@@ -162,12 +163,10 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   /// Xử lý khi người dùng nhấn "Bắt đầu ngay"
   /// Hiển thị SnackBar chào mừng
   void _getStarted() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Chào mừng đến với AniQuest! 🎉'),
-        backgroundColor: _pages[_currentPage].gradientColors[0],
-        behavior: SnackBarBehavior.floating, // SnackBar nổi phía trên bottom
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    // Navigate to Home Screen
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (context) => const HomeWrapper(),
       ),
     );
   }
@@ -187,7 +186,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
             pageIndex: _currentPage >= 3 ? 2 : _currentPage,
           ),
 
-          // Layer 2: Hệ thống particles bay lượn
+          // Layer 2: Hệ thống hạt bay lượn
           ParticleSystem(
             color: _pages[_currentPage].particleColor,
             particleCount: 30, // Số lượng particles

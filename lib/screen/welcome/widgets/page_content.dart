@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:kltn_app/screen/welcome/widgets/animated_icon.dart';
 
 import 'dart:math' as math;
-
-import '../welcome_screen.dart';
 import 'onboarding_page.dart';
 
 /// Widget hiển thị nội dung chính của một trang onboarding
