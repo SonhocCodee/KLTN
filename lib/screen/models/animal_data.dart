@@ -1,14 +1,16 @@
 class AnimalData {
-  final String name;
+  final String name; // Tên tiếng Anh gốc từ API
   final String taxonomy;
   final List<String> locations;
   final Map<String, dynamic> characteristics;
+  final String? remoteImageUrl;
 
   AnimalData({
     required this.name,
     required this.taxonomy,
     required this.locations,
     required this.characteristics,
+    this.remoteImageUrl,
   });
 
   factory AnimalData.fromJson(Map<String, dynamic> json) {
@@ -17,16 +19,15 @@ class AnimalData {
       taxonomy: json['taxonomy']?['scientific_classification'] ?? '',
       locations: List<String>.from(json['locations'] ?? []),
       characteristics: json['characteristics'] ?? {},
+      remoteImageUrl: json['custom_image_url'],
     );
   }
 
-  // Convert sang AnimalFact để dùng trong UI
   AnimalFact toAnimalFact() {
-    // Tạo facts từ characteristics
     final facts = <String>[];
 
     if (characteristics['top_speed'] != null) {
-      facts.add('Tốc độ tối đa: ${characteristics['top_speed']}');
+      facts.add('Tốc độ: ${characteristics['top_speed']}');
     }
     if (characteristics['weight'] != null) {
       facts.add('Cân nặng: ${characteristics['weight']}');
@@ -41,11 +42,12 @@ class AnimalData {
       facts.add('Chế độ ăn: ${characteristics['diet']}');
     }
 
-    // Lấy ảnh từ Unsplash (miễn phí, không cần API key)
-    final imageUrl = 'https://source.unsplash.com/800x1200/?${name.toLowerCase()},animal';
+    final imageUrl = remoteImageUrl ??
+        'https://upload.wikimedia.org/wikipedia/commons/7/73/Lion_waiting_in_Namibia.jpg';
 
     return AnimalFact(
       name: _getVietnameseName(name),
+      englishName: name, // GIỮ TÊN TIẾNG ANH ĐỂ TÌM ẢNH
       scientificName: taxonomy,
       description: _generateDescription(),
       facts: facts.isEmpty ? ['Đang cập nhật thông tin...'] : facts,
@@ -81,13 +83,14 @@ class AnimalData {
   }
 
   String _generateDescription() {
-    final location = locations.isNotEmpty ? locations[0] : 'nhiều nơi';
-    return 'Sinh sống chủ yếu ở $location. Là một trong những loài động vật đặc biệt và đáng chú ý nhất trong tự nhiên.';
+    final location = locations.isNotEmpty ? locations[0] : 'tự nhiên';
+    return 'Sinh sống chủ yếu ở $location. Là một loài động vật đặc biệt với nhiều đặc điểm thú vị.';
   }
 }
 
 class AnimalFact {
-  final String name;
+  final String name; // Tên tiếng Việt hiển thị
+  final String englishName; // Tên tiếng Anh (để tìm ảnh)
   final String scientificName;
   final String description;
   final List<String> facts;
@@ -96,10 +99,36 @@ class AnimalFact {
 
   AnimalFact({
     required this.name,
+    required this.englishName,
     required this.scientificName,
     required this.description,
     required this.facts,
     required this.imageUrl,
     required this.category,
   });
+
+  // Constructor cho cache
+  factory AnimalFact.fromCache(Map<String, dynamic> data) {
+    return AnimalFact(
+      name: data['name'],
+      englishName: data['englishName'] ?? '',
+      scientificName: data['scientificName'],
+      description: data['description'],
+      facts: List<String>.from(data['facts']),
+      imageUrl: data['imageUrl'],
+      category: data['category'],
+    );
+  }
+
+  Map<String, dynamic> toCache() {
+    return {
+      'name': name,
+      'englishName': englishName,
+      'scientificName': scientificName,
+      'description': description,
+      'facts': facts,
+      'imageUrl': imageUrl,
+      'category': category,
+    };
+  }
 }
