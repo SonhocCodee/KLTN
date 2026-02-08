@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import '../utils/image_processor.dart';
 
-class SmartAnimalImage extends StatefulWidget {
+class SmartAnimalImage extends StatelessWidget {
   final String imageUrl;
+  final String? animalName;
+  final bool isExtendedImage;
   final BoxFit fit;
   final Widget? placeholder;
   final Widget? errorWidget;
@@ -10,97 +11,108 @@ class SmartAnimalImage extends StatefulWidget {
   const SmartAnimalImage({
     super.key,
     required this.imageUrl,
+    this.animalName,
+    this.isExtendedImage = false,
     this.fit = BoxFit.cover,
     this.placeholder,
     this.errorWidget,
   });
 
   @override
-  State<SmartAnimalImage> createState() => _SmartAnimalImageState();
-}
-
-class _SmartAnimalImageState extends State<SmartAnimalImage> {
-  Alignment _alignment = Alignment.center;
-  bool _isAnalyzing = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _analyzeImage();
-  }
-
-  @override
-  void didUpdateWidget(SmartAnimalImage oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.imageUrl != widget.imageUrl) {
-      _analyzeImage();
-    }
-  }
-
-  Future<void> _analyzeImage() async {
-    setState(() => _isAnalyzing = true);
-
-    // Strategy 1: Quick focal point từ URL
-    final focalPoint = ImageProcessor.getFocalPoint(widget.imageUrl);
-
-    setState(() {
-      _alignment = focalPoint;
-      _isAnalyzing = false;
-    });
-
-    // Strategy 2: Deep analysis (background task, không block UI)
-    // Uncomment dòng dưới nếu muốn phân tích sâu hơn
-    // final detectedAlignment = await ImageProcessor.detectAnimalPosition(widget.imageUrl);
-    // if (mounted) {
-    //   setState(() => _alignment = detectedAlignment);
-    // }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 300),
-      child: _isAnalyzing
-          ? (widget.placeholder ??
-          Container(
-            color: Colors.grey[800],
-            child: const Center(
-              child: CircularProgressIndicator(color: Colors.white),
-            ),
-          ))
-          : Image.network(
-        widget.imageUrl,
-        fit: widget.fit,
-        alignment: _alignment, // ⭐ KEY: Dùng alignment động
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-          return Container(
-            color: Colors.grey[800],
-            child: Center(
-              child: CircularProgressIndicator(
-                color: Colors.white,
-                value: loadingProgress.expectedTotalBytes != null
-                    ? loadingProgress.cumulativeBytesLoaded /
-                    loadingProgress.expectedTotalBytes!
-                    : null,
-              ),
-            ),
-          );
-        },
-        errorBuilder: (context, error, stackTrace) {
-          return widget.errorWidget ??
-              Container(
-                color: Colors.grey[800],
-                child: const Center(
-                  child: Icon(
-                    Icons.image_not_supported,
-                    size: 64,
-                    color: Colors.white54,
-                  ),
+    final alignment = _getAlignment();
+
+    return Image.network(
+      imageUrl,
+      fit: fit,
+      alignment: alignment,
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+
+        return placeholder ??
+            Container(
+              color: Colors.grey[800],
+              child: Center(
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  value: loadingProgress.expectedTotalBytes != null
+                      ? loadingProgress.cumulativeBytesLoaded /
+                      loadingProgress.expectedTotalBytes!
+                      : null,
                 ),
-              );
-        },
-      ),
+              ),
+            );
+      },
+      errorBuilder: (context, error, stackTrace) {
+        return errorWidget ??
+            Container(
+              color: Colors.grey[800],
+              child: const Center(
+                child: Icon(
+                  Icons.image_not_supported,
+                  size: 64,
+                  color: Colors.white54,
+                ),
+              ),
+            );
+      },
     );
+  }
+
+  /// Tính alignment dựa vào tên động vật và loại ảnh
+  Alignment _getAlignment() {
+    // Ảnh đã extend bởi AI → Con vật đã ở center-bottom
+    if (isExtendedImage) {
+      return const Alignment(0, 0.3);
+    }
+
+    // Ảnh gốc → Dùng preset theo tên động vật
+    if (animalName != null) {
+      return _getPresetAlignment(animalName!);
+    }
+
+    // Fallback
+    return const Alignment(0, 0.2);
+  }
+
+  /// Preset alignment cho từng loại động vật
+  Alignment _getPresetAlignment(String animalName) {
+    final normalized = animalName.toLowerCase().trim();
+
+    final presets = {
+      // Birds - thường ở trên
+      'eagle': const Alignment(0, -0.2),
+      'penguin': Alignment.center,
+
+      // Big cats - center hoặc hơi lên
+      'lion': const Alignment(0, 0.1),
+      'tiger': const Alignment(0, 0.1),
+      'cheetah': Alignment.center,
+      'leopard': const Alignment(0, 0.1),
+      'jaguar': const Alignment(0, 0.1),
+
+      // Large animals
+      'elephant': Alignment.center,
+      'giraffe': const Alignment(0, -0.15), // Cao nên lên trên
+      'rhino': const Alignment(0, 0.1),
+      'hippo': const Alignment(0, 0.1),
+      'zebra': Alignment.center,
+
+      // Medium animals
+      'bear': Alignment.center,
+      'wolf': const Alignment(0, 0.1),
+      'gorilla': const Alignment(0, 0.1),
+
+      // Small/unique animals
+      'kangaroo': Alignment.center,
+      'koala': const Alignment(0, -0.1),
+      'panda': Alignment.center,
+
+      // Marine animals
+      'dolphin': Alignment.center,
+      'shark': Alignment.center,
+    };
+
+    return presets[normalized] ?? const Alignment(0, 0.2);
   }
 }

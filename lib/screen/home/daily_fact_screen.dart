@@ -3,14 +3,11 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../services/animal_api_service.dart';
 import '../../services/daily_fact_cache.dart';
-
-import '../../services/gemini_extended_image.dart';
-import '../../utils/extended_animal_image.dart';
-import '../../utils/smart_animal_image.dart';
+import '../../services/extended_animal_image.dart';
+import '../../services/extended_image_cache.dart';
 import '../models/animal_data.dart';
 
 class DailyFactScreen extends StatefulWidget {
-  final String imageUrl = 'https://example.com/animal.jpg';
   const DailyFactScreen({super.key});
 
   @override
@@ -36,12 +33,11 @@ class _DailyFactScreenState extends State<DailyFactScreen>
     _loadTodayAnimal();
   }
 
-  // TÌM ẢNH WIKI - DÙNG TÊN TIẾNG ANH
+  /// Tìm ảnh Wikipedia cho động vật
   Future<String?> _fetchWikiImage(String query) async {
     print('🔍 Tìm Wiki cho: "$query"');
 
     try {
-      // URL encode để xử lý space và ký tự đặc biệt
       final encodedQuery = Uri.encodeComponent(query);
       final urlStr = 'https://en.wikipedia.org/w/api.php?'
           'action=query&'
@@ -50,8 +46,6 @@ class _DailyFactScreenState extends State<DailyFactScreen>
           'format=json&'
           'pithumbsize=1200&'
           'redirects=1';
-
-      print('🌐 URL: $urlStr');
 
       final response = await http.get(Uri.parse(urlStr));
 
@@ -62,17 +56,12 @@ class _DailyFactScreenState extends State<DailyFactScreen>
         if (pages != null) {
           final firstPage = (pages as Map).values.first;
 
-          // Check nếu trang tồn tại và có ảnh
           if (firstPage['thumbnail'] != null) {
             final imageUrl = firstPage['thumbnail']['source'] as String;
             print('✅ Tìm thấy: $imageUrl');
             return imageUrl;
-          } else {
-            print('⚠️ Trang tồn tại nhưng không có ảnh');
           }
         }
-      } else {
-        print('❌ Wiki HTTP Error: ${response.statusCode}');
       }
     } catch (e) {
       print('❌ Wiki Exception: $e');
@@ -81,12 +70,15 @@ class _DailyFactScreenState extends State<DailyFactScreen>
     return null;
   }
 
+  /// Force refresh - xóa cache và load lại
   Future<void> _forceRefresh() async {
     print('🔄 Force refresh...');
     await DailyFactCache.clearCache();
+    await ExtendedImageCache.clearCache();
     _loadTodayAnimal();
   }
 
+  /// Load thông tin động vật của hôm nay
   Future<void> _loadTodayAnimal() async {
     setState(() {
       _isLoading = true;
@@ -94,19 +86,8 @@ class _DailyFactScreenState extends State<DailyFactScreen>
     });
 
     try {
-      // 1. Check cache
+      // 1. Kiểm tra cache thông tin động vật
       var cached = await DailyFactCache.getCache();
-
-      if (cached != null) {
-        // Nếu cache có ảnh fallback/placeholder → xóa để fetch lại
-        if (cached.imageUrl.contains('Lion_waiting_in_Namibia') ||
-            cached.imageUrl.contains('pixabay.com') ||
-            cached.imageUrl.contains('unsplash.com')) {
-          print('🧹 Cache có ảnh cũ, xóa để fetch lại...');
-          cached = null;
-          await DailyFactCache.clearCache();
-        }
-      }
 
       if (cached != null) {
         print('💾 Dùng cache: ${cached.name}');
@@ -120,7 +101,7 @@ class _DailyFactScreenState extends State<DailyFactScreen>
 
       print('🚀 Fetch API mới...');
 
-      // 2. Fetch từ API Ninjas
+      // 2. Fetch thông tin động vật từ API Ninjas
       final animalData = await _apiService.getTodayAnimal();
 
       if (animalData != null) {
@@ -128,26 +109,26 @@ class _DailyFactScreenState extends State<DailyFactScreen>
 
         print('🦁 Animal: ${fact.name} (EN: ${fact.englishName})');
 
-        // 3. Tìm ảnh Wiki - DÙNG TÊN TIẾNG ANH
-        String? realImageUrl;
+        // 3. Tìm ảnh Wikipedia chất lượng cao
+        String? wikiImageUrl;
 
-        // Thử 1: Tên tiếng Anh thường
-        realImageUrl = await _fetchWikiImage(fact.englishName);
+        // Thử tên tiếng Anh
+        wikiImageUrl = await _fetchWikiImage(fact.englishName);
 
-        // Thử 2: Tên khoa học
-        if (realImageUrl == null && fact.scientificName.isNotEmpty) {
+        // Thử tên khoa học
+        if (wikiImageUrl == null && fact.scientificName.isNotEmpty) {
           print('🔄 Thử tên khoa học: ${fact.scientificName}');
-          realImageUrl = await _fetchWikiImage(fact.scientificName);
+          wikiImageUrl = await _fetchWikiImage(fact.scientificName);
         }
 
-        // Thử 3: Thêm "animal"
-        if (realImageUrl == null) {
+        // Thử thêm "animal"
+        if (wikiImageUrl == null) {
           print('🔄 Thử thêm "(animal)"');
-          realImageUrl = await _fetchWikiImage('${fact.englishName} animal');
+          wikiImageUrl = await _fetchWikiImage('${fact.englishName} animal');
         }
 
         // Fallback cuối cùng
-        final finalImageUrl = realImageUrl ??
+        final finalImageUrl = wikiImageUrl ??
             'https://upload.wikimedia.org/wikipedia/commons/7/73/Lion_waiting_in_Namibia.jpg';
 
         final finalFact = AnimalFact(
@@ -160,6 +141,7 @@ class _DailyFactScreenState extends State<DailyFactScreen>
           category: fact.category,
         );
 
+        // 4. Lưu cache
         await DailyFactCache.saveCache(finalFact);
 
         setState(() {
@@ -245,9 +227,9 @@ class _DailyFactScreenState extends State<DailyFactScreen>
       floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
       body: Stack(
         children: [
-          // Background Image
+          // ✨ Background Image - DÙNG REPLICATE AI ĐỂ EXTEND
           Positioned.fill(
-            child: GeminiExtendedImage(
+            child: ExtendedAnimalImage(
               originalImageUrl: _todayFact!.imageUrl,
               animalName: _todayFact!.englishName,
             ),
@@ -378,16 +360,16 @@ class _DailyFactScreenState extends State<DailyFactScreen>
                               width: 1.5,
                             ),
                           ),
-                          child: Row(
+                          child: const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.keyboard_arrow_up_rounded,
                                 color: Colors.white,
                                 size: 20,
                               ),
-                              const SizedBox(width: 8),
-                              const Text(
+                              SizedBox(width: 8),
+                              Text(
                                 'Trượt lên để khám phá',
                                 style: TextStyle(
                                   color: Colors.white,
