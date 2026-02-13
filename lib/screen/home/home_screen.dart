@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
+import '../../services/animal_home_service.dart';
+import '../models/animal_category_model.dart';
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -11,40 +14,10 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+  final AnimalHomeService _service = AnimalHomeService();
 
-  // Mock data - sau này sẽ lấy từ database
-  final List<AnimalCategory> categories = [
-    AnimalCategory(
-      name: 'Sư tử',
-      imageUrl: 'https://images.unsplash.com/photo-1546182990-dffeafbe841d?w=400',
-      gradient: [Color(0xFFFBBF24), Color(0xFFF97316)],
-    ),
-    AnimalCategory(
-      name: 'Voi',
-      imageUrl: 'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=400',
-      gradient: [Color(0xFF9CA3AF), Color(0xFF6B7280)],
-    ),
-    AnimalCategory(
-      name: 'Hổ',
-      imageUrl: 'https://images.unsplash.com/photo-1549480017-d76466a4b7e8?w=400',
-      gradient: [Color(0xFFF97316), Color(0xFFDC2626)],
-    ),
-    AnimalCategory(
-      name: 'Gấu',
-      imageUrl: 'https://images.unsplash.com/photo-1589656966895-2f33e7653819?w=400',
-      gradient: [Color(0xFF78350F), Color(0xFF451A03)],
-    ),
-    AnimalCategory(
-      name: 'Chim',
-      imageUrl: 'https://images.unsplash.com/photo-1552728089-57bdde30beb3?w=400',
-      gradient: [Color(0xFF60A5FA), Color(0xFF3B82F6)],
-    ),
-    AnimalCategory(
-      name: 'Cá',
-      imageUrl: 'https://images.unsplash.com/photo-1524704796725-9fc3044a58b1?w=400',
-      gradient: [Color(0xFF14B8A6), Color(0xFF0891B2)],
-    ),
-  ];
+  List<AnimalCategoryData> _categoryData = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -53,6 +26,45 @@ class _HomeScreenState extends State<HomeScreen>
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     )..forward();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    setState(() => _isLoading = true);
+
+    try {
+      // Lấy số lượng động vật theo loại
+      final counts = await _service.getAnimalCounts();
+
+      // Tạo data cho tất cả categories
+      List<AnimalCategoryData> data = [];
+
+      for (var category in AnimalCategory.allCategories) {
+        final count = counts[category.id] ?? 0;
+
+        data.add(AnimalCategoryData(
+          category: category,
+          count: count,
+        ));
+      }
+
+      setState(() {
+        _categoryData = data;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('❌ Error loading data: $e');
+      setState(() {
+        _isLoading = false;
+        // Fallback: hiển thị với count = 0
+        _categoryData = AnimalCategory.allCategories.map((cat) {
+          return AnimalCategoryData(
+            category: cat,
+            count: 0,
+          );
+        }).toList();
+      });
+    }
   }
 
   @override
@@ -64,9 +76,7 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Wrap toàn bộ trong Container để fill màu background
       body: Container(
-        // Fill toàn bộ màn hình
         width: double.infinity,
         height: double.infinity,
         decoration: const BoxDecoration(
@@ -83,317 +93,419 @@ class _HomeScreenState extends State<HomeScreen>
           child: Column(
             children: [
               // Header
-              Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: SlideTransition(
-                  position: Tween<Offset>(
-                    begin: const Offset(0, -1),
-                    end: Offset.zero,
-                  ).animate(CurvedAnimation(
-                    parent: _controller,
-                    curve: Curves.easeOut,
-                  )),
-                  child: Row(
-                    children: [
-                      // Logo/Title
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF34D399), Color(0xFF14B8A6)],
-                          ),
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Color(0xFF34D399).withOpacity(0.3),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.pets,
-                          color: Colors.white,
-                          size: 28,
+              _buildHeader(),
+
+              // Content
+              if (_isLoading)
+                const Expanded(
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      color: Color(0xFF34D399),
+                    ),
+                  ),
+                )
+              else
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: _loadData,
+                    color: const Color(0xFF34D399),
+                    child: ListView.builder(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: _categoryData.length,
+                      itemBuilder: (context, index) {
+                        return _buildCategorySection(_categoryData[index], index);
+                      },
+                    ),
+                  ),
+                ),
+
+              const SizedBox(height: 80), // Space cho FAB
+            ],
+          ),
+        ),
+      ),
+
+      // Floating Camera Button
+      floatingActionButton: _buildCameraButton(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+    );
+  }
+
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.all(24.0),
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, -1),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(
+          parent: _controller,
+          curve: Curves.easeOut,
+        )),
+        child: Row(
+          children: [
+            // Logo
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF34D399), Color(0xFF14B8A6)],
+                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF34D399).withOpacity(0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: const Icon(Icons.pets, color: Colors.white, size: 28),
+            ),
+            const SizedBox(width: 16),
+            const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'AniQuest',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF1E293B),
+                  ),
+                ),
+                Text(
+                  'Khám phá thế giới động vật',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF64748B),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+            const Spacer(),
+            // Search Button
+            _buildSearchButton(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchButton() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Mở tìm kiếm thám tử...'),
+                backgroundColor: Color(0xFF34D399),
+              ),
+            );
+          },
+          borderRadius: BorderRadius.circular(16),
+          child: const Padding(
+            padding: EdgeInsets.all(12.0),
+            child: Icon(Icons.search, color: Color(0xFF1E293B), size: 24),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategorySection(AnimalCategoryData data, int sectionIndex) {
+    final hasData = data.count > 0;
+    print('📊 ${data.category.nameVi}: count=${data.count}, hasData=$hasData');
+
+    return TweenAnimationBuilder<double>(
+      duration: Duration(milliseconds: 400 + (sectionIndex * 100)),
+      tween: Tween(begin: 0.0, end: 1.0),
+      curve: Curves.easeOut,
+      builder: (context, value, child) {
+        return Transform.translate(
+          offset: Offset(0, 20 * (1 - value)),
+          child: Opacity(opacity: value, child: child),
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 32.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Section Header
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(colors: data.category.gradient),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    data.category.icon,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  data.category.nameVi,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF1E293B),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: hasData
+                        ? const Color(0xFF34D399).withOpacity(0.2)
+                        : Colors.grey.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    hasData ? '${data.count} giống' : 'Sắp ra mắt',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: hasData ? const Color(0xFF059669) : Colors.grey.shade600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Grid 2x3 (6 con)
+            _buildAnimalGrid(data),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAnimalGrid(AnimalCategoryData data) {
+    final hasData = data.count > 0;
+
+    return GestureDetector(
+      onTap: () {
+        if (hasData) {
+          // TODO: Navigate to breed list
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Xem tất cả ${data.category.nameVi}'),
+              backgroundColor: data.category.gradient[0],
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Dữ liệu đang được cập nhật...'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      },
+      child: Container(
+        height: 200,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: data.category.gradient[0].withOpacity(0.3),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: Stack(
+            children: [
+              // Background Image - DÙNG ASSET LOCAL
+              Positioned.fill(
+                child: Image.asset(
+                  data.category.imageAssetPath,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    // Fallback nếu không có ảnh local
+                    return Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: data.category.gradient,
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      const Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'AniQuest',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w900,
-                              color: Color(0xFF1E293B),
-                            ),
-                          ),
-                          Text(
-                            'Khám phá thế giới động vật',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFF64748B),
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const Spacer(),
-                      // Search Button
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: () {
-                              // TODO: Navigate to Detective Search
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Mở tìm kiếm thám tử...'),
-                                  backgroundColor: Color(0xFF34D399),
-                                ),
-                              );
-                            },
-                            borderRadius: BorderRadius.circular(16),
-                            child: const Padding(
-                              padding: EdgeInsets.all(12.0),
-                              child: Icon(
-                                Icons.search,
-                                color: Color(0xFF1E293B),
-                                size: 24,
-                              ),
-                            ),
-                          ),
+                      child: Center(
+                        child: Icon(
+                          data.category.icon,
+                          size: 80,
+                          color: Colors.white.withOpacity(0.5),
                         ),
                       ),
+                    );
+                  },
+                ),
+              ),
+
+              // Gradient overlay
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withOpacity(0.7),
                     ],
                   ),
                 ),
               ),
 
-              // Category Grid
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: GridView.builder(
-                    physics: const BouncingScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                      childAspectRatio: 0.85,
-                    ),
-                    itemCount: categories.length,
-                    itemBuilder: (context, index) {
-                      return _buildCategoryCard(categories[index], index);
-                    },
-                  ),
-                ),
-              ),
-
-              // Bottom padding để tránh che FAB
-              const SizedBox(height: 80),
-            ],
-          ),
-        ),
-      ),
-      // Floating Camera Button
-      floatingActionButton: ScaleTransition(
-        scale: CurvedAnimation(
-          parent: _controller,
-          curve: Curves.elasticOut,
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF34D399), Color(0xFF14B8A6)],
-            ),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Color(0xFF34D399).withOpacity(0.5),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () {
-                // TODO: Open Camera
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Mở camera...'),
-                    backgroundColor: Color(0xFF34D399),
-                  ),
-                );
-              },
-              borderRadius: BorderRadius.circular(20),
-              child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.camera_alt, color: Colors.white, size: 24),
-                    SizedBox(width: 12),
-                    Text(
-                      'Chụp Ảnh',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-    );
-  }
-
-  Widget _buildCategoryCard(AnimalCategory category, int index) {
-    return TweenAnimationBuilder<double>(
-      duration: Duration(milliseconds: 600 + (index * 100)),
-      tween: Tween(begin: 0.0, end: 1.0),
-      curve: Curves.easeOut,
-      builder: (context, value, child) {
-        return Transform.scale(
-          scale: value,
-          child: Opacity(
-            opacity: value,
-            child: child,
-          ),
-        );
-      },
-      child: GestureDetector(
-        onTap: () {
-          // TODO: Navigate to animal detail
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Xem chi tiết ${category.name}'),
-              backgroundColor: category.gradient[0],
-            ),
-          );
-        },
-        child: Hero(
-          tag: 'animal_${category.name}',
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: category.gradient[0].withOpacity(0.3),
-                  blurRadius: 15,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(24),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  // Background Image
-                  Image.network(
-                    category.imageUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: category.gradient,
+              // Lock overlay nếu chưa có data
+              if (!hasData)
+                Positioned.fill(
+                  child: Container(
+                    color: Colors.black.withOpacity(0.6),
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.lock_clock,
+                            color: Colors.white.withOpacity(0.9),
+                            size: 48,
                           ),
-                        ),
-                      );
-                    },
-                  ),
-
-                  // Gradient Overlay
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          Colors.black.withOpacity(0.7),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'Sắp ra mắt',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ],
                       ),
                     ),
                   ),
+                ),
 
-                  // Glass Card at Bottom
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: ClipRRect(
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.15),
-                            border: Border(
-                              top: BorderSide(
-                                color: Colors.white.withOpacity(0.3),
-                                width: 1,
-                              ),
-                            ),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                category.name,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.arrow_forward,
-                                    color: Colors.white,
-                                    size: 16,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    'Khám phá',
-                                    style: TextStyle(
-                                      color: Colors.white.withOpacity(0.9),
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
+              // Glass button ở dưới
+              Positioned(
+                bottom: 16,
+                left: 16,
+                right: 16,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.3),
+                          width: 1.5,
                         ),
                       ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            hasData ? 'Xem tất cả' : 'Khóa',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            hasData ? Icons.arrow_forward : Icons.lock,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCameraButton() {
+    return ScaleTransition(
+      scale: CurvedAnimation(
+        parent: _controller,
+        curve: Curves.elasticOut,
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF34D399), Color(0xFF14B8A6)],
+          ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF34D399).withOpacity(0.5),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Mở camera...'),
+                  backgroundColor: Color(0xFF34D399),
+                ),
+              );
+            },
+            borderRadius: BorderRadius.circular(20),
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.camera_alt, color: Colors.white, size: 24),
+                  SizedBox(width: 12),
+                  Text(
+                    'Chụp Ảnh',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ],
@@ -404,16 +516,4 @@ class _HomeScreenState extends State<HomeScreen>
       ),
     );
   }
-}
-
-class AnimalCategory {
-  final String name;
-  final String imageUrl;
-  final List<Color> gradient;
-
-  AnimalCategory({
-    required this.name,
-    required this.imageUrl,
-    required this.gradient,
-  });
 }
