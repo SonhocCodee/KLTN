@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import '../../services/animal_home_service.dart';
+import '../animal_list/Breed list screen.dart';
 import '../models/animal_category_model.dart';
-
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -33,13 +33,13 @@ class _HomeScreenState extends State<HomeScreen>
     setState(() => _isLoading = true);
 
     try {
-      // Lấy số lượng động vật theo loại
+      // Lấy số lượng động vật theo loại từ database
       final counts = await _service.getAnimalCounts();
 
-      // Tạo data cho tất cả categories
+      // Tạo data CHỈ cho các categories đã ENABLED
       List<AnimalCategoryData> data = [];
 
-      for (var category in AnimalCategory.allCategories) {
+      for (var category in AnimalCategory.getEnabledCategories()) {
         final count = counts[category.id] ?? 0;
 
         data.add(AnimalCategoryData(
@@ -52,12 +52,20 @@ class _HomeScreenState extends State<HomeScreen>
         _categoryData = data;
         _isLoading = false;
       });
+
+      // Debug
+      print('═══════════════════════════════════════');
+      print('📊 LOADED DATA:');
+      for (var d in data) {
+        print('   ${d.category.nameVi}: ${d.displayText} (${d.completionPercentage.toStringAsFixed(1)}%)');
+      }
+      print('═══════════════════════════════════════');
     } catch (e) {
       print('❌ Error loading data: $e');
       setState(() {
         _isLoading = false;
         // Fallback: hiển thị với count = 0
-        _categoryData = AnimalCategory.allCategories.map((cat) {
+        _categoryData = AnimalCategory.getEnabledCategories().map((cat) {
           return AnimalCategoryData(
             category: cat,
             count: 0,
@@ -229,8 +237,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildCategorySection(AnimalCategoryData data, int sectionIndex) {
-    final hasData = data.count > 0;
-    print('📊 ${data.category.nameVi}: count=${data.count}, hasData=$hasData');
+    final hasData = data.hasData;
 
     return TweenAnimationBuilder<double>(
       duration: Duration(milliseconds: 400 + (sectionIndex * 100)),
@@ -259,7 +266,7 @@ class _HomeScreenState extends State<HomeScreen>
                   child: Icon(
                     data.category.icon,
                     color: Colors.white,
-                    size: 20,
+                    size: 24,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -272,6 +279,10 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                 ),
                 const SizedBox(width: 8),
+
+                // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                // 🎯 BADGE: Hiển thị số thực tế / tổng
+                // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
@@ -281,7 +292,7 @@ class _HomeScreenState extends State<HomeScreen>
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    hasData ? '${data.count} giống' : 'Sắp ra mắt',
+                    data.displayText, // 👈 "75 giống" hoặc "100/10000 loài"
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
@@ -289,29 +300,52 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                   ),
                 ),
+
+                // Progress indicator (nếu chưa đầy đủ)
+                if (hasData && data.completionPercentage < 80)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: SizedBox(
+                      width: 50,
+                      height: 4,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(2),
+                        child: LinearProgressIndicator(
+                          value: data.completionPercentage / 100,
+                          backgroundColor: Colors.grey.withOpacity(0.2),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            data.category.gradient[0],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
             const SizedBox(height: 16),
 
-            // Grid 2x3 (6 con)
-            _buildAnimalGrid(data),
+            // Card
+            _buildAnimalCard(data),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildAnimalGrid(AnimalCategoryData data) {
-    final hasData = data.count > 0;
+  Widget _buildAnimalCard(AnimalCategoryData data) {
+    final hasData = data.hasData;
 
     return GestureDetector(
       onTap: () {
         if (hasData) {
-          // TODO: Navigate to breed list
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Xem tất cả ${data.category.nameVi}'),
-              backgroundColor: data.category.gradient[0],
+          // Navigate to breed list screen
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => BreedListScreen(
+                category: data.category,
+                totalCount: data.count,
+              ),
             ),
           );
         } else {
@@ -339,13 +373,13 @@ class _HomeScreenState extends State<HomeScreen>
           borderRadius: BorderRadius.circular(20),
           child: Stack(
             children: [
-              // Background Image - DÙNG ASSET LOCAL
+              // Background Image
               Positioned.fill(
                 child: Image.asset(
                   data.category.imageAssetPath,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
-                    // Fallback nếu không có ảnh local
+                    // Fallback gradient nếu không có ảnh
                     return Container(
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
@@ -409,7 +443,7 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                 ),
 
-              // Glass button ở dưới
+              // Glass button
               Positioned(
                 bottom: 16,
                 left: 16,
