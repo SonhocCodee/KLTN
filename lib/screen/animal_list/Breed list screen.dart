@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import '../../services/animal_home_service.dart';
 import '../models/animal_category_model.dart';
 import 'Animal detail screen.dart';
+
 
 class BreedListScreen extends StatefulWidget {
   final AnimalCategory category;
@@ -36,12 +39,24 @@ class _BreedListScreenState extends State<BreedListScreen> {
     try {
       final animals = await _service.getAnimalsByType(widget.category.id);
 
+      // 🔍 DEBUG
+      print('═══════════════════════════════════════');
+      print('📊 Loaded ${animals.length} ${widget.category.nameVi}');
+      if (animals.isNotEmpty) {
+        print('📋 Sample check (first 3):');
+        for (int i = 0; i < (animals.length > 3 ? 3 : animals.length); i++) {
+          final animal = animals[i];
+          print('${i + 1}. ${animal['name_vietnamese']}');
+          print('   image_url: ${animal['image_url']}');
+          print('   has image: ${animal['image_url'] != null && animal['image_url'].toString().isNotEmpty}');
+        }
+      }
+      print('═══════════════════════════════════════\n');
+
       setState(() {
         _animals = animals;
         _isLoading = false;
       });
-
-      print('✅ Loaded ${animals.length} ${widget.category.nameVi}');
     } catch (e) {
       print('❌ Error loading animals: $e');
       setState(() => _isLoading = false);
@@ -77,13 +92,9 @@ class _BreedListScreenState extends State<BreedListScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              // Header với back button
               _buildHeader(),
-
-              // Search bar
               _buildSearchBar(),
 
-              // Content
               if (_isLoading)
                 const Expanded(
                   child: Center(
@@ -97,7 +108,9 @@ class _BreedListScreenState extends State<BreedListScreen> {
               else
                 Expanded(
                   child: RefreshIndicator(
-                    onRefresh: _loadAnimals,
+                    onRefresh: () async {
+                      await _loadAnimals();
+                    },
                     color: widget.category.gradient[0],
                     child: GridView.builder(
                       padding: const EdgeInsets.all(16),
@@ -126,7 +139,6 @@ class _BreedListScreenState extends State<BreedListScreen> {
       padding: const EdgeInsets.all(20),
       child: Row(
         children: [
-          // Back button
           Container(
             decoration: BoxDecoration(
               color: Colors.white,
@@ -154,7 +166,6 @@ class _BreedListScreenState extends State<BreedListScreen> {
 
           const SizedBox(width: 16),
 
-          // Icon & Title
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
@@ -193,7 +204,50 @@ class _BreedListScreenState extends State<BreedListScreen> {
               ],
             ),
           ),
+
+          // 🔥 CLEAR CACHE BUTTON
+          _buildClearCacheButton(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildClearCacheButton() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () async {
+            // Clear cache và reload
+            await DefaultCacheManager().emptyCache();
+            await _loadAnimals();
+
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text('✅ Cache cleared & reloaded'),
+                  backgroundColor: widget.category.gradient[0],
+                ),
+              );
+            }
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: const Padding(
+            padding: EdgeInsets.all(12),
+            child: Icon(Icons.refresh, size: 24),
+          ),
+        ),
       ),
     );
   }
@@ -268,16 +322,6 @@ class _BreedListScreenState extends State<BreedListScreen> {
                 color: Colors.grey.shade600,
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              _searchQuery.isEmpty
-                  ? 'Dữ liệu đang được cập nhật'
-                  : 'Thử từ khóa khác',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade500,
-              ),
-            ),
           ],
         ),
       ),
@@ -287,7 +331,13 @@ class _BreedListScreenState extends State<BreedListScreen> {
   Widget _buildAnimalCard(Map<String, dynamic> animal) {
     final nameVi = animal['name_vietnamese'] ?? 'Chưa có tên';
     final nameEn = animal['name_english'] ?? '';
-    final imageUrl = animal['image_url'] ?? '';
+
+    // 🔥 CRITICAL: Check và force reload nếu cần
+    final dynamic imageUrlRaw = animal['image_url'];
+    final String imageUrl = (imageUrlRaw != null && imageUrlRaw.toString().isNotEmpty)
+        ? imageUrlRaw.toString()
+        : '';
+
     final conservationStatus = animal['conservation_status'] ?? '';
     final isEndangered = animal['is_endangered'] ?? false;
 
@@ -329,24 +379,30 @@ class _BreedListScreenState extends State<BreedListScreen> {
                       // Main image
                       Positioned.fill(
                         child: imageUrl.isNotEmpty
-                            ? Image.network(
-                          imageUrl,
+                            ? CachedNetworkImage(
+                          imageUrl: imageUrl,
+                          // 🔥 KEY: Thêm cacheKey unique để force reload
+
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
+
+                          placeholder: (context, url) => Center(
+                            child: CircularProgressIndicator(
+                              color: widget.category.gradient[0],
+                              strokeWidth: 2,
+                            ),
+                          ),
+                          errorWidget: (context, url, error) {
+                            print('❌ Image error: $nameEn');
+                            print('   URL: $url');
+                            print('   Error: $error');
                             return _buildPlaceholderImage();
                           },
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return Center(
-                              child: CircularProgressIndicator(
-                                value: loadingProgress.expectedTotalBytes != null
-                                    ? loadingProgress.cumulativeBytesLoaded /
-                                    loadingProgress.expectedTotalBytes!
-                                    : null,
-                                color: widget.category.gradient[0],
-                              ),
-                            );
+                          httpHeaders: const {
+                            'User-Agent': 'MyAnimalApp/1.0 (son623200@gmail.com)',
                           },
+                          // 🔥 Force reload từ network nếu cache expired
+                          maxWidthDiskCache: 600,
+                          maxHeightDiskCache: 600,
                         )
                             : _buildPlaceholderImage(),
                       ),
