@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../Nav_bar/main_layout.dart';
+import '../Nav_bar/navbar.dart';
 import 'daily_fact_screen.dart';
 import 'home_screen.dart';
 
@@ -37,8 +39,7 @@ class _HomeWrapperState extends State<HomeWrapper> {
             : const ClampingScrollPhysics(), // Trang Daily có thể vuốt lên
         children: const [
           DailyFactScreen(),
-          HomeScreen(),
-        ],
+          MainLayout(),        ],
       ),
     );
   }

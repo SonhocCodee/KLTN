@@ -98,6 +98,7 @@ class _HomeScreenState extends State<HomeScreen>
           ),
         ),
         child: SafeArea(
+          bottom: false,
           child: Column(
             children: [
               // Header
@@ -128,15 +129,11 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                 ),
 
-              const SizedBox(height: 80), // Space cho FAB
             ],
           ),
         ),
       ),
 
-      // Floating Camera Button
-      floatingActionButton: _buildCameraButton(),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
@@ -489,62 +486,6 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCameraButton() {
-    return ScaleTransition(
-      scale: CurvedAnimation(
-        parent: _controller,
-        curve: Curves.elasticOut,
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF34D399), Color(0xFF14B8A6)],
-          ),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF34D399).withOpacity(0.5),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Mở camera...'),
-                  backgroundColor: Color(0xFF34D399),
-                ),
-              );
-            },
-            borderRadius: BorderRadius.circular(20),
-            child: const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.camera_alt, color: Colors.white, size: 24),
-                  SizedBox(width: 12),
-                  Text(
-                    'Chụp Ảnh',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ),
         ),
       ),

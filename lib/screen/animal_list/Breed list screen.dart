@@ -5,7 +5,6 @@ import '../../services/animal_home_service.dart';
 import '../models/animal_category_model.dart';
 import 'Animal detail screen.dart';
 
-
 class BreedListScreen extends StatefulWidget {
   final AnimalCategory category;
   final int totalCount;
@@ -109,6 +108,7 @@ class _BreedListScreenState extends State<BreedListScreen> {
                 Expanded(
                   child: RefreshIndicator(
                     onRefresh: () async {
+                      // ✅ ĐÃ SỬA: Chỉ tải lại dữ liệu, KHÔNG xóa cache ảnh
                       await _loadAnimals();
                     },
                     color: widget.category.gradient[0],
@@ -205,8 +205,7 @@ class _BreedListScreenState extends State<BreedListScreen> {
             ),
           ),
 
-          // 🔥 CLEAR CACHE BUTTON
-          _buildClearCacheButton(),
+
         ],
       ),
     );
@@ -229,7 +228,7 @@ class _BreedListScreenState extends State<BreedListScreen> {
         color: Colors.transparent,
         child: InkWell(
           onTap: () async {
-            // Clear cache và reload
+            // Chỉ xóa khi bấm nút này (Thủ công)
             await DefaultCacheManager().emptyCache();
             await _loadAnimals();
 
@@ -381,7 +380,9 @@ class _BreedListScreenState extends State<BreedListScreen> {
                         child: imageUrl.isNotEmpty
                             ? CachedNetworkImage(
                           imageUrl: imageUrl,
-                          // 🔥 KEY: Thêm cacheKey unique để force reload
+
+                          // ✅ ĐÃ SỬA: Dùng URL làm key để cache hoạt động đúng
+                          cacheKey: imageUrl,
 
                           fit: BoxFit.cover,
 
@@ -397,12 +398,15 @@ class _BreedListScreenState extends State<BreedListScreen> {
                             print('   Error: $error');
                             return _buildPlaceholderImage();
                           },
+                          // User-Agent chính chủ để tránh lỗi 429
                           httpHeaders: const {
                             'User-Agent': 'MyAnimalApp/1.0 (son623200@gmail.com)',
                           },
-                          // 🔥 Force reload từ network nếu cache expired
+                          // Tối ưu bộ nhớ
                           maxWidthDiskCache: 600,
                           maxHeightDiskCache: 600,
+                          memCacheHeight: 600,
+                          memCacheWidth: 600,
                         )
                             : _buildPlaceholderImage(),
                       ),
