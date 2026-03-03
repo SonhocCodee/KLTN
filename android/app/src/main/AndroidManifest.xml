@@ -1,5 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.CAMERA" />
     <application
+        android:requestLegacyExternalStorage="true"
         android:usesCleartextTraffic="true">
         android:label="kltn_app"
         android:name="${applicationName}"

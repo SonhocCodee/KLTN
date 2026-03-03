@@ -1,8 +1,10 @@
 // lib/main_layout.dart
 import 'package:flutter/material.dart';
 import '../ExploreScreen/ExploreScreen.dart';
+
 import '../IDENTIFY SCREEN/indentify_screen.dart';
 import '../Search_screen/search_screen.dart';
+import '../Search_smart/search_smart.dart';
 import '../home/home_screen.dart';
 import 'navbar.dart';
 // Import các màn hình thực tế của bạn tại đây
@@ -23,7 +25,7 @@ class _MainLayoutState extends State<MainLayout> {
     HomeScreen(),
     SearchScreen(),
     IdentifyScreen(),
-    ExploreScreen(),
+    AniQuestSmartApp(),
     Center(child: Text('Màn hình Cài Đặt')),   // SettingsScreen()
   ];
 
