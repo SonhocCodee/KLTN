@@ -1,67 +1,99 @@
-Abyssinian
-American Bobtail
-American Curl
-American Shorthair
-American Wirehair
-Applehead Siamese
-Balinese
-Bengal
-Birman
-Bombay
-British Shorthair
-Burmese
-Burmilla
-Calico
-Canadian Hairless
-Chartreux
-Chausie
-Chinchilla
-Cornish Rex
-Cymric
-Devon Rex
-Dilute Calico
-Dilute Tortoiseshell
-Domestic Long Hair
-Domestic Medium Hair
-Domestic Short Hair
-Egyptian Mau
-Exotic Shorthair
-Extra-Toes Cat - Hemingway Polydactyl
-Havana
-Himalayan
-Japanese Bobtail
-Javanese
-Korat
-LaPerm
-Maine Coon
-Manx
-Munchkin
-Nebelung
-Norwegian Forest Cat
-Ocicat
-Oriental Long Hair
-Oriental Short Hair
-Oriental Tabby
-Persian
-Pixiebob
-Ragamuffin
-Ragdoll
-Russian Blue
-Scottish Fold
-Selkirk Rex
-Siamese
-Siberian
-Silver
-Singapura
-Snowshoe
-Somali
-Sphynx - Hairless Cat
-Tabby
-Tiger
-Tonkinese
-Torbie
-Tortoiseshell
-Turkish Angora
-Turkish Van
-Tuxedo
-York Chocolate
+abyssinian
+aegean
+african_lion
+american_bobtail
+american_curl
+american_shorthair
+american_wirehair
+aphrodite_giant
+arabian_mau
+asiatic_lion
+australian_mist
+bali_tiger
+balinese
+bambino
+bengal
+bengal_tiger
+birman
+bombay
+brazilian_shorthair
+british_longhair
+british_shorthair
+burmese
+burmilla
+california_spangled
+caspian_tiger
+chantilly_tiffany
+chartreux
+chausie
+cheetoh
+colorpoint_shorthair
+cornish_rex
+cymric
+cyprus
+devon_rex
+donskoy
+dragon_li
+east_african_lion
+egyptian_mau
+european_shorthair
+exotic_shorthair
+german_rex
+havana_brown
+highlander
+himalayan
+indochinese_tiger
+japanese_bobtail
+javan_tiger
+javanese
+kanaani
+khao_manee
+kinkalow
+korat
+kurilian_bobtail
+laperm
+lykoi
+maine_coon
+malayan_tiger
+manx
+mekong_bobtail
+minskin
+minuet
+munchkin
+nebelung
+norwegian_forest_cat
+ocicat
+ojos_azules
+oregon_rex
+oriental_bicolour
+oriental_longhair
+oriental_shorthair
+persian
+peterbald
+pixie_bob
+ragamuffin
+ragdoll
+russian_blue
+savannah
+scottish_fold
+selkirk_rex
+serengeti
+siamese
+siberian
+siberian_tiger
+singapura
+snowshoe
+sokoke
+somali
+south_china_tiger
+southern_african_lion
+sphynx
+sumatran_tiger
+thai
+tonkinese
+toyger
+turkish_angora
+turkish_van
+ukranian_levkoy
+west_african_lion
+york_chocolate
