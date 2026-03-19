@@ -1,9 +1,20 @@
 // File: services/extended_animal_image.dart
+//
+// Widget hiển thị ảnh động vật với flow:
+//  1. Check SharedImageCacheService (Supabase Storage) → dùng nếu có
+//  2. Tải ảnh gốc → gọi ClipDrop extend
+//  3. Upload kết quả lên Supabase Storage (SharedImageCacheService)
+//  4. Người dùng tiếp theo đọc thẳng từ Supabase → không cần gọi ClipDrop nữa
+//
+// Lưu ý: Base64 từ ClipDrop KHÔNG được lưu SharedPreferences (quá lớn).
+// Thay vào đó upload lên Supabase Storage và lưu public URL.
+
 import 'package:flutter/material.dart';
-import 'dart:convert'; // Import để decode base64 nếu cần
-import '../services/extended_image_cache.dart';
-import '../utils/smart_animal_image.dart';
+import 'dart:convert';
+import 'dart:typed_data';
+import 'package:http/http.dart' as http;
 import 'Clipdrop image service.dart';
+import 'shared_image_cache_service.dart';
 
 class ExtendedAnimalImage extends StatefulWidget {
   final String originalImageUrl;
@@ -24,13 +35,10 @@ class ExtendedAnimalImage extends StatefulWidget {
 }
 
 class _ExtendedAnimalImageState extends State<ExtendedAnimalImage> {
-  String? _displayImageUrl;
+  String? _displayImageUrl;   // URL hoặc 'data:image/...' base64
   bool _isProcessing = true;
   bool _isExtended = false;
-  String? _error;
   String? _usedService;
-
-  // ❌ ĐÃ XÓA DÒNG GÂY LỖI: get ClipDropImageService => null;
 
   @override
   void initState() {
@@ -46,223 +54,214 @@ class _ExtendedAnimalImageState extends State<ExtendedAnimalImage> {
     }
   }
 
+  // ─────────────────────────────────────────────────────────────
+  // LOGIC CHÍNH
+  // ─────────────────────────────────────────────────────────────
   Future<void> _loadImage() async {
     if (!mounted) return;
     setState(() {
       _isProcessing = true;
-      _error = null;
-      _isExtended = false;
       _usedService = null;
+      _isExtended = false;
     });
 
-    print('🎨 Loading image for: ${widget.animalName}');
+    print('🖼️ [ExtImage] Loading: ${widget.animalName}');
 
     try {
-      // BƯỚC 1: Check cache
-      final cachedUrl = await ExtendedImageCache.getExtendedImage(
+      // ── BƯỚC 1: Check Supabase shared cache (URL công khai) ──
+      final sharedUrl = await SharedImageCacheService.getSharedCachedImage(
         widget.originalImageUrl,
       );
 
-      if (cachedUrl != null) {
-        print('💾 Using cached extended image');
-        if (mounted) {
-          setState(() {
-            _displayImageUrl = cachedUrl;
-            _isExtended = true;
-            _isProcessing = false;
-            _usedService = 'cache';
-          });
-        }
+      if (sharedUrl != null && sharedUrl.isNotEmpty) {
+        print('✅ [ExtImage] Dùng Supabase shared cache');
+        _setDisplay(sharedUrl, 'supabase_cache', extended: true);
         return;
       }
 
-      // BƯỚC 2: Thử ClipDrop trước (Vì Replicate đang hết tiền)
-      print('🚀 Trying ClipDrop API...');
-      final clipDropUrl = await ClipDropImageService.extendAnimalImage(
+      // ── BƯỚC 2: Nếu URL là data URI (đã extended trước đó) ──
+      if (widget.originalImageUrl.startsWith('data:image')) {
+        _setDisplay(widget.originalImageUrl, 'local_base64', extended: true);
+        return;
+      }
+
+      // ── BƯỚC 3: Gọi ClipDrop ──
+      print('🚀 [ExtImage] Gọi ClipDrop API...');
+      final clipDropResult = await ClipDropImageService.extendAnimalImage(
         originalImageUrl: widget.originalImageUrl,
       );
 
-      if (clipDropUrl != null && clipDropUrl.isNotEmpty) {
-        print('✅ ClipDrop succeeded!');
-        await _saveAndDisplay(clipDropUrl, 'clipdrop');
+      if (clipDropResult != null && clipDropResult.isNotEmpty) {
+        print('✅ [ExtImage] ClipDrop thành công');
+
+        // Upload kết quả lên Supabase Storage để share cho mọi người
+        if (clipDropResult.startsWith('data:image')) {
+          final base64Str = clipDropResult.split(',').last;
+          final bytes = base64Decode(base64Str);
+          await _uploadToSharedCache(bytes);
+        }
+
+        _setDisplay(clipDropResult, 'clipdrop', extended: true);
         return;
       }
 
+      // ── BƯỚC 4: Fallback ảnh gốc ──
+      print('⚠️ [ExtImage] Fallback về ảnh gốc');
+      _setDisplay(widget.originalImageUrl, 'original', extended: false);
 
-
-
-
-      // BƯỚC 4: Fallback về ảnh gốc
-      print('⚠️ All AI services failed, using original image');
-      if (mounted) {
-        setState(() {
-          _displayImageUrl = widget.originalImageUrl;
-          _isExtended = false;
-          _isProcessing = false;
-          _usedService = 'original';
-          _error = 'AI processing unavailable';
-        });
-      }
-
-    } catch (e, stackTrace) {
-      print('❌ Error loading image: $e');
-      print('   Stack: $stackTrace');
-
-      if (mounted) {
-        setState(() {
-          _displayImageUrl = widget.originalImageUrl;
-          _isExtended = false;
-          _isProcessing = false;
-          _usedService = 'original';
-          _error = e.toString();
-        });
-      }
+    } catch (e) {
+      print('❌ [ExtImage] Error: $e');
+      _setDisplay(widget.originalImageUrl, 'original', extended: false);
     }
   }
 
-  Future<void> _saveAndDisplay(String url, String service) async {
-    // Lưu cache (Lưu ý: DataURI khá dài, SharedPreferences có thể bị đầy nếu lưu nhiều)
-    // Với ClipDrop trả về Base64 dài, bạn nên cân nhắc lưu file local thay vì lưu chuỗi vào SharedPref
-    // Nhưng để test nhanh thì cứ lưu tạm.
-
-    if (url.length < 1000000) { // Chỉ cache nếu chuỗi không quá lớn (<1MB)
-      await ExtendedImageCache.saveExtendedImage(
-        originalUrl: widget.originalImageUrl,
-        extendedUrl: url,
+  /// Upload ảnh lên Supabase Storage và lưu URL vào shared cache
+  Future<void> _uploadToSharedCache(Uint8List bytes) async {
+    try {
+      final publicUrl = await SharedImageCacheService.uploadAndSaveSharedCache(
+        originalImageUrl: widget.originalImageUrl,
+        imageBytes: bytes,
+        animalName: widget.animalName,
       );
-    }
-
-    if (mounted) {
-      setState(() {
-        _displayImageUrl = url;
-        _isExtended = true;
-        _isProcessing = false;
-        _usedService = service;
-      });
+      if (publicUrl != null) {
+        print('☁️ [ExtImage] Đã upload lên Supabase: $publicUrl');
+        // Cập nhật display sang URL public luôn (thay thế base64)
+        if (mounted) {
+          setState(() {
+            _displayImageUrl = publicUrl;
+          });
+        }
+      }
+    } catch (e) {
+      print('⚠️ [ExtImage] Upload Supabase thất bại: $e');
     }
   }
 
+  void _setDisplay(String url, String service, {required bool extended}) {
+    if (!mounted) return;
+    setState(() {
+      _displayImageUrl = url;
+      _usedService = service;
+      _isExtended = extended;
+      _isProcessing = false;
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // BUILD UI
+  // ─────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     if (_isProcessing) {
-      return widget.loadingWidget ?? _buildLoadingWidget();
+      return widget.loadingWidget ?? _buildLoading();
     }
 
     if (_displayImageUrl == null) {
-      return widget.errorWidget ?? _buildErrorWidget();
+      return widget.errorWidget ?? _buildError();
     }
 
-    // Xử lý hiển thị ảnh Base64 hoặc URL thường
-    ImageProvider imageProvider;
+    // Chọn ImageProvider phù hợp
+    final ImageProvider imgProvider;
     if (_displayImageUrl!.startsWith('data:image')) {
-      // Xử lý Base64 Data URI
-      final base64String = _displayImageUrl!.split(',').last;
-      imageProvider = MemoryImage(base64Decode(base64String));
+      final b64 = _displayImageUrl!.split(',').last;
+      imgProvider = MemoryImage(base64Decode(b64));
     } else {
-      // URL thường
-      imageProvider = NetworkImage(_displayImageUrl!);
+      imgProvider = NetworkImage(_displayImageUrl!);
     }
 
     return Stack(
       children: [
         Positioned.fill(
           child: Image(
-            image: imageProvider,
+            image: imgProvider,
             fit: BoxFit.cover,
-            errorBuilder: (ctx, err, stack) => _buildErrorWidget(),
+            errorBuilder: (_, __, ___) => _buildError(),
           ),
         ),
 
-        // Gradient che mờ nếu cần thiết để text dễ đọc
+        // Overlay nhẹ khi ảnh đã được extend
         if (_isExtended)
           Positioned.fill(
-            child: Container(
-              color: Colors.black.withOpacity(0.1), // Overlay nhẹ
-            ),
+            child: Container(color: Colors.black.withOpacity(0.05)),
           ),
 
-        // Badge Service
-        if (_usedService != null && _usedService != 'cache')
+        // Badge trạng thái (ẩn nếu dùng cache)
+        if (_usedService != null && _usedService != 'supabase_cache')
           Positioned(
             top: 60,
             right: 16,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: _getBadgeColor(),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(_getBadgeIcon(), size: 16, color: Colors.white),
-                  const SizedBox(width: 6),
-                  Text(
-                    _getBadgeText(),
-                    style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
-                  ),
-                ],
-              ),
-            ),
+            child: _buildBadge(),
           ),
       ],
     );
   }
 
-  // ... (Giữ nguyên các hàm _getBadgeColor, _getBadgeIcon, _buildLoadingWidget...)
+  Widget _buildBadge() {
+    final (color, icon, label) = switch (_usedService) {
+      'clipdrop'      => (Colors.blue.shade700, Icons.crop_free, 'ClipDrop AI'),
+      'local_base64'  => (Colors.purple.shade700, Icons.memory, 'Cache local'),
+      'original'      => (Colors.orange.shade700, Icons.info_outline, 'Ảnh gốc'),
+      _               => (Colors.grey.shade700, Icons.image, 'Unknown'),
+    };
 
-  Color _getBadgeColor() {
-    switch (_usedService) {
-      case 'replicate': return Colors.green.withOpacity(0.9);
-      case 'clipdrop': return Colors.blue.withOpacity(0.9);
-      case 'original': return Colors.orange.withOpacity(0.9);
-      default: return Colors.grey.withOpacity(0.9);
-    }
-  }
-
-  IconData _getBadgeIcon() {
-    switch (_usedService) {
-      case 'replicate': return Icons.auto_awesome;
-      case 'clipdrop': return Icons.crop_free;
-      case 'original': return Icons.info_outline;
-      default: return Icons.image;
-    }
-  }
-
-  String _getBadgeText() {
-    switch (_usedService) {
-      case 'replicate': return 'Replicate AI';
-      case 'clipdrop': return 'ClipDrop AI';
-      case 'original': return 'Original image';
-      default: return 'Unknown';
-    }
-  }
-
-  Widget _buildLoadingWidget() {
     return Container(
-      color: const Color(0xFF1a1a2e),
-      child: Center(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.85),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: Colors.white),
+          const SizedBox(width: 5),
+          Text(label,
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoading() {
+    return Container(
+      color: const Color(0xFF0F172A),
+      child: const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const CircularProgressIndicator(color: Colors.white),
-            const SizedBox(height: 16),
-            const Text('Đang xử lý ảnh (ClipDrop)...', style: TextStyle(color: Colors.white)),
+            CircularProgressIndicator(color: Colors.white),
+            SizedBox(height: 12),
+            Text(
+              'Đang xử lý ảnh...',
+              style: TextStyle(color: Colors.white70, fontSize: 13),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildErrorWidget() {
+  Widget _buildError() {
     return Container(
-      color: Colors.black,
+      color: const Color(0xFF0F172A),
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.broken_image, color: Colors.white54, size: 50),
-            TextButton(onPressed: _loadImage, child: const Text('Thử lại')),
+            const Icon(Icons.broken_image, color: Colors.white38, size: 56),
+            const SizedBox(height: 12),
+            const Text('Không tải được ảnh',
+                style: TextStyle(color: Colors.white54)),
+            const SizedBox(height: 12),
+            TextButton.icon(
+              onPressed: _loadImage,
+              icon: const Icon(Icons.refresh, color: Colors.white),
+              label: const Text('Thử lại',
+                  style: TextStyle(color: Colors.white)),
+            ),
           ],
         ),
       ),
