@@ -10,7 +10,7 @@ import 'package:http/http.dart' as http;
 
 // Import trang chi tiết và model — chỉnh đường dẫn cho đúng với project
 import '../animal_list/Animal detail screen.dart';
-import '../models/animal_category_model.dart';
+import '../home/animal_category_model.dart';
 
 
 class IdentifyScreen extends StatefulWidget {

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import '../../services/animal_home_service.dart';
-import '../models/animal_category_model.dart';
+import '../home/animal_category_model.dart';
 import 'Animal detail screen.dart';
 
 class BreedListScreen extends StatefulWidget {

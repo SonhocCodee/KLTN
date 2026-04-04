@@ -25,6 +25,9 @@ dependencies:
   google_generative_ai: ^0.4.7
   tflite_flutter: ^0.12.1
   image: ^4.1.0
+  flutter_staggered_animations: ^1.1.1
+  lottie: ^3.1.0
+  simple_animations: ^5.0.0
 
 
 
@@ -45,4 +48,5 @@ flutter:
       - assets/cat_classifier.tflite
       - assets/labels.txt
       - assets/
+      - assets/icons/
 

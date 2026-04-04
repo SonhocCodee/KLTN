@@ -1,13 +1,4 @@
-// File: screens/daily_fact_screen.dart
-//
-// ĐÃ SỬA:
-// 1. Dùng đúng tên cột database (name_vietnamese, name_english, scientific_name,
-//    description_short, fun_fact_vietnamese, image_url, diet_type, primary_habitat,
-//    max_speed_kmh, weight_avg_kg, lifespan_avg_years, conservation_status, etc.)
-// 2. Đơn vị Việt Nam: kg, km/h, cm/m, năm
-// 3. Flow cache đúng: check Supabase shared cache → generate nếu chưa có → lưu lại
-// 4. Ảnh lấy từ field image_url trong DB trước, Wikipedia là fallback
-// 5. SharedImageCacheService được tích hợp vào flow chính
+
 
 import 'package:flutter/material.dart';
 import 'dart:convert';
@@ -29,12 +20,30 @@ class DailyFactScreen extends StatefulWidget {
 class _DailyFactScreenState extends State<DailyFactScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  // Getter lazy — tránh gọi trước khi Supabase.initialize() xong
   SupabaseClient get _supabase => Supabase.instance.client;
 
   AnimalFact? _todayFact;
   bool _isLoading = true;
   String? _error;
+
+  // Danh sách tất cả bảng có thể random (mỗi bảng là độc lập)
+  static const _allTables = ['animals', 'cats', 'dogs', 'tigers', 'lions', 'bears', 'horses', 'cattle', 'buffalo'];
+
+  // Các cột cần select (chỉ những cột tồn tại trong schema)
+  static const _selectCols =
+      'id, name_vietnamese, name_english, scientific_name, '
+      'description_short, description_long, '
+      'fun_fact_vietnamese, fun_fact_english, '
+      'image_url, image_urls, '
+      'diet_type, primary_habitat, '
+      'weight_avg_kg, height_avg_m, length_avg_m, '
+      'max_speed_kmh, lifespan_avg_years, '
+      'conservation_status, is_endangered, '
+      'geographic_regions, countries, '
+      'social_structure, activity_pattern, '
+      'gestation_period_days, litter_size_avg, '
+      'has_horns, has_tusks, has_mane, has_wings, has_trunk, '
+      'temperament, danger_to_humans, intelligence_level';
 
   // ─────────────────────────────────────────────────────────────
   // KHỞI TẠO
@@ -56,235 +65,171 @@ class _DailyFactScreenState extends State<DailyFactScreen>
   }
 
   // ─────────────────────────────────────────────────────────────
-  // FORMAT ĐƠN VỊ VIỆT NAM
+  // FORMAT SỐ
   // ─────────────────────────────────────────────────────────────
-
-  /// Chuyển đổi tất cả đơn vị sang Việt Nam
-  String _formatVietnameseUnits(String? text) {
-    if (text == null || text.isEmpty) return '';
-    var result = text;
-
-    // mph → km/h
-    final mphRegex = RegExp(r'(\d+(?:\.\d+)?)\s*(?:–|-|to)\s*(\d+(?:\.\d+)?)\s*mph');
-    result = result.replaceAllMapped(mphRegex, (m) {
-      final low = (double.parse(m.group(1)!) * 1.609).round();
-      final high = (double.parse(m.group(2)!) * 1.609).round();
-      return '$low–$high km/h';
-    });
-    final mphSingle = RegExp(r'(\d+(?:\.\d+)?)\s*mph');
-    result = result.replaceAllMapped(mphSingle, (m) {
-      final speed = (double.parse(m.group(1)!) * 1.609).round();
-      return '$speed km/h';
-    });
-
-    // lbs / pounds → kg
-    final lbsRegex = RegExp(r'(\d+(?:\.\d+)?)\s*(?:–|-|to)\s*(\d+(?:\.\d+)?)\s*(?:lbs?|pounds?)');
-    result = result.replaceAllMapped(lbsRegex, (m) {
-      final low = (double.parse(m.group(1)!) * 0.453).round();
-      final high = (double.parse(m.group(2)!) * 0.453).round();
-      return '$low–$high kg';
-    });
-    final lbsSingle = RegExp(r'(\d+(?:\.\d+)?)\s*(?:lbs?|pounds?)');
-    result = result.replaceAllMapped(lbsSingle, (m) {
-      final kg = (double.parse(m.group(1)!) * 0.453).round();
-      return '$kg kg';
-    });
-
-    // feet → cm hoặc m
-    final feetRegex = RegExp(r'(\d+(?:\.\d+)?)\s*(?:–|-|to)\s*(\d+(?:\.\d+)?)\s*(?:feet|ft)');
-    result = result.replaceAllMapped(feetRegex, (m) {
-      final low = (double.parse(m.group(1)!) * 30.48).round();
-      final high = (double.parse(m.group(2)!) * 30.48).round();
-      return '${low}–${high} cm';
-    });
-    final feetSingle = RegExp(r'(\d+(?:\.\d+)?)\s*(?:feet|ft)');
-    result = result.replaceAllMapped(feetSingle, (m) {
-      final cm = (double.parse(m.group(1)!) * 30.48).round();
-      return '$cm cm';
-    });
-
-    // inches → cm
-    final inchRegex = RegExp(r'(\d+(?:\.\d+)?)\s*(?:inches?|in\b)');
-    result = result.replaceAllMapped(inchRegex, (m) {
-      final cm = (double.parse(m.group(1)!) * 2.54).round();
-      return '$cm cm';
-    });
-
-    // miles → km
-    final milesRegex = RegExp(r'(\d+(?:\.\d+)?)\s*miles?');
-    result = result.replaceAllMapped(milesRegex, (m) {
-      final km = (double.parse(m.group(1)!) * 1.609).round();
-      return '$km km';
-    });
-
-    // Địa danh tiếng Anh → tiếng Việt
-    const locationMap = {
-      'Sub-Saharan Africa': 'Châu Phi hạ Sahara',
-      'North Africa': 'Bắc Phi',
-      'South Africa': 'Nam Phi',
-      'Africa': 'Châu Phi',
-      'Asia': 'Châu Á',
-      'Southeast Asia': 'Đông Nam Á',
-      'South Asia': 'Nam Á',
-      'East Asia': 'Đông Á',
-      'Central Asia': 'Trung Á',
-      'Europe': 'Châu Âu',
-      'North America': 'Bắc Mỹ',
-      'South America': 'Nam Mỹ',
-      'Central America': 'Trung Mỹ',
-      'Australia': 'Châu Úc',
-      'Antarctica': 'Nam Cực',
-      'Arctic': 'Bắc Cực',
-      'Amazon': 'Amazon',
-      'Savanna': 'Thảo nguyên',
-      'savanna': 'thảo nguyên',
-      'Rainforest': 'Rừng nhiệt đới',
-      'rainforest': 'rừng nhiệt đới',
-      'Forest': 'Rừng',
-      'forest': 'rừng',
-      'Desert': 'Sa mạc',
-      'desert': 'sa mạc',
-      'Ocean': 'Đại dương',
-      'ocean': 'đại dương',
-      'Grassland': 'Đồng cỏ',
-      'grassland': 'đồng cỏ',
-      'Tropical': 'Nhiệt đới',
-      'tropical': 'nhiệt đới',
-      'Mountain': 'Núi',
-      'mountain': 'núi',
-      'Wetland': 'Đất ngập nước',
-      'wetland': 'đất ngập nước',
-    };
-
-    locationMap.forEach((en, vi) {
-      result = result.replaceAll(en, vi);
-    });
-
-    return result.trim();
+  String _fmt(dynamic val, {int decimals = 1}) {
+    if (val == null) return '?';
+    final d = (val is num) ? val.toDouble() : double.tryParse(val.toString()) ?? 0;
+    if (d == d.roundToDouble()) return d.round().toString();
+    return d.toStringAsFixed(decimals);
   }
 
-  /// Build chuỗi mô tả thống kê từ các trường số trong DB
-  String _buildDescription(Map<String, dynamic> animal) {
-    final List<String> parts = [];
+  // ─────────────────────────────────────────────────────────────
+  // BUILD DESCRIPTION từ DB
+  // ─────────────────────────────────────────────────────────────
+  String _buildDescription(Map<String, dynamic> a) {
+    final descVi = a['description_short'] as String?;
+    if (descVi != null && descVi.trim().isNotEmpty) return descVi.trim();
 
-    // Mô tả gốc (tiếng Việt nếu có)
-    final descVi = animal['description_short'] as String?;
-    if (descVi != null && descVi.isNotEmpty) {
-      parts.add(_formatVietnameseUnits(descVi));
+    final descLong = a['description_long'] as String?;
+    if (descLong != null && descLong.trim().isNotEmpty) {
+      // Lấy câu đầu tiên từ description_long
+      final firstSentence = descLong.split(RegExp(r'[.!?]')).first.trim();
+      if (firstSentence.isNotEmpty) return '$firstSentence.';
     }
 
-    return parts.join(' ');
+    // Build mô tả từ các trường có sẵn
+    final parts = <String>[];
+    final habitat = _mapHabitat(a['primary_habitat'] as String?);
+    final regions = (a['geographic_regions'] as List?)?.map((e) => _mapRegion(e.toString())).toList();
+
+    if (habitat != null) parts.add('Sống ở $habitat');
+    if (regions != null && regions.isNotEmpty) parts.add('phân bố tại ${regions.take(2).join(', ')}');
+
+    return parts.isNotEmpty ? '${parts.join(', ')}.' : '';
   }
 
-  /// Build danh sách facts từ các trường DB
-  List<String> _buildFacts(Map<String, dynamic> animal) {
-    final List<String> facts = [];
+  // ─────────────────────────────────────────────────────────────
+  // BUILD FACTS từ các cột thực tế trong DB
+  // ─────────────────────────────────────────────────────────────
+  List<String> _buildFacts(Map<String, dynamic> a) {
+    final facts = <String>[];
 
-    // Cân nặng
-    final wMin = animal['weight_min_kg'];
-    final wMax = animal['weight_max_kg'];
-    final wAvg = animal['weight_avg_kg'];
-    if (wMin != null && wMax != null) {
-      facts.add('Cân nặng: ${_formatNum(wMin)}–${_formatNum(wMax)} kg');
-    } else if (wAvg != null) {
-      facts.add('Cân nặng trung bình: ${_formatNum(wAvg)} kg');
-    }
+    // Cân nặng (chỉ có avg)
+    final weight = a['weight_avg_kg'];
+    if (weight != null) facts.add('⚖️ Cân nặng: ${_fmt(weight)} kg');
 
     // Chiều dài
-    final lMin = animal['length_min_m'];
-    final lMax = animal['length_max_m'];
-    if (lMin != null && lMax != null) {
-      final lowCm = (lMin * 100).round();
-      final highCm = (lMax * 100).round();
-      if (highCm > 200) {
-        facts.add('Chiều dài: ${lMin.toStringAsFixed(1)}–${lMax.toStringAsFixed(1)} m');
+    final length = a['length_avg_m'];
+    if (length != null) {
+      final cm = ((length as num).toDouble() * 100).round();
+      if (cm > 200) {
+        facts.add('📏 Chiều dài: ${_fmt(length)} m');
       } else {
-        facts.add('Chiều dài: $lowCm–$highCm cm');
+        facts.add('📏 Chiều dài: $cm cm');
       }
     }
 
-    // Tốc độ tối đa
-    final speed = animal['max_speed_kmh'];
-    if (speed != null) {
-      facts.add('Tốc độ tối đa: ${_formatNum(speed)} km/h');
+    // Chiều cao
+    final height = a['height_avg_m'];
+    if (height != null && length == null) {
+      final cm = ((height as num).toDouble() * 100).round();
+      facts.add('📐 Chiều cao: $cm cm');
     }
+
+    // Tốc độ tối đa
+    final speed = a['max_speed_kmh'];
+    if (speed != null) facts.add('💨 Tốc độ tối đa: ${_fmt(speed)} km/h');
 
     // Tuổi thọ
-    final lifeMin = animal['lifespan_min_years'];
-    final lifeMax = animal['lifespan_max_years'];
-    if (lifeMin != null && lifeMax != null) {
-      facts.add('Tuổi thọ: $lifeMin–$lifeMax năm');
-    }
+    final lifespan = a['lifespan_avg_years'];
+    if (lifespan != null) facts.add('⏳ Tuổi thọ: ~${_fmt(lifespan)} năm');
 
     // Chế độ ăn
-    final dietType = animal['diet_type'] as String?;
-    if (dietType != null) {
-      const dietMap = {
-        'carnivore': 'Ăn thịt (Carnivore)',
-        'herbivore': 'Ăn cỏ (Herbivore)',
-        'omnivore': 'Ăn tạp (Omnivore)',
-        'insectivore': 'Ăn côn trùng',
-        'piscivore': 'Ăn cá (Piscivore)',
-        'frugivore': 'Ăn trái cây (Frugivore)',
-      };
-      facts.add('Chế độ ăn: ${dietMap[dietType] ?? dietType}');
-    }
+    final diet = _mapDiet(a['diet_type'] as String?);
+    if (diet != null) facts.add('🍽️ Chế độ ăn: $diet');
 
     // Môi trường sống
-    final habitat = animal['primary_habitat'] as String?;
-    if (habitat != null) {
-      const habitatMap = {
-        'tropicalRainforest': 'Rừng nhiệt đới',
-        'savanna': 'Thảo nguyên',
-        'desert': 'Sa mạc',
-        'temperateForest': 'Rừng ôn đới',
-        'tundra': 'Đồng băng',
-        'mountain': 'Núi cao',
-        'freshwater': 'Nước ngọt',
-        'ocean': 'Đại dương',
-        'coastal': 'Ven biển',
-        'arctic': 'Bắc Cực',
-        'antarctic': 'Nam Cực',
-        'wetland': 'Đất ngập nước',
-        'grassland': 'Đồng cỏ',
-      };
-      facts.add('Môi trường sống: ${habitatMap[habitat] ?? habitat}');
-    }
+    final habitat = _mapHabitat(a['primary_habitat'] as String?);
+    if (habitat != null) facts.add('🌍 Môi trường: $habitat');
 
     // Tình trạng bảo tồn
-    final conservation = animal['conservation_status'] as String?;
-    if (conservation != null) {
-      const conservationMap = {
-        'EX': '🔴 Tuyệt chủng (EX)',
-        'EW': '🔴 Tuyệt chủng ngoài tự nhiên (EW)',
-        'CR': '🟠 Cực kỳ nguy cấp (CR)',
-        'EN': '🟡 Nguy cấp (EN)',
-        'VU': '🟡 Sắp nguy cấp (VU)',
-        'NT': '🟢 Sắp bị đe dọa (NT)',
-        'LC': '🟢 Ít lo ngại (LC)',
-        'DD': '⚪ Thiếu dữ liệu (DD)',
-      };
-      facts.add('Tình trạng: ${conservationMap[conservation] ?? conservation}');
-    }
+    final conservation = _mapConservation(a['conservation_status'] as String?);
+    if (conservation != null) facts.add('Tình trạng: $conservation');
 
-    // Fun fact tiếng Việt ưu tiên
-    final funFactVi = animal['fun_fact_vietnamese'] as String?;
-    final funFactEn = animal['fun_fact_english'] as String?;
-    final funFact = (funFactVi != null && funFactVi.isNotEmpty)
-        ? funFactVi
-        : (funFactEn != null && funFactEn.isNotEmpty ? _formatVietnameseUnits(funFactEn) : null);
-    if (funFact != null) {
-      facts.add('✨ $funFact');
+    // Fun fact (ưu tiên tiếng Việt)
+    final funFactVi = a['fun_fact_vietnamese'] as String?;
+    final funFactEn = a['fun_fact_english'] as String?;
+    final funFact = (funFactVi?.isNotEmpty == true) ? funFactVi : funFactEn;
+    if (funFact != null && funFact.isNotEmpty) facts.add('✨ $funFact');
+
+    // Thời gian mang thai (nếu có)
+    final gestation = a['gestation_period_days'];
+    if (gestation != null && facts.length < 5) {
+      facts.add('🤰 Mang thai: $gestation ngày');
     }
 
     return facts;
   }
 
-  String _formatNum(dynamic val) {
-    if (val == null) return '?';
-    final d = (val is num) ? val.toDouble() : double.tryParse(val.toString()) ?? 0;
-    if (d == d.roundToDouble()) return d.round().toString();
-    return d.toStringAsFixed(1);
+  // ─────────────────────────────────────────────────────────────
+  // MAP HELPERS
+  // ─────────────────────────────────────────────────────────────
+  String? _mapDiet(String? d) {
+    if (d == null) return null;
+    const map = {
+      'carnivore': 'Ăn thịt',
+      'herbivore': 'Ăn thực vật',
+      'omnivore': 'Ăn tạp',
+      'insectivore': 'Ăn côn trùng',
+      'piscivore': 'Ăn cá',
+      'frugivore': 'Ăn trái cây',
+    };
+    return map[d] ?? d;
+  }
+
+  String? _mapHabitat(String? h) {
+    if (h == null) return null;
+    const map = {
+      'tropicalRainforest': 'Rừng nhiệt đới',
+      'savanna': 'Thảo nguyên',
+      'desert': 'Sa mạc',
+      'temperateForest': 'Rừng ôn đới',
+      'tundra': 'Đồng băng',
+      'mountain': 'Núi cao',
+      'freshwater': 'Nước ngọt',
+      'ocean': 'Đại dương',
+      'coastal': 'Ven biển',
+      'arctic': 'Bắc Cực',
+      'antarctic': 'Nam Cực',
+      'wetland': 'Đất ngập nước',
+      'grassland': 'Đồng cỏ',
+      'urban': 'Đô thị',
+      'domestic': 'Trong nhà',
+    };
+    return map[h] ?? h;
+  }
+
+  String? _mapConservation(String? c) {
+    if (c == null) return null;
+    const map = {
+      'EX': '🔴 Tuyệt chủng (EX)',
+      'EW': '🔴 Tuyệt chủng ngoài tự nhiên (EW)',
+      'CR': '🟠 Cực kỳ nguy cấp (CR)',
+      'EN': '🟡 Nguy cấp (EN)',
+      'VU': '🟡 Sắp nguy cấp (VU)',
+      'NT': '🟢 Sắp bị đe dọa (NT)',
+      'LC': '🟢 Ít lo ngại (LC)',
+      'DD': '⚪ Thiếu dữ liệu (DD)',
+    };
+    return map[c] ?? c;
+  }
+
+  String _mapRegion(String r) {
+    const map = {
+      'Africa': 'Châu Phi',
+      'Asia': 'Châu Á',
+      'Europe': 'Châu Âu',
+      'North America': 'Bắc Mỹ',
+      'South America': 'Nam Mỹ',
+      'Australia': 'Châu Úc',
+      'Antarctica': 'Nam Cực',
+      'Southeast Asia': 'Đông Nam Á',
+      'South Asia': 'Nam Á',
+      'East Asia': 'Đông Á',
+      'Central Asia': 'Trung Á',
+    };
+    return map[r] ?? r;
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -312,6 +257,72 @@ class _DailyFactScreenState extends State<DailyFactScreen>
   }
 
   // ─────────────────────────────────────────────────────────────
+  // GỌI AI GENERATE NỘI DUNG (nếu DB thiếu description/fun_fact)
+  // ─────────────────────────────────────────────────────────────
+  Future<Map<String, String>> _generateAIContent(Map<String, dynamic> animal) async {
+    final nameVi = animal['name_vietnamese'] ?? '';
+    final nameEn = animal['name_english'] ?? '';
+    final sciName = animal['scientific_name'] ?? '';
+
+    // Tổng hợp thông tin có sẵn để AI viết chính xác hơn
+    final knownFacts = <String>[];
+    if (animal['weight_avg_kg'] != null) knownFacts.add('nặng ${_fmt(animal['weight_avg_kg'])} kg');
+    if (animal['max_speed_kmh'] != null) knownFacts.add('tốc độ tối đa ${_fmt(animal['max_speed_kmh'])} km/h');
+    if (animal['lifespan_avg_years'] != null) knownFacts.add('tuổi thọ ${_fmt(animal['lifespan_avg_years'])} năm');
+    if (animal['primary_habitat'] != null) knownFacts.add('sống ở ${_mapHabitat(animal['primary_habitat'])}');
+    if (animal['diet_type'] != null) knownFacts.add('chế độ ăn: ${_mapDiet(animal['diet_type'])}');
+
+    final knownFactsStr = knownFacts.isNotEmpty ? 'Thông tin đã biết: ${knownFacts.join(', ')}.' : '';
+
+    final prompt = '''Bạn là chuyên gia động vật học viết nội dung tiếng Việt cho trẻ em và người lớn.
+
+Loài: $nameVi ($nameEn)
+Tên khoa học: $sciName
+$knownFactsStr
+
+Hãy viết JSON với 2 trường:
+1. "description": Mô tả ngắn 1-2 câu về loài này bằng tiếng Việt, thú vị và dễ hiểu (tối đa 120 ký tự)
+2. "fun_fact": 1 sự thật thú vị bất ngờ về loài này bằng tiếng Việt (tối đa 100 ký tự)
+
+Chỉ trả về JSON, không giải thích thêm.
+Ví dụ: {"description": "...", "fun_fact": "..."}''';
+
+    try {
+      final response = await http.post(
+        Uri.parse('https://api.anthropic.com/v1/messages'),
+        headers: {
+          'Content-Type': 'application/json',
+          'anthropic-version': '2023-06-01',
+        },
+        body: json.encode({
+          'model': 'claude-haiku-4-5-20251001',
+          'max_tokens': 300,
+          'messages': [
+            {'role': 'user', 'content': prompt}
+          ],
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final text = data['content'][0]['text'] as String;
+        // Parse JSON từ response
+        final jsonMatch = RegExp(r'\{[^}]+\}').firstMatch(text);
+        if (jsonMatch != null) {
+          final parsed = json.decode(jsonMatch.group(0)!);
+          return {
+            'description': parsed['description'] ?? '',
+            'fun_fact': parsed['fun_fact'] ?? '',
+          };
+        }
+      }
+    } catch (e) {
+      print('⚠️ [AI] Không generate được nội dung: $e');
+    }
+    return {'description': '', 'fun_fact': ''};
+  }
+
+  // ─────────────────────────────────────────────────────────────
   // FORCE REFRESH
   // ─────────────────────────────────────────────────────────────
   Future<void> _forceRefresh() async {
@@ -331,7 +342,23 @@ class _DailyFactScreenState extends State<DailyFactScreen>
 
     try {
       // ══════════════════════════════════════════
-      // BƯỚC 1: Check cache local + Supabase
+      // BƯỚC 0: Chờ Supabase initialize xong
+      // ══════════════════════════════════════════
+      int retries = 0;
+      while (retries < 10) {
+        try {
+          Supabase.instance.client; // sẽ throw nếu chưa init
+          break; // init xong → thoát vòng lặp
+        } catch (_) {
+          retries++;
+          print('⏳ [DailyFact] Chờ Supabase init... ($retries/10)');
+          await Future.delayed(const Duration(milliseconds: 300));
+        }
+      }
+      if (retries >= 10) throw Exception('Supabase không khởi động được sau 3 giây');
+
+      // ══════════════════════════════════════════
+      // BƯỚC 1: Check cache local
       // ══════════════════════════════════════════
       final cached = await DailyFactCache.getCache();
       if (cached != null) {
@@ -346,110 +373,92 @@ class _DailyFactScreenState extends State<DailyFactScreen>
         return;
       }
 
-      // ══════════════════════════════════════════════════════════════
-      // BƯỚC 2: Chọn ngẫu nhiên 1 con theo seed ngày
+      // ══════════════════════════════════════════
+      // BƯỚC 2: Random bảng + random dòng
       //
-      // Chiến lược:
-      //  - Các bảng loài (cats, dogs, tigers...) chỉ lưu đặc điểm riêng
-      //    và dùng animal_id → FK tới bảng animals
-      //  - Bảng animals chứa toàn bộ tên, ảnh, mô tả
-      //  - Ta random trong animals, nhưng ưu tiên những con có data
-      //    trong ít nhất 1 bảng loài (cats, dogs, tigers, lions, bears...)
-      //  - Nếu không có → random toàn bộ animals
-      // ══════════════════════════════════════════════════════════════
+      // Mỗi bảng (animals, cats, dogs, tigers...)
+      // là bảng ĐỘC LẬP chứa đầy đủ thông tin.
+      // → Thử từng bảng theo thứ tự random cho đến khi lấy được data.
+      // ══════════════════════════════════════════
       final now = DateTime.now();
       final seed = now.year * 10000 + now.month * 100 + now.day;
       final random = Random(seed);
 
-      // Danh sách các bảng loài hiện có trong DB
-      // Thêm tên bảng mới vào đây khi có data
-      const speciesTables = ['cats', 'dogs', 'tigers', 'lions', 'bears', 'horses', 'cattle', 'buffalo'];
-
-      // Lấy tất cả animal_id có trong các bảng loài
-      final Set<String> idsWithSpeciesData = {};
-      for (final table in speciesTables) {
-        try {
-          final res = await _supabase.from(table).select('animal_id');
-          for (final row in res) {
-            final id = row['animal_id']?.toString();
-            if (id != null) idsWithSpeciesData.add(id);
-          }
-        } catch (_) {
-          // Bảng chưa tồn tại hoặc chưa có data → bỏ qua
-        }
-      }
-      print('📊 [DailyFact] Tìm thấy ${idsWithSpeciesData.length} con có data loài');
+      // Shuffle bảng theo seed ngày để mỗi ngày ưu tiên bảng khác nhau
+      final tables = List<String>.from(_allTables)..shuffle(random);
 
       Map<String, dynamic>? animal;
+      String? sourceTable;
 
-      // Ưu tiên random trong danh sách con có đầy đủ data
-      if (idsWithSpeciesData.isNotEmpty) {
-        final idList = idsWithSpeciesData.toList();
-        // Dùng seed ngày để chọn cùng 1 con trong ngày, khác ngày khác con
-        final pickedId = idList[random.nextInt(idList.length)];
+      for (final table in tables) {
+        try {
+          // Đếm số dòng trong bảng
+          final countRes = await _supabase
+              .from(table)
+              .select('id')
+              .count(CountOption.exact);
+          final total = countRes.count;
 
-        final rows = await _supabase
-            .from('animals')
-            .select(
-          'id, name_vietnamese, name_english, scientific_name, '
-              'description_short, description_long, '
-              'fun_fact_vietnamese, fun_fact_english, '
-              'image_url, image_urls, '
-              'diet_type, primary_habitat, '
-              'weight_min_kg, weight_max_kg, weight_avg_kg, '
-              'length_min_m, length_max_m, '
-              'max_speed_kmh, '
-              'lifespan_min_years, lifespan_max_years, lifespan_avg_years, '
-              'conservation_status, is_endangered, '
-              'geographic_regions, countries',
-        )
-            .eq('id', pickedId);
+          if (total == 0) {
+            print('⚠️ [DailyFact] Bảng $table trống, bỏ qua...');
+            continue;
+          }
 
-        if (rows.isNotEmpty) animal = rows.first;
+          // Random 1 dòng dựa trên seed ngày
+          final offset = random.nextInt(total);
+          final rows = await _supabase
+              .from(table)
+              .select(_selectCols)
+              .range(offset, offset);
+
+          if (rows.isNotEmpty) {
+            animal = rows.first;
+            sourceTable = table;
+            print('✅ [DailyFact] Lấy từ bảng "$table" offset=$offset: ${animal['name_vietnamese']}');
+            break;
+          }
+        } catch (e) {
+          print('⚠️ [DailyFact] Bảng $table lỗi: $e');
+          continue;
+        }
       }
 
-      // Fallback: random toàn bộ bảng animals nếu chưa có species data
       if (animal == null) {
-        print('⚠️ [DailyFact] Không có species data, random toàn bộ animals...');
-        final countRes = await _supabase
-            .from('animals')
-            .select('id')
-            .count(CountOption.exact);
-        final totalCount = countRes.count;
-
-        if (totalCount == 0) throw Exception('Bảng animals trống — hãy thêm data vào Supabase');
-
-        final offset = random.nextInt(totalCount);
-        final rows = await _supabase
-            .from('animals')
-            .select(
-          'id, name_vietnamese, name_english, scientific_name, '
-              'description_short, description_long, '
-              'fun_fact_vietnamese, fun_fact_english, '
-              'image_url, image_urls, '
-              'diet_type, primary_habitat, '
-              'weight_min_kg, weight_max_kg, weight_avg_kg, '
-              'length_min_m, length_max_m, '
-              'max_speed_kmh, '
-              'lifespan_min_years, lifespan_max_years, lifespan_avg_years, '
-              'conservation_status, is_endangered, '
-              'geographic_regions, countries',
-        )
-            .range(offset, offset);
-
-        if (rows.isEmpty) throw Exception('Không lấy được dữ liệu');
-        animal = rows.first;
+        throw Exception('Không lấy được dữ liệu từ bất kỳ bảng nào. Hãy kiểm tra Supabase.');
       }
-      print('✅ [DailyFact] Đã chọn: ${animal['name_vietnamese']} (${animal['name_english']})');
+
+      // ══════════════════════════════════════════
+      // BƯỚC 3: Build description + facts
+      // ══════════════════════════════════════════
+      String description = _buildDescription(animal);
+      List<String> facts = _buildFacts(animal);
+
+      // Nếu thiếu description hoặc fun_fact → gọi AI generate
+      final hasDescription = description.isNotEmpty;
+      final hasFunFact = (animal['fun_fact_vietnamese'] as String?)?.isNotEmpty == true ||
+          (animal['fun_fact_english'] as String?)?.isNotEmpty == true;
+
+      if (!hasDescription || !hasFunFact) {
+        print('🤖 [DailyFact] Thiếu nội dung, gọi AI generate...');
+        final aiContent = await _generateAIContent(animal);
+
+        if (!hasDescription && aiContent['description']!.isNotEmpty) {
+          description = aiContent['description']!;
+        }
+
+        if (!hasFunFact && aiContent['fun_fact']!.isNotEmpty) {
+          // Thêm fun fact từ AI vào đầu facts (sau các stats)
+          facts.add('✨ ${aiContent['fun_fact']}');
+        }
+      }
 
       // ══════════════════════════════════════════
       // BƯỚC 4: Xử lý ảnh
-      // Thứ tự: DB image_url → SharedCache (Supabase) → Wikipedia
+      // Thứ tự: DB image_url → image_urls[0] → Wikipedia
       // ══════════════════════════════════════════
       String? finalImageUrl = animal['image_url'] as String?;
 
       if (finalImageUrl == null || finalImageUrl.isEmpty) {
-        // Thử image_urls array
         final imageUrls = animal['image_urls'];
         if (imageUrls is List && imageUrls.isNotEmpty) {
           finalImageUrl = imageUrls.first as String?;
@@ -457,41 +466,30 @@ class _DailyFactScreenState extends State<DailyFactScreen>
       }
 
       if (finalImageUrl == null || finalImageUrl.isEmpty) {
-        // Fallback Wikipedia
         print('📷 [DailyFact] Không có ảnh trong DB, thử Wikipedia...');
         final nameEn = animal['name_english'] as String? ?? '';
         finalImageUrl = await _fetchWikiImage(nameEn);
       }
 
-      // Fallback cuối cùng
       finalImageUrl ??= 'https://upload.wikimedia.org/wikipedia/commons/7/73/Lion_waiting_in_Namibia.jpg';
 
       // ══════════════════════════════════════════
-      // BƯỚC 5: Check shared image cache (Supabase Storage)
-      // Người đầu tiên vào sẽ trigger ClipDrop → lưu lên Supabase
-      // Người sau đọc thẳng URL từ Supabase
+      // BƯỚC 5: Check shared image cache
       // ══════════════════════════════════════════
       final sharedImageUrl = await SharedImageCacheService.getSharedCachedImage(finalImageUrl);
       if (sharedImageUrl != null) {
         print('🌐 [DailyFact] Dùng shared image cache: $sharedImageUrl');
         finalImageUrl = sharedImageUrl;
       }
-      // Nếu chưa có shared cache → ExtendedAnimalImage widget sẽ gọi ClipDrop
-      // và sau đó lưu lên qua SharedImageCacheService (xem extended_animal_image.dart)
 
       // ══════════════════════════════════════════
       // BƯỚC 6: Build AnimalFact object
       // ══════════════════════════════════════════
-      final description = _buildDescription(animal);
-      final facts = _buildFacts(animal);
-
-      // Region/countries
       final regions = (animal['geographic_regions'] as List?)
-          ?.map((e) => e.toString())
+          ?.map((e) => _mapRegion(e.toString()))
           .toList() ?? [];
-      final locationText = regions.isNotEmpty
-          ? regions.map(_translateRegion).join(', ')
-          : null;
+
+      final locationText = regions.isNotEmpty ? regions.take(2).join(', ') : null;
 
       final finalFact = AnimalFact(
         name: animal['name_vietnamese'] as String? ?? 'Động vật',
@@ -506,9 +504,10 @@ class _DailyFactScreenState extends State<DailyFactScreen>
       );
 
       // ══════════════════════════════════════════
-      // BƯỚC 7: Lưu cache (local + Supabase)
+      // BƯỚC 7: Lưu cache
       // ══════════════════════════════════════════
       await DailyFactCache.saveCache(finalFact);
+      print('💾 [DailyFact] Đã lưu cache (nguồn: $sourceTable)');
 
       if (mounted) {
         setState(() {
@@ -531,34 +530,18 @@ class _DailyFactScreenState extends State<DailyFactScreen>
     }
   }
 
-  String _translateRegion(String region) {
-    const map = {
-      'Africa': 'Châu Phi',
-      'Asia': 'Châu Á',
-      'Europe': 'Châu Âu',
-      'North America': 'Bắc Mỹ',
-      'South America': 'Nam Mỹ',
-      'Australia': 'Châu Úc',
-      'Antarctica': 'Nam Cực',
-      'Southeast Asia': 'Đông Nam Á',
-      'South Asia': 'Nam Á',
-      'East Asia': 'Đông Á',
-    };
-    return map[region] ?? region;
-  }
-
   AnimalFact _getFallbackData() {
     return AnimalFact(
       name: 'Sư tử',
       englishName: 'Lion',
       scientificName: 'Panthera leo',
-      description: 'Vua của các loài thú, phân bố tại Châu Phi hạ Sahara.',
+      description: 'Vua của các loài thú, phân bố tại thảo nguyên Châu Phi.',
       facts: [
-        'Cân nặng: 120–249 kg',
-        'Tốc độ tối đa: 80 km/h',
-        'Tuổi thọ: 10–14 năm',
-        'Chế độ ăn: Ăn thịt (Carnivore)',
-        'Môi trường sống: Thảo nguyên',
+        '⚖️ Cân nặng: ~190 kg',
+        '💨 Tốc độ tối đa: 80 km/h',
+        '⏳ Tuổi thọ: ~12 năm',
+        '🍽️ Chế độ ăn: Ăn thịt',
+        '🌍 Môi trường: Thảo nguyên',
         'Tình trạng: 🟡 Sắp nguy cấp (VU)',
         '✨ Sư tử đực có thể ngủ đến 20 giờ mỗi ngày!',
       ],
@@ -625,7 +608,7 @@ class _DailyFactScreenState extends State<DailyFactScreen>
       floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
       body: Stack(
         children: [
-          // ── ẢNH NỀN (ExtendedAnimalImage xử lý ClipDrop + SharedCache) ──
+          // ── ẢNH NỀN ──
           Positioned.fill(
             child: ExtendedAnimalImage(
               originalImageUrl: _todayFact!.imageUrl,
@@ -756,7 +739,7 @@ class _DailyFactScreenState extends State<DailyFactScreen>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Padding(
-                                padding: EdgeInsets.only(top: 3),
+                                padding: EdgeInsets.only(top: 1),
                                 child: Icon(
                                   Icons.auto_awesome,
                                   size: 12,

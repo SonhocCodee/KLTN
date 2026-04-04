@@ -2,12 +2,12 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:typed_data';
 
 class SharedImageCacheService {
-  static final _supabase = Supabase.instance.client;
+  // ✅ FIX: Dùng getter thay vì static final
+  // static final chạy ngay khi class được load → crash vì Supabase chưa init
+  // getter chỉ gọi Supabase.instance.client khi hàm thực sự được gọi
+  static SupabaseClient get _supabase => Supabase.instance.client;
 
-  // Tên table trong Supabase DB (tạo bên dưới)
   static const String _table = 'daily_animal_image_cache';
-
-  // Tên bucket trong Supabase Storage
   static const String _bucket = 'animal-images';
 
   /// Lấy URL ảnh đã extend từ shared cache (Supabase)
@@ -38,7 +38,6 @@ class SharedImageCacheService {
   }
 
   /// Upload ảnh lên Supabase Storage và lưu URL vào DB
-  /// Gọi sau khi ClipDrop trả về bytes ảnh
   static Future<String?> uploadAndSaveSharedCache({
     required String originalImageUrl,
     required Uint8List imageBytes,
@@ -47,7 +46,6 @@ class SharedImageCacheService {
     final today = _todayString();
 
     try {
-      // 1. Upload ảnh lên Supabase Storage
       final fileName = 'daily_${today}_${animalName.replaceAll(' ', '_').toLowerCase()}.png';
       final storagePath = 'extended/$fileName';
 
@@ -58,15 +56,13 @@ class SharedImageCacheService {
         imageBytes,
         fileOptions: const FileOptions(
           contentType: 'image/png',
-          upsert: true, // Ghi đè nếu đã tồn tại
+          upsert: true,
         ),
       );
 
-      // 2. Lấy public URL
       final publicUrl = _supabase.storage.from(_bucket).getPublicUrl(storagePath);
       print('✅ [SharedCache] Upload thành công: $publicUrl');
 
-      // 3. Lưu URL vào DB
       await _supabase.from(_table).upsert({
         'cache_date': today,
         'original_image_url': originalImageUrl,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import '../../services/animal_home_service.dart';
-import '../models/animal_category_model.dart';
+import '../home/animal_category_model.dart';
 
 class AnimalDetailScreen extends StatefulWidget {
   final String animalId;

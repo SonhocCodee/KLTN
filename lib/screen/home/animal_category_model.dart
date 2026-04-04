@@ -7,8 +7,8 @@ class AnimalCategory {
   final IconData icon;
   final List<Color> gradient;
   final String imageAssetPath;
-  final int totalExpected; // 👈 THÊM: Tổng số động vật dự kiến
-  final bool isEnabled; // 👈 THÊM: Bật/tắt hiển thị loài
+  final int totalExpected; //
+  final bool isEnabled; //
 
   AnimalCategory({
     required this.id,
@@ -45,7 +45,7 @@ class AnimalCategory {
       nameEn: 'Cat',
       icon: Icons.pets,
       gradient: [Color(0xFFEC4899), Color(0xFFDB2777)],
-      imageAssetPath: 'assets/animals/cat.jpg',
+      imageAssetPath: 'assets/images/Cat.jpg',
       totalExpected: 73, // Tổng số giống mèo được công nhận
       isEnabled: true,
     ),
