@@ -25,7 +25,7 @@ class _MainLayoutState extends State<MainLayout> {
     HomeScreen(),
     SearchScreen(),
     IdentifyScreen(),
-    AniQuestSmartApp(),
+    SmartQuizPage(),
     Center(child: Text('Màn hình Cài Đặt')),   // SettingsScreen()
   ];
 

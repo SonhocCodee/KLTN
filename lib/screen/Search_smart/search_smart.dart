@@ -1,523 +1,523 @@
 import 'dart:ui';
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:http/http.dart' as http;
 
-// ═══════════════════════════════════════════════════════════════
-// MAIN
-// ═══════════════════════════════════════════════════════════════
-
-void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(const AniQuestSmartApp());
-}
-
-// ═══════════════════════════════════════════════════════════════
-// APP
-// ═══════════════════════════════════════════════════════════════
-
-class AniQuestSmartApp extends StatelessWidget {
-  const AniQuestSmartApp({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'AniQuest Smart',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF000000),
-        fontFamily: '.SF Pro Display',
-      ),
-      home: const SplashScreen(),
-    );
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════
-// SPLASH SCREEN - Initialize Supabase
-// ═══════════════════════════════════════════════════════════════
-
-class SplashScreen extends StatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
-
-  @override
-  State<SplashScreen> createState() => _SplashScreenState();
-}
-
-class _SplashScreenState extends State<SplashScreen> {
-  @override
-  void initState() {
-    super.initState();
-    _initialize();
-  }
-
-  Future<void> _initialize() async {
-    try {
-      await Supabase.initialize(
-        url: 'https://dnvlqnixommhjqwpflmw.supabase.co',
-        anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRudmxxbml4b21taGpxd3BmbG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDMzMTUwMSwiZXhwIjoyMDg1OTA3NTAxfQ.W2cxnWC-DJoE9GRdUWMZU3-e27VFVA05BTJotZHfR54',
-      );
-
-      await Future.delayed(const Duration(seconds: 1));
-
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const SmartQuizPage()),
-        );
-      }
-    } catch (e) {
-      print('Init error: $e');
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF1A1A2E),
-              Color(0xFF16213E),
-              Color(0xFF0F3460),
-            ],
-          ),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                '🐾',
-                style: TextStyle(fontSize: 100),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'AniQuest Smart',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w700,
-                  foreground: Paint()
-                    ..shader = const LinearGradient(
-                      colors: [Color(0xFFFFD700), Color(0xFFFF6B6B)],
-                    ).createShader(const Rect.fromLTWH(0, 0, 300, 70)),
-                ),
-              ),
-              const SizedBox(height: 40),
-              const CircularProgressIndicator(
-                color: Color(0xFFFFD700),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════
-// ANIMAL TYPE CONFIG
-// ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
+// CẤU HÌNH LOÀI — map đúng tên bảng trong DB
+// ═══════════════════════════════════════════════════════════════════
 
 class AnimalTypeConfig {
-  final String type;
+  final String key;         // key nội bộ
+  final String dbTable;     // tên bảng thực trong Supabase
+  final String animalType;  // giá trị của cột animal_type trong DB
   final String emoji;
   final String nameVi;
   final String nameEn;
-  final String traitsTable;
   final List<QuestionConfig> questions;
 
-  AnimalTypeConfig({
-    required this.type,
+  const AnimalTypeConfig({
+    required this.key,
+    required this.dbTable,
+    required this.animalType,
     required this.emoji,
     required this.nameVi,
     required this.nameEn,
-    required this.traitsTable,
     required this.questions,
   });
-
-  static final Map<String, AnimalTypeConfig> configs = {
-    'cat': AnimalTypeConfig(
-      type: 'cat',
-      emoji: '🐱',
-      nameVi: 'Mèo',
-      nameEn: 'Cat',
-      traitsTable: 'cat_traits',
-      questions: [
-        QuestionConfig(
-          id: 'primary_colors',
-          question: 'Màu lông chủ đạo?',
-          emoji: '🎨',
-          column: 'primary_colors',
-          type: QuestionType.animal,
-          isArray: true,
-          options: [
-            OptionConfig(label: 'Trắng', emoji: '⚪', value: 'white'),
-            OptionConfig(label: 'Đen', emoji: '⚫', value: 'black'),
-            OptionConfig(label: 'Cam', emoji: '🟠', value: 'orange'),
-            OptionConfig(label: 'Xám', emoji: '🔵', value: 'gray'),
-            OptionConfig(label: 'Nâu', emoji: '🟤', value: 'brown'),
-          ],
-        ),
-        QuestionConfig(
-          id: 'coat_length',
-          question: 'Độ dài lông?',
-          emoji: '✂️',
-          column: 'coat_length',
-          type: QuestionType.traits,
-          options: [
-            OptionConfig(label: 'Không lông', emoji: '🫥', value: 'hairless'),
-            OptionConfig(label: 'Ngắn', emoji: '📏', value: 'short'),
-            OptionConfig(label: 'Trung bình', emoji: '📐', value: 'medium'),
-            OptionConfig(label: 'Dài', emoji: '🦁', value: 'long'),
-            OptionConfig(label: 'Rất dài', emoji: '🧶', value: 'extra_long'),
-          ],
-        ),
-        QuestionConfig(
-          id: 'patterns',
-          question: 'Có hoa văn không?',
-          emoji: '🎭',
-          column: 'patterns',
-          type: QuestionType.animal,
-          isArray: true,
-          options: [
-            OptionConfig(label: 'Trơn', emoji: '⬜', value: 'solid'),
-            OptionConfig(label: 'Có vằn', emoji: '🦓', value: 'tabby'),
-            OptionConfig(label: 'Hai màu', emoji: '🔲', value: 'bicolor'),
-            OptionConfig(label: 'Đốm', emoji: '🔵', value: 'spotted'),
-          ],
-        ),
-        QuestionConfig(
-          id: 'relative_size',
-          question: 'Kích thước?',
-          emoji: '📏',
-          column: 'relative_size',
-          type: QuestionType.animal,
-          options: [
-            OptionConfig(label: 'Nhỏ', emoji: '🐭', value: 'tiny'),
-            OptionConfig(label: 'Bằng mèo', emoji: '🐱', value: 'cat_sized'),
-            OptionConfig(label: 'Lớn', emoji: '🦁', value: 'dog_sized'),
-          ],
-        ),
-      ],
-    ),
-    'dog': AnimalTypeConfig(
-      type: 'dog',
-      emoji: '🐶',
-      nameVi: 'Chó',
-      nameEn: 'Dog',
-      traitsTable: 'dog_traits',
-      questions: [
-        QuestionConfig(
-          id: 'primary_colors',
-          question: 'Màu lông chủ đạo?',
-          emoji: '🎨',
-          column: 'primary_colors',
-          type: QuestionType.animal,
-          isArray: true,
-          options: [
-            OptionConfig(label: 'Trắng', emoji: '⚪', value: 'white'),
-            OptionConfig(label: 'Đen', emoji: '⚫', value: 'black'),
-            OptionConfig(label: 'Nâu', emoji: '🟤', value: 'brown'),
-            OptionConfig(label: 'Vàng', emoji: '🟡', value: 'golden'),
-            OptionConfig(label: 'Xám', emoji: '🔵', value: 'gray'),
-          ],
-        ),
-        QuestionConfig(
-          id: 'ear_type',
-          question: 'Loại tai?',
-          emoji: '👂',
-          column: 'has_floppy_ears',
-          type: QuestionType.traits,
-          options: [
-            OptionConfig(label: 'Tai cụp', emoji: '🐶', value: true, boolColumn: 'has_floppy_ears'),
-            OptionConfig(label: 'Tai dựng', emoji: '🐕', value: true, boolColumn: 'has_pointy_ears'),
-          ],
-        ),
-        QuestionConfig(
-          id: 'coat_length',
-          question: 'Độ dài lông?',
-          emoji: '✂️',
-          column: 'coat_length',
-          type: QuestionType.traits,
-          options: [
-            OptionConfig(label: 'Ngắn', emoji: '📏', value: 'short'),
-            OptionConfig(label: 'Trung bình', emoji: '📐', value: 'medium'),
-            OptionConfig(label: 'Dài', emoji: '🦁', value: 'long'),
-          ],
-        ),
-        QuestionConfig(
-          id: 'relative_size',
-          question: 'Kích thước?',
-          emoji: '📏',
-          column: 'relative_size',
-          type: QuestionType.animal,
-          options: [
-            OptionConfig(label: 'Nhỏ', emoji: '🐭', value: 'tiny'),
-            OptionConfig(label: 'Trung bình', emoji: '🐕', value: 'dog_sized'),
-            OptionConfig(label: 'Lớn', emoji: '🦮', value: 'large'),
-          ],
-        ),
-      ],
-    ),
-    'buffalo': AnimalTypeConfig(
-      type: 'buffalo',
-      emoji: '🐃',
-      nameVi: 'Trâu',
-      nameEn: 'Buffalo',
-      traitsTable: 'buffalo_traits',
-      questions: [
-        QuestionConfig(
-          id: 'primary_colors',
-          question: 'Màu da chủ đạo?',
-          emoji: '🎨',
-          column: 'primary_colors',
-          type: QuestionType.animal,
-          isArray: true,
-          options: [
-            OptionConfig(label: 'Đen', emoji: '⚫', value: 'black'),
-            OptionConfig(label: 'Xám', emoji: '🔵', value: 'gray'),
-            OptionConfig(label: 'Nâu', emoji: '🟤', value: 'brown'),
-          ],
-        ),
-        QuestionConfig(
-          id: 'has_horns',
-          question: 'Có sừng không?',
-          emoji: '🦬',
-          column: 'has_horns',
-          type: QuestionType.animal,
-          options: [
-            OptionConfig(label: 'Có sừng lớn', emoji: '🦬', value: true),
-            OptionConfig(label: 'Không sừng', emoji: '❌', value: false),
-          ],
-        ),
-        QuestionConfig(
-          id: 'relative_size',
-          question: 'Kích thước?',
-          emoji: '📏',
-          column: 'relative_size',
-          type: QuestionType.animal,
-          options: [
-            OptionConfig(label: 'Trung bình', emoji: '🐃', value: 'large'),
-            OptionConfig(label: 'Rất lớn', emoji: '🦬', value: 'elephant_sized'),
-          ],
-        ),
-      ],
-    ),
-    'cattle': AnimalTypeConfig(
-      type: 'cattle',
-      emoji: '🐄',
-      nameVi: 'Bò',
-      nameEn: 'Cattle',
-      traitsTable: 'cattle_traits',
-      questions: [
-        QuestionConfig(
-          id: 'primary_colors',
-          question: 'Màu da chủ đạo?',
-          emoji: '🎨',
-          column: 'primary_colors',
-          type: QuestionType.animal,
-          isArray: true,
-          options: [
-            OptionConfig(label: 'Trắng', emoji: '⚪', value: 'white'),
-            OptionConfig(label: 'Đen', emoji: '⚫', value: 'black'),
-            OptionConfig(label: 'Nâu', emoji: '🟤', value: 'brown'),
-            OptionConfig(label: 'Đỏ nâu', emoji: '🔴', value: 'red'),
-          ],
-        ),
-        QuestionConfig(
-          id: 'has_horns',
-          question: 'Có sừng không?',
-          emoji: '🐮',
-          column: 'has_horns',
-          type: QuestionType.animal,
-          options: [
-            OptionConfig(label: 'Có sừng', emoji: '🐮', value: true),
-            OptionConfig(label: 'Không sừng', emoji: '❌', value: false),
-          ],
-        ),
-        QuestionConfig(
-          id: 'patterns',
-          question: 'Có đốm không?',
-          emoji: '🎭',
-          column: 'patterns',
-          type: QuestionType.animal,
-          isArray: true,
-          options: [
-            OptionConfig(label: 'Trơn', emoji: '⬜', value: 'solid'),
-            OptionConfig(label: 'Có đốm', emoji: '🔵', value: 'spotted'),
-          ],
-        ),
-      ],
-    ),
-    'horse': AnimalTypeConfig(
-      type: 'horse',
-      emoji: '🐴',
-      nameVi: 'Ngựa',
-      nameEn: 'Horse',
-      traitsTable: 'horse_traits',
-      questions: [
-        QuestionConfig(
-          id: 'primary_colors',
-          question: 'Màu lông chủ đạo?',
-          emoji: '🎨',
-          column: 'primary_colors',
-          type: QuestionType.animal,
-          isArray: true,
-          options: [
-            OptionConfig(label: 'Nâu', emoji: '🟤', value: 'brown'),
-            OptionConfig(label: 'Đen', emoji: '⚫', value: 'black'),
-            OptionConfig(label: 'Trắng', emoji: '⚪', value: 'white'),
-            OptionConfig(label: 'Xám', emoji: '🔵', value: 'gray'),
-          ],
-        ),
-        QuestionConfig(
-          id: 'has_mane',
-          question: 'Có bờm dài?',
-          emoji: '🦄',
-          column: 'has_mane',
-          type: QuestionType.animal,
-          options: [
-            OptionConfig(label: 'Có', emoji: '✅', value: true),
-            OptionConfig(label: 'Không', emoji: '❌', value: false),
-          ],
-        ),
-        QuestionConfig(
-          id: 'patterns',
-          question: 'Có đốm/hoa văn không?',
-          emoji: '🎭',
-          column: 'patterns',
-          type: QuestionType.animal,
-          isArray: true,
-          options: [
-            OptionConfig(label: 'Trơn', emoji: '⬜', value: 'solid'),
-            OptionConfig(label: 'Có đốm', emoji: '🔵', value: 'spotted'),
-            OptionConfig(label: 'Vằn', emoji: '🦓', value: 'pinto'),
-          ],
-        ),
-      ],
-    ),
-    'bear': AnimalTypeConfig(
-      type: 'bear',
-      emoji: '🐻',
-      nameVi: 'Gấu',
-      nameEn: 'Bear',
-      traitsTable: 'bear_traits',
-      questions: [
-        QuestionConfig(
-          id: 'primary_colors',
-          question: 'Màu lông chủ đạo?',
-          emoji: '🎨',
-          column: 'primary_colors',
-          type: QuestionType.animal,
-          isArray: true,
-          options: [
-            OptionConfig(label: 'Nâu', emoji: '🟤', value: 'brown'),
-            OptionConfig(label: 'Đen', emoji: '⚫', value: 'black'),
-            OptionConfig(label: 'Trắng', emoji: '⚪', value: 'white'),
-            OptionConfig(label: 'Vàng', emoji: '🟡', value: 'yellow'),
-          ],
-        ),
-        QuestionConfig(
-          id: 'relative_size',
-          question: 'Kích thước?',
-          emoji: '📏',
-          column: 'relative_size',
-          type: QuestionType.animal,
-          options: [
-            OptionConfig(label: 'Trung bình', emoji: '🐻', value: 'large'),
-            OptionConfig(label: 'Rất lớn', emoji: '🦬', value: 'elephant_sized'),
-          ],
-        ),
-      ],
-    ),
-    'lion': AnimalTypeConfig(
-      type: 'lion',
-      emoji: '🦁',
-      nameVi: 'Sư tử',
-      nameEn: 'Lion',
-      traitsTable: 'lion_traits',
-      questions: [
-        QuestionConfig(
-          id: 'has_mane',
-          question: 'Có bờm không?',
-          emoji: '🦁',
-          column: 'has_mane',
-          type: QuestionType.traits,
-          options: [
-            OptionConfig(label: 'Có bờm (đực)', emoji: '🦁', value: true),
-            OptionConfig(label: 'Không bờm (cái)', emoji: '🐆', value: false),
-          ],
-        ),
-        QuestionConfig(
-          id: 'primary_colors',
-          question: 'Màu lông chủ đạo?',
-          emoji: '🎨',
-          column: 'primary_colors',
-          type: QuestionType.animal,
-          isArray: true,
-          options: [
-            OptionConfig(label: 'Vàng', emoji: '🟡', value: 'tan'),
-            OptionConfig(label: 'Nâu', emoji: '🟤', value: 'brown'),
-            OptionConfig(label: 'Trắng', emoji: '⚪', value: 'white'),
-          ],
-        ),
-      ],
-    ),
-  };
 }
+
+// ── CẤU HÌNH MÈO — câu hỏi dựa hoàn toàn vào quan sát ──
+const _catConfig = AnimalTypeConfig(
+  key: 'cat',
+  dbTable: 'cats',
+  animalType: 'cat',
+  emoji: '🐱',
+  nameVi: 'Mèo',
+  nameEn: 'Cat',
+  questions: [
+    // Q1: Màu lông — nhìn thấy ngay
+    QuestionConfig(
+      id: 'primary_colors',
+      question: 'Lông màu gì?',
+      emoji: '🎨',
+      column: 'primary_colors',
+      isArray: true,
+      options: [
+        OptionConfig(label: 'Trắng', emoji: '⚪', value: 'white'),
+        OptionConfig(label: 'Đen', emoji: '⚫', value: 'black'),
+        OptionConfig(label: 'Cam / Vàng', emoji: '🟠', value: 'orange'),
+        OptionConfig(label: 'Xám / Xanh', emoji: '🔘', value: 'gray'),
+        OptionConfig(label: 'Nâu / Kem', emoji: '🟤', value: 'cream'),
+      ],
+    ),
+    // Q2: Độ dài lông — nhìn thấy ngay
+    QuestionConfig(
+      id: 'coat_length',
+      question: 'Lông dài hay ngắn?',
+      emoji: '✂️',
+      column: 'coat_length',
+      options: [
+        OptionConfig(label: 'Không lông', emoji: '🫥', value: 'hairless'),
+        OptionConfig(label: 'Ngắn', emoji: '📏', value: 'short'),
+        OptionConfig(label: 'Trung bình', emoji: '📐', value: 'medium'),
+        OptionConfig(label: 'Dài / Rất dài', emoji: '🧶', value: 'long'),
+      ],
+    ),
+    // Q3: Hoa văn — nhìn thấy ngay
+    QuestionConfig(
+      id: 'patterns',
+      question: 'Có hoa văn không?',
+      emoji: '🎭',
+      column: 'patterns',
+      isArray: true,
+      options: [
+        OptionConfig(label: 'Trơn (1 màu)', emoji: '⬜', value: 'solid'),
+        OptionConfig(label: 'Vằn (tabby)', emoji: '🦓', value: 'tabby'),
+        OptionConfig(label: 'Hai màu', emoji: '⬛', value: 'bicolor'),
+        OptionConfig(label: 'Đốm', emoji: '🔵', value: 'spotted'),
+        OptionConfig(label: 'Tam thể', emoji: '🌈', value: 'calico'),
+      ],
+    ),
+    // Q4: Tai — nhìn thấy ngay
+    QuestionConfig(
+      id: 'has_floppy_ears',
+      question: 'Tai như thế nào?',
+      emoji: '👂',
+      column: 'has_floppy_ears',
+      isBool: true,
+      options: [
+        OptionConfig(label: 'Tai cụp / xệ', emoji: '🐱', value: true),
+        OptionConfig(label: 'Tai dựng nhọn', emoji: '🦊', value: false),
+      ],
+    ),
+    // Q5: Bông xù — nhìn thấy ngay
+    QuestionConfig(
+      id: 'is_fluffy',
+      question: 'Lông có bông xù không?',
+      emoji: '☁️',
+      column: 'is_fluffy',
+      isBool: true,
+      options: [
+        OptionConfig(label: 'Rất bông xù', emoji: '☁️', value: true),
+        OptionConfig(label: 'Không xù', emoji: '🪶', value: false),
+      ],
+    ),
+    // Q6: Kích thước cơ thể — nhìn thấy
+    QuestionConfig(
+      id: 'size_category',
+      question: 'Con to hay nhỏ?',
+      emoji: '📏',
+      column: 'size_category',
+      options: [
+        OptionConfig(label: 'Rất nhỏ (< 3kg)', emoji: '🐭', value: 'small'),
+        OptionConfig(label: 'Trung bình', emoji: '🐱', value: 'medium'),
+        OptionConfig(label: 'To lớn (> 6kg)', emoji: '🦁', value: 'large'),
+      ],
+    ),
+    // Q7: Đuôi — nhìn thấy
+    QuestionConfig(
+      id: 'has_long_tail',
+      question: 'Đuôi dài hay ngắn?',
+      emoji: '〰️',
+      column: 'has_long_tail',
+      isBool: true,
+      options: [
+        OptionConfig(label: 'Đuôi dài', emoji: '〰️', value: true),
+        OptionConfig(label: 'Đuôi ngắn / cụt', emoji: '✂️', value: false),
+      ],
+    ),
+  ],
+);
+
+// ── CẤU HÌNH CHÓ — câu hỏi quan sát được ──
+const _dogConfig = AnimalTypeConfig(
+  key: 'dog',
+  dbTable: 'dogs',
+  animalType: 'dog',
+  emoji: '🐶',
+  nameVi: 'Chó',
+  nameEn: 'Dog',
+  questions: [
+    // Q1: Kích thước — quan sát rõ nhất
+    QuestionConfig(
+      id: 'size_category',
+      question: 'Con to hay nhỏ?',
+      emoji: '📏',
+      column: 'size_category',
+      options: [
+        OptionConfig(label: 'Rất nhỏ (< 5kg)', emoji: '🐾', value: 'small'),
+        OptionConfig(label: 'Vừa (5–20kg)', emoji: '🐕', value: 'medium'),
+        OptionConfig(label: 'To (20–40kg)', emoji: '🦮', value: 'large'),
+        OptionConfig(label: 'Khổng lồ (> 40kg)', emoji: '🐻', value: 'giant'),
+      ],
+    ),
+    // Q2: Màu lông
+    QuestionConfig(
+      id: 'primary_colors',
+      question: 'Lông màu gì?',
+      emoji: '🎨',
+      column: 'primary_colors',
+      isArray: true,
+      options: [
+        OptionConfig(label: 'Trắng', emoji: '⚪', value: 'white'),
+        OptionConfig(label: 'Đen', emoji: '⚫', value: 'black'),
+        OptionConfig(label: 'Nâu', emoji: '🟤', value: 'brown'),
+        OptionConfig(label: 'Vàng / Vàng đậm', emoji: '🟡', value: 'golden'),
+        OptionConfig(label: 'Xám', emoji: '🔘', value: 'gray'),
+      ],
+    ),
+    // Q3: Độ dài lông
+    QuestionConfig(
+      id: 'coat_length',
+      question: 'Lông ngắn hay dài?',
+      emoji: '✂️',
+      column: 'coat_length',
+      options: [
+        OptionConfig(label: 'Ngắn sát', emoji: '📏', value: 'short'),
+        OptionConfig(label: 'Trung bình', emoji: '📐', value: 'medium'),
+        OptionConfig(label: 'Dài', emoji: '🧶', value: 'long'),
+      ],
+    ),
+    // Q4: Tai
+    QuestionConfig(
+      id: 'has_floppy_ears',
+      question: 'Tai như thế nào?',
+      emoji: '👂',
+      column: 'has_floppy_ears',
+      isBool: true,
+      options: [
+        OptionConfig(label: 'Tai cụp / xệ', emoji: '🐶', value: true),
+        OptionConfig(label: 'Tai dựng nhọn', emoji: '🦊', value: false),
+      ],
+    ),
+    // Q5: Hoa văn / đốm
+    QuestionConfig(
+      id: 'patterns',
+      question: 'Lông có hoa văn không?',
+      emoji: '🎭',
+      column: 'patterns',
+      isArray: true,
+      options: [
+        OptionConfig(label: 'Trơn (1 màu)', emoji: '⬜', value: 'solid'),
+        OptionConfig(label: 'Hai màu', emoji: '⬛', value: 'bicolor'),
+        OptionConfig(label: 'Đốm / vá', emoji: '🔵', value: 'spotted'),
+        OptionConfig(label: 'Vằn', emoji: '🦓', value: 'brindle'),
+      ],
+    ),
+    // Q6: Bờm / mane
+    QuestionConfig(
+      id: 'has_mane',
+      question: 'Có bờm lông quanh cổ không?',
+      emoji: '🦁',
+      column: 'has_mane',
+      isBool: true,
+      options: [
+        OptionConfig(label: 'Có bờm lông dày', emoji: '🦁', value: true),
+        OptionConfig(label: 'Không có', emoji: '🐕', value: false),
+      ],
+    ),
+  ],
+);
+
+// ── CẤU HÌNH THÚ HOANG — query bảng "animals" theo animal_type ──
+AnimalTypeConfig _makeWildConfig({
+  required String key,
+  required String animalType,
+  required String emoji,
+  required String nameVi,
+  required String nameEn,
+  required List<QuestionConfig> questions,
+}) => AnimalTypeConfig(
+  key: key,
+  dbTable: 'animals',
+  animalType: animalType,
+  emoji: emoji,
+  nameVi: nameVi,
+  nameEn: nameEn,
+  questions: questions,
+);
+
+// Danh sách tất cả loài
+final List<AnimalTypeConfig> allAnimalTypes = [
+  _catConfig,
+  _dogConfig,
+  _makeWildConfig(
+    key: 'buffalo',
+    animalType: 'buffalo',
+    emoji: '🐃',
+    nameVi: 'Trâu',
+    nameEn: 'Buffalo',
+    questions: const [
+      QuestionConfig(
+        id: 'primary_colors',
+        question: 'Màu da / lông?',
+        emoji: '🎨',
+        column: 'primary_colors',
+        isArray: true,
+        options: [
+          OptionConfig(label: 'Đen', emoji: '⚫', value: 'black'),
+          OptionConfig(label: 'Xám', emoji: '🔘', value: 'gray'),
+          OptionConfig(label: 'Nâu', emoji: '🟤', value: 'brown'),
+        ],
+      ),
+      QuestionConfig(
+        id: 'has_horns',
+        question: 'Có sừng không?',
+        emoji: '🦬',
+        column: 'has_horns',
+        isBool: true,
+        options: [
+          OptionConfig(label: 'Có sừng cong lớn', emoji: '🦬', value: true),
+          OptionConfig(label: 'Không có sừng', emoji: '❌', value: false),
+        ],
+      ),
+      QuestionConfig(
+        id: 'relative_size',
+        question: 'To bằng cỡ nào?',
+        emoji: '📏',
+        column: 'relative_size',
+        options: [
+          OptionConfig(label: 'Bằng bò', emoji: '🐃', value: 'large'),
+          OptionConfig(label: 'To hơn bò nhiều', emoji: '🦬', value: 'elephant_sized'),
+        ],
+      ),
+    ],
+  ),
+  _makeWildConfig(
+    key: 'cattle',
+    animalType: 'cattle',
+    emoji: '🐄',
+    nameVi: 'Bò',
+    nameEn: 'Cattle',
+    questions: const [
+      QuestionConfig(
+        id: 'primary_colors',
+        question: 'Màu lông / da?',
+        emoji: '🎨',
+        column: 'primary_colors',
+        isArray: true,
+        options: [
+          OptionConfig(label: 'Trắng', emoji: '⚪', value: 'white'),
+          OptionConfig(label: 'Đen', emoji: '⚫', value: 'black'),
+          OptionConfig(label: 'Nâu', emoji: '🟤', value: 'brown'),
+          OptionConfig(label: 'Đỏ nâu', emoji: '🔴', value: 'red'),
+        ],
+      ),
+      QuestionConfig(
+        id: 'has_horns',
+        question: 'Có sừng không?',
+        emoji: '🐮',
+        column: 'has_horns',
+        isBool: true,
+        options: [
+          OptionConfig(label: 'Có sừng', emoji: '🐮', value: true),
+          OptionConfig(label: 'Không sừng', emoji: '❌', value: false),
+        ],
+      ),
+      QuestionConfig(
+        id: 'patterns',
+        question: 'Có đốm không?',
+        emoji: '🎭',
+        column: 'patterns',
+        isArray: true,
+        options: [
+          OptionConfig(label: 'Trơn (1 màu)', emoji: '⬜', value: 'solid'),
+          OptionConfig(label: 'Có đốm', emoji: '⚫', value: 'spotted'),
+        ],
+      ),
+    ],
+  ),
+  _makeWildConfig(
+    key: 'horse',
+    animalType: 'horse',
+    emoji: '🐴',
+    nameVi: 'Ngựa',
+    nameEn: 'Horse',
+    questions: const [
+      QuestionConfig(
+        id: 'primary_colors',
+        question: 'Màu lông?',
+        emoji: '🎨',
+        column: 'primary_colors',
+        isArray: true,
+        options: [
+          OptionConfig(label: 'Nâu', emoji: '🟤', value: 'brown'),
+          OptionConfig(label: 'Đen', emoji: '⚫', value: 'black'),
+          OptionConfig(label: 'Trắng', emoji: '⚪', value: 'white'),
+          OptionConfig(label: 'Xám', emoji: '🔘', value: 'gray'),
+        ],
+      ),
+      QuestionConfig(
+        id: 'patterns',
+        question: 'Lông có đốm / hoa văn không?',
+        emoji: '🎭',
+        column: 'patterns',
+        isArray: true,
+        options: [
+          OptionConfig(label: 'Trơn (1 màu)', emoji: '⬜', value: 'solid'),
+          OptionConfig(label: 'Có đốm lớn', emoji: '⚫', value: 'pinto'),
+          OptionConfig(label: 'Có vằn nhỏ', emoji: '🦓', value: 'striped'),
+        ],
+      ),
+      QuestionConfig(
+        id: 'has_mane',
+        question: 'Bờm có dài rậm không?',
+        emoji: '🦄',
+        column: 'has_mane',
+        isBool: true,
+        options: [
+          OptionConfig(label: 'Có bờm dài rậm', emoji: '🦄', value: true),
+          OptionConfig(label: 'Bờm ngắn / cạo', emoji: '✂️', value: false),
+        ],
+      ),
+      QuestionConfig(
+        id: 'relative_size',
+        question: 'To hay nhỏ?',
+        emoji: '📏',
+        column: 'relative_size',
+        options: [
+          OptionConfig(label: 'Nhỏ (Pony)', emoji: '🐴', value: 'large'),
+          OptionConfig(label: 'To (ngựa đua)', emoji: '🏇', value: 'elephant_sized'),
+        ],
+      ),
+    ],
+  ),
+  _makeWildConfig(
+    key: 'bear',
+    animalType: 'bear',
+    emoji: '🐻',
+    nameVi: 'Gấu',
+    nameEn: 'Bear',
+    questions: const [
+      QuestionConfig(
+        id: 'primary_colors',
+        question: 'Màu lông?',
+        emoji: '🎨',
+        column: 'primary_colors',
+        isArray: true,
+        options: [
+          OptionConfig(label: 'Nâu', emoji: '🟤', value: 'brown'),
+          OptionConfig(label: 'Đen', emoji: '⚫', value: 'black'),
+          OptionConfig(label: 'Trắng / Kem', emoji: '⚪', value: 'white'),
+          OptionConfig(label: 'Đen + trắng', emoji: '◑', value: 'black_white'),
+        ],
+      ),
+      QuestionConfig(
+        id: 'relative_size',
+        question: 'Con to cỡ nào?',
+        emoji: '📏',
+        column: 'relative_size',
+        options: [
+          OptionConfig(label: 'Bằng người lớn', emoji: '🐻', value: 'large'),
+          OptionConfig(label: 'To hơn, rất nặng', emoji: '🦬', value: 'elephant_sized'),
+        ],
+      ),
+      QuestionConfig(
+        id: 'primary_habitat',
+        question: 'Sống ở đâu?',
+        emoji: '🌍',
+        column: 'primary_habitat',
+        options: [
+          OptionConfig(label: 'Rừng lá rộng', emoji: '🌲', value: 'forest'),
+          OptionConfig(label: 'Bắc Cực / tuyết', emoji: '❄️', value: 'arctic'),
+          OptionConfig(label: 'Rừng nhiệt đới', emoji: '🌴', value: 'tropical_forest'),
+          OptionConfig(label: 'Núi cao', emoji: '⛰️', value: 'mountain'),
+        ],
+      ),
+    ],
+  ),
+  _makeWildConfig(
+    key: 'lion',
+    animalType: 'lion',
+    emoji: '🦁',
+    nameVi: 'Sư tử',
+    nameEn: 'Lion',
+    questions: const [
+      QuestionConfig(
+        id: 'has_mane',
+        question: 'Có bờm quanh đầu không?',
+        emoji: '🦁',
+        column: 'has_mane',
+        isBool: true,
+        options: [
+          OptionConfig(label: 'Có bờm dày (đực)', emoji: '🦁', value: true),
+          OptionConfig(label: 'Không bờm (cái)', emoji: '🐆', value: false),
+        ],
+      ),
+      QuestionConfig(
+        id: 'primary_colors',
+        question: 'Màu lông?',
+        emoji: '🎨',
+        column: 'primary_colors',
+        isArray: true,
+        options: [
+          OptionConfig(label: 'Vàng / Vàng nhạt', emoji: '🟡', value: 'tan'),
+          OptionConfig(label: 'Nâu vàng', emoji: '🟤', value: 'brown'),
+          OptionConfig(label: 'Trắng (hiếm)', emoji: '⚪', value: 'white'),
+        ],
+      ),
+      QuestionConfig(
+        id: 'primary_habitat',
+        question: 'Sống ở môi trường nào?',
+        emoji: '🌍',
+        column: 'primary_habitat',
+        options: [
+          OptionConfig(label: 'Đồng cỏ savanna', emoji: '🌾', value: 'savanna'),
+          OptionConfig(label: 'Bụi rậm / rừng thưa', emoji: '🌿', value: 'shrubland'),
+        ],
+      ),
+    ],
+  ),
+];
+
+// ═══════════════════════════════════════════════════════════════════
+// MODEL CÂU HỎI & LỰA CHỌN
+// ═══════════════════════════════════════════════════════════════════
 
 class QuestionConfig {
   final String id;
   final String question;
   final String emoji;
   final String column;
-  final QuestionType type;
   final List<OptionConfig> options;
-  final bool isRange;
-  final bool isArray; // NEW: for array columns like primary_colors
+  final bool isArray;   // cột PostgreSQL ARRAY (primary_colors, patterns...)
+  final bool isBool;    // cột boolean
+  final bool isRange;   // dùng slider 1-5
   final String? minLabel;
   final String? maxLabel;
 
-  QuestionConfig({
+  const QuestionConfig({
     required this.id,
     required this.question,
     required this.emoji,
     required this.column,
-    required this.type,
     this.options = const [],
+    this.isArray = false,
+    this.isBool = false,
     this.isRange = false,
-    this.isArray = false, // NEW
     this.minLabel,
     this.maxLabel,
   });
 }
 
-enum QuestionType { animal, traits }
-
 class OptionConfig {
   final String label;
   final String emoji;
   final dynamic value;
-  final String? boolColumn;
 
-  OptionConfig({
+  const OptionConfig({
     required this.label,
     required this.emoji,
     required this.value,
-    this.boolColumn,
   });
 }
 
-// ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 // SMART QUIZ PAGE
-// ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 
 class SmartQuizPage extends StatefulWidget {
   const SmartQuizPage({Key? key}) : super(key: key);
@@ -527,482 +527,418 @@ class SmartQuizPage extends StatefulWidget {
 }
 
 class _SmartQuizPageState extends State<SmartQuizPage> {
-  String? selectedAnimalType;
-  int currentQuestionIndex = 0;
-  Map<String, dynamic> animalFilters = {};
-  Map<String, dynamic> traitsFilters = {};
-  List<Map<String, dynamic>> currentResults = [];
-  bool isLoading = false;
-  bool showResults = false;
+  // State chính
+  AnimalTypeConfig? _selectedConfig;
+  int _questionIndex = 0;
+  bool _isLoading = false;
+  bool _showResults = false;
 
-  AnimalTypeConfig? get currentConfig =>
-      selectedAnimalType != null ? AnimalTypeConfig.configs[selectedAnimalType] : null;
+  // Bộ lọc tích lũy — key là tên cột, value là giá trị cần lọc
+  final Map<String, dynamic> _filters = {};
+  List<Map<String, dynamic>> _results = [];
 
-  List<QuestionConfig> get questions => currentConfig?.questions ?? [];
+  final _client = Supabase.instance.client;
+
+  List<QuestionConfig> get _questions => _selectedConfig?.questions ?? [];
+  bool get _hasMoreQuestions => _questionIndex < _questions.length;
+
+  // ── reset toàn bộ state ──
+  void _reset() {
+    setState(() {
+      _selectedConfig = null;
+      _questionIndex = 0;
+      _filters.clear();
+      _results.clear();
+      _isLoading = false;
+      _showResults = false;
+    });
+  }
+
+  // ── chọn loài → fetch lần đầu, chuyển sang Q1 ──
+  Future<void> _selectAnimalType(AnimalTypeConfig config) async {
+    setState(() {
+      _selectedConfig = config;
+      _questionIndex = 0;
+      _filters.clear();
+      _results.clear();
+      _showResults = false;
+      _isLoading = true;
+    });
+    await _fetchResults();
+    setState(() => _isLoading = false);
+  }
+
+  // ── người dùng chọn 1 đáp án ──
+  Future<void> _answer(QuestionConfig q, dynamic value) async {
+    HapticFeedback.lightImpact();
+
+    // Lưu filter
+    setState(() {
+      _filters[q.column] = value;
+      _isLoading = true;
+    });
+
+    await _fetchResults();
+
+    setState(() {
+      _isLoading = false;
+      // Hiện kết quả nếu còn ≤ 5 hoặc đã hết câu hỏi
+      if (_results.length <= 5 || _questionIndex >= _questions.length - 1) {
+        _showResults = true;
+      } else {
+        _questionIndex++;
+      }
+    });
+  }
+
+  // ── người dùng bỏ qua câu hỏi ──
+  void _skip() {
+    HapticFeedback.selectionClick();
+    setState(() {
+      if (_results.length <= 5 || _questionIndex >= _questions.length - 1) {
+        _showResults = true;
+      } else {
+        _questionIndex++;
+      }
+    });
+  }
+
+  // ── query Supabase theo bảng đúng ──
+  Future<void> _fetchResults() async {
+    if (_selectedConfig == null) return;
+    final config = _selectedConfig!;
+
+    try {
+      var query = _client
+          .from(config.dbTable)
+          .select('id, name_vietnamese, name_english, scientific_name, image_url, description_short, animal_type');
+
+      // Với bảng animals (thú hoang): thêm filter theo animal_type
+      if (config.dbTable == 'animals') {
+        query = query.eq('animal_type', config.animalType) as dynamic;
+      }
+
+      // Áp dụng các filter đã tích lũy
+      for (final entry in _filters.entries) {
+        final col = entry.key;
+        final val = entry.value;
+        final qConfig = _questions.firstWhere(
+              (q) => q.column == col,
+          orElse: () => _questions.first,
+        );
+
+        if (qConfig.isArray) {
+          // Dùng contains để check array: giá trị nằm trong mảng PostgreSQL
+          query = query.contains(col, [val]) as dynamic;
+        } else if (qConfig.isBool || val is bool) {
+          query = query.eq(col, val) as dynamic;
+        } else if (qConfig.isRange && val is int) {
+          // Range: lấy ±1 quanh giá trị chọn
+          query = query
+              .gte(col, val - 1)
+              .lte(col, val + 1) as dynamic;
+        } else {
+          query = query.eq(col, val) as dynamic;
+        }
+      }
+
+      final data = await (query as dynamic).limit(50);
+      setState(() {
+        _results = List<Map<String, dynamic>>.from(data as List);
+      });
+    } catch (e) {
+      debugPrint('❌ _fetchResults error: $e');
+      setState(() => _results = []);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // BUILD
+  // ═══════════════════════════════════════════════════════
 
   @override
   Widget build(BuildContext context) {
-    if (selectedAnimalType == null) {
-      return _buildAnimalTypeSelection();
-    }
-
-    if (showResults) {
-      return _buildResults();
-    }
-
-    if (currentQuestionIndex >= questions.length) {
-      return _buildNoMoreQuestions();
-    }
-
-    return _buildQuestionPage();
-  }
-
-  // ═══════════════════════════════════════════════════════════════
-  // ANIMAL TYPE SELECTION
-  // ═══════════════════════════════════════════════════════════════
-
-  Widget _buildAnimalTypeSelection() {
     return Scaffold(
-      body: Stack(
-        children: [
-          // Gradient Background
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFF1A1A2E),
-                  Color(0xFF16213E),
-                  Color(0xFF0F3460),
-                ],
-              ),
-            ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF1A1A2E), Color(0xFF16213E), Color(0xFF0F3460)],
           ),
-
-          SafeArea(
-            child: Column(
-              children: [
-                const SizedBox(height: 60),
-
-                // Title
-                Text(
-                  'AniQuest Smart',
-                  style: TextStyle(
-                    fontSize: 42,
-                    fontWeight: FontWeight.w700,
-                    foreground: Paint()
-                      ..shader = const LinearGradient(
-                        colors: [Color(0xFFFFD700), Color(0xFFFF6B6B)],
-                      ).createShader(const Rect.fromLTWH(0, 0, 300, 70)),
-                  ),
-                ).animate()
-                    .fadeIn(duration: 600.ms)
-                    .slideY(begin: -0.3, end: 0),
-
-                const SizedBox(height: 10),
-
-                Text(
-                  'Chọn loài động vật',
-                  style: TextStyle(
-                    fontSize: 17,
-                    color: Colors.white.withOpacity(0.7),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ).animate()
-                    .fadeIn(delay: 200.ms, duration: 600.ms),
-
-                const SizedBox(height: 40),
-
-                // Animal Grid
-                Expanded(
-                  child: GridView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                      childAspectRatio: 1.1,
-                    ),
-                    itemCount: AnimalTypeConfig.configs.length,
-                    itemBuilder: (context, index) {
-                      final entry = AnimalTypeConfig.configs.entries.elementAt(index);
-                      final config = entry.value;
-
-                      return _buildAnimalTypeCard(config, index)
-                          .animate()
-                          .fadeIn(delay: (100 * index).ms, duration: 500.ms)
-                          .scale(begin: const Offset(0.8, 0.8), delay: (100 * index).ms);
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAnimalTypeCard(AnimalTypeConfig config, int index) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          selectedAnimalType = config.type;
-          animalFilters['animal_type'] = config.type;
-        });
-        _fetchResults();
-      },
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.white.withOpacity(0.15),
-                  Colors.white.withOpacity(0.05),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.2),
-                width: 1.5,
-              ),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  config.emoji,
-                  style: const TextStyle(fontSize: 64),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  config.nameVi,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-                Text(
-                  config.nameEn,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.white.withOpacity(0.6),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
+        ),
+        child: SafeArea(
+          child: _buildBody(),
         ),
       ),
     );
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // QUESTION PAGE
-  // ═══════════════════════════════════════════════════════════════
+  Widget _buildBody() {
+    if (_selectedConfig == null) return _buildTypeSelection();
+    if (_isLoading) return _buildLoading();
+    if (_showResults) return _buildResults();
+    if (!_hasMoreQuestions) return _buildResults(); // hết câu → hiện kết quả
+    return _buildQuestion();
+  }
 
-  Widget _buildQuestionPage() {
-    final question = questions[currentQuestionIndex];
+  // ── BƯỚC 0: Chọn loài ──
+  Widget _buildTypeSelection() {
+    return Column(
+      children: [
+        const SizedBox(height: 40),
 
-    return Scaffold(
-      body: Stack(
+        // Tiêu đề
+        const Text('🐾', style: TextStyle(fontSize: 52))
+            .animate()
+            .fadeIn(duration: 400.ms)
+            .scale(begin: const Offset(0.6, 0.6)),
+
+        const SizedBox(height: 12),
+
+        Text(
+          'Tìm động vật',
+          style: TextStyle(
+            fontSize: 32,
+            fontWeight: FontWeight.w700,
+            foreground: Paint()
+              ..shader = const LinearGradient(
+                colors: [Color(0xFFFFD700), Color(0xFFFF6B6B)],
+              ).createShader(const Rect.fromLTWH(0, 0, 280, 60)),
+          ),
+        ).animate().fadeIn(delay: 100.ms),
+
+        const SizedBox(height: 6),
+
+        Text(
+          'Chọn loài bạn muốn khám phá',
+          style: TextStyle(
+              fontSize: 15, color: Colors.white.withOpacity(0.6)),
+        ).animate().fadeIn(delay: 200.ms),
+
+        const SizedBox(height: 32),
+
+        // Grid loài
+        Expanded(
+          child: GridView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            physics: const BouncingScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              childAspectRatio: 1.05,
+            ),
+            itemCount: allAnimalTypes.length,
+            itemBuilder: (context, i) {
+              final config = allAnimalTypes[i];
+              return _buildTypeCard(config, i);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTypeCard(AnimalTypeConfig config, int index) {
+    return GestureDetector(
+      onTap: () => _selectAnimalType(config),
+      child: _GlassCard(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(config.emoji, style: const TextStyle(fontSize: 52)),
+            const SizedBox(height: 10),
+            Text(
+              config.nameVi,
+              style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white),
+            ),
+            Text(
+              config.nameEn,
+              style: TextStyle(
+                  fontSize: 13, color: Colors.white.withOpacity(0.55)),
+            ),
+          ],
+        ),
+      ),
+    )
+        .animate()
+        .fadeIn(delay: (80 * index).ms, duration: 400.ms)
+        .scale(begin: const Offset(0.85, 0.85), delay: (80 * index).ms);
+  }
+
+  // ── LOADING ──
+  Widget _buildLoading() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Gradient Background
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFF1A1A2E),
-                  Color(0xFF16213E),
-                  Color(0xFF0F3460),
-                ],
-              ),
-            ),
-          ),
-
-          SafeArea(
-            child: Column(
-              children: [
-                // Header
-                Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Row(
-                    children: [
-                      // Back Button
-                      GestureDetector(
-                        onTap: () {
-                          if (currentQuestionIndex > 0) {
-                            setState(() => currentQuestionIndex--);
-                          } else {
-                            setState(() => selectedAnimalType = null);
-                          }
-                        },
-                        child: _buildGlassButton(
-                          child: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
-                        ),
-                      ),
-
-                      const SizedBox(width: 16),
-
-                      // Progress
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${currentConfig?.nameVi} ${currentConfig?.emoji}',
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${currentResults.length} kết quả',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.white.withOpacity(0.6),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Progress Bar
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: LinearProgressIndicator(
-                      value: (currentQuestionIndex + 1) / (questions.length + 1),
-                      minHeight: 6,
-                      backgroundColor: Colors.white.withOpacity(0.1),
-                      valueColor: const AlwaysStoppedAnimation(Color(0xFFFFD700)),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 40),
-
-                // Question
-                Expanded(
-                  child: isLoading
-                      ? const Center(
-                    child: CircularProgressIndicator(
-                      color: Color(0xFFFFD700),
-                    ),
-                  )
-                      : SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      children: [
-                        // Question Title
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              question.emoji,
-                              style: const TextStyle(fontSize: 48),
-                            ),
-                            const SizedBox(width: 16),
-                            Flexible(
-                              child: Text(
-                                question.question,
-                                style: const TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ],
-                        ).animate()
-                            .fadeIn(duration: 600.ms)
-                            .scale(begin: const Offset(0.9, 0.9)),
-
-                        const SizedBox(height: 40),
-
-                        // Options
-                        if (question.isRange)
-                          _buildRangeSlider(question)
-                        else
-                          _buildOptions(question),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          const CircularProgressIndicator(color: Color(0xFFFFD700)),
+          const SizedBox(height: 20),
+          Text('Đang tìm kiếm...',
+              style: TextStyle(
+                  color: Colors.white.withOpacity(0.6), fontSize: 16)),
         ],
       ),
     );
   }
 
-  Widget _buildOptions(QuestionConfig question) {
+  // ── CÂU HỎI ──
+  Widget _buildQuestion() {
+    final q = _questions[_questionIndex];
+    final total = _questions.length;
+    final progress = (_questionIndex + 1) / (total + 1);
+
     return Column(
-      children: question.options.asMap().entries.map((entry) {
-        final index = entry.key;
-        final option = entry.value;
-
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: GestureDetector(
-            onTap: () => _selectOption(question, option),
-            child: _buildOptionCard(option),
-          ),
-        ).animate()
-            .fadeIn(delay: (100 * index).ms, duration: 500.ms)
-            .slideX(begin: 0.3, delay: (100 * index).ms);
-      }).toList(),
-    );
-  }
-
-  Widget _buildOptionCard(OptionConfig option) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
+      children: [
+        // Header
+        Padding(
           padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.white.withOpacity(0.15),
-                Colors.white.withOpacity(0.05),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.2),
-              width: 1.5,
-            ),
-          ),
           child: Row(
             children: [
-              Text(
-                option.emoji,
-                style: const TextStyle(fontSize: 40),
+              _GlassIconButton(
+                icon: Icons.arrow_back_ios_new,
+                onTap: () {
+                  if (_questionIndex > 0) {
+                    // Xoá filter của câu trước và quay lại
+                    final prevQ = _questions[_questionIndex - 1];
+                    setState(() {
+                      _filters.remove(prevQ.column);
+                      _questionIndex--;
+                    });
+                    _fetchResults();
+                  } else {
+                    _reset();
+                  }
+                },
               ),
-              const SizedBox(width: 20),
+              const SizedBox(width: 14),
               Expanded(
-                child: Text(
-                  option.label,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${_selectedConfig!.nameVi} ${_selectedConfig!.emoji}',
+                      style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white),
+                    ),
+                    Text(
+                      '${_results.length} kết quả · Câu ${_questionIndex + 1}/$total',
+                      style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.white.withOpacity(0.55)),
+                    ),
+                  ],
                 ),
               ),
-              Icon(
-                Icons.arrow_forward_ios,
-                color: Colors.white.withOpacity(0.5),
-                size: 20,
-              ),
+              // Nút xem kết quả sớm
+              if (_results.isNotEmpty)
+                GestureDetector(
+                  onTap: () => setState(() => _showResults = true),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFD700).withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                          color: const Color(0xFFFFD700).withOpacity(0.4)),
+                    ),
+                    child: const Text('Xem ngay',
+                        style: TextStyle(
+                            color: Color(0xFFFFD700),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600)),
+                  ),
+                ),
             ],
           ),
         ),
-      ),
-    );
-  }
 
-  Widget _buildRangeSlider(QuestionConfig question) {
-    return Column(
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              padding: const EdgeInsets.all(30),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Colors.white.withOpacity(0.15),
-                    Colors.white.withOpacity(0.05),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.2),
-                  width: 1.5,
+        // Progress bar
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 5,
+              backgroundColor: Colors.white.withOpacity(0.1),
+              valueColor:
+              const AlwaysStoppedAnimation(Color(0xFFFFD700)),
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 32),
+
+        // Câu hỏi
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(q.emoji, style: const TextStyle(fontSize: 40)),
+              const SizedBox(width: 14),
+              Flexible(
+                child: Text(
+                  q.question,
+                  style: const TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        question.minLabel ?? 'Min',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.7),
-                          fontSize: 16,
-                        ),
-                      ),
-                      Text(
-                        question.maxLabel ?? 'Max',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.7),
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
+            ],
+          ),
+        ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.2),
+
+        const SizedBox(height: 32),
+
+        // Options / Slider
+        Expanded(
+          child: SingleChildScrollView(
+            padding:
+            const EdgeInsets.symmetric(horizontal: 20),
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              children: [
+                if (q.isRange)
+                  _buildRangeQuestion(q)
+                else
+                  ..._buildOptionsList(q),
+
+                const SizedBox(height: 16),
+
+                // Nút bỏ qua
+                GestureDetector(
+                  onTap: _skip,
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                          color: Colors.white.withOpacity(0.2)),
+                    ),
+                    child: Text(
+                      'Bỏ qua câu này  ⏭',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          color: Colors.white.withOpacity(0.5),
+                          fontSize: 15),
+                    ),
                   ),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: List.generate(5, (index) {
-                      final value = index + 1;
-                      return Expanded(
-                        child: GestureDetector(
-                          onTap: () => _selectRangeValue(question, value),
-                          child: Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 4),
-                            height: 60,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.3),
-                              ),
-                            ),
-                            child: Center(
-                              child: Text(
-                                '$value',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    }),
-                  ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 20),
+              ],
             ),
           ),
         ),
@@ -1010,128 +946,194 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
     );
   }
 
-  Widget _buildGlassButton({required Widget child}) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.white.withOpacity(0.15),
-                Colors.white.withOpacity(0.05),
+  List<Widget> _buildOptionsList(QuestionConfig q) {
+    return q.options.asMap().entries.map((entry) {
+      final i = entry.key;
+      final opt = entry.value;
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 14),
+        child: GestureDetector(
+          onTap: () => _answer(q, opt.value),
+          child: _GlassCard(
+            padding: const EdgeInsets.symmetric(
+                horizontal: 20, vertical: 16),
+            child: Row(
+              children: [
+                Text(opt.emoji,
+                    style: const TextStyle(fontSize: 36)),
+                const SizedBox(width: 18),
+                Expanded(
+                  child: Text(
+                    opt.label,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                Icon(Icons.arrow_forward_ios,
+                    color: Colors.white.withOpacity(0.4),
+                    size: 18),
               ],
             ),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.2),
-              width: 1.5,
-            ),
           ),
-          child: child,
-        ),
+        ).animate().fadeIn(delay: (80 * i).ms).slideX(begin: 0.25),
+      );
+    }).toList();
+  }
+
+  Widget _buildRangeQuestion(QuestionConfig q) {
+    return _GlassCard(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(q.minLabel ?? '1',
+                  style: TextStyle(
+                      color: Colors.white.withOpacity(0.6))),
+              Text(q.maxLabel ?? '5',
+                  style: TextStyle(
+                      color: Colors.white.withOpacity(0.6))),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: List.generate(5, (i) {
+              final val = i + 1;
+              return GestureDetector(
+                onTap: () => _answer(q, val),
+                child: Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                        color: Colors.white.withOpacity(0.25)),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '$val',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ),
+        ],
       ),
     );
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // RESULTS PAGE
-  // ═══════════════════════════════════════════════════════════════
-
+  // ── KẾT QUẢ ──
   Widget _buildResults() {
-    return Scaffold(
-      body: Stack(
-        children: [
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFF1A1A2E),
-                  Color(0xFF16213E),
-                  Color(0xFF0F3460),
-                ],
+    return Column(
+      children: [
+        // Header
+        Padding(
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            children: [
+              _GlassIconButton(
+                  icon: Icons.home_outlined, onTap: _reset),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  _results.isEmpty
+                      ? 'Không tìm thấy kết quả 😢'
+                      : '🎯  ${_results.length} kết quả phù hợp',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
               ),
+              // Nút làm lại từ đầu
+              _GlassIconButton(
+                icon: Icons.refresh,
+                onTap: () => _selectAnimalType(_selectedConfig!),
+              ),
+            ],
+          ),
+        ),
+
+        // Sub-text
+        if (_results.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Text(
+              'Chọn một con để xem chi tiết',
+              style: TextStyle(
+                  color: Colors.white.withOpacity(0.5), fontSize: 14),
             ),
           ),
 
-          SafeArea(
-            child: Column(
-              children: [
-                // Header
-                Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Row(
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            selectedAnimalType = null;
-                            currentQuestionIndex = 0;
-                            animalFilters.clear();
-                            traitsFilters.clear();
-                            currentResults.clear();
-                            showResults = false;
-                          });
-                        },
-                        child: _buildGlassButton(
-                          child: const Icon(Icons.home, color: Colors.white, size: 20),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Text(
-                          '🎯 Tìm thấy ${currentResults.length} kết quả',
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+        const SizedBox(height: 12),
 
-                // Results Grid
-                Expanded(
-                  child: currentResults.isEmpty
-                      ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text('😢', style: TextStyle(fontSize: 80)),
-                        const SizedBox(height: 20),
-                        Text(
-                          'Không tìm thấy kết quả',
-                          style: TextStyle(
-                            fontSize: 20,
-                            color: Colors.white.withOpacity(0.7),
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                      : GridView.builder(
-                    padding: const EdgeInsets.all(20),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                      childAspectRatio: 0.75,
-                    ),
-                    itemCount: currentResults.length,
-                    itemBuilder: (context, index) {
-                      return _buildResultCard(currentResults[index], index);
-                    },
-                  ),
-                ),
-              ],
+        // Danh sách
+        Expanded(
+          child: _results.isEmpty
+              ? _buildNoResults()
+              : GridView.builder(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+            physics: const BouncingScrollPhysics(),
+            gridDelegate:
+            const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 14,
+              mainAxisSpacing: 14,
+              childAspectRatio: 0.72,
+            ),
+            itemCount: _results.length,
+            itemBuilder: (context, i) =>
+                _buildResultCard(_results[i], i),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNoResults() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text('😢', style: TextStyle(fontSize: 72)),
+          const SizedBox(height: 16),
+          Text(
+            'Không tìm thấy kết quả phù hợp',
+            style: TextStyle(
+                color: Colors.white.withOpacity(0.7), fontSize: 18),
+          ),
+          const SizedBox(height: 24),
+          GestureDetector(
+            onTap: () => _selectAnimalType(_selectedConfig!),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 28, vertical: 14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFD700).withOpacity(0.2),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                    color: const Color(0xFFFFD700).withOpacity(0.5)),
+              ),
+              child: const Text(
+                'Tìm lại từ đầu',
+                style: TextStyle(
+                    color: Color(0xFFFFD700),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600),
+              ),
             ),
           ),
         ],
@@ -1141,363 +1143,183 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
 
   Widget _buildResultCard(Map<String, dynamic> animal, int index) {
     return GestureDetector(
-      onTap: () => _showAnimalDetail(animal),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.white.withOpacity(0.15),
-                  Colors.white.withOpacity(0.05),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.2),
-                width: 1.5,
+      onTap: () => _showDetail(animal),
+      child: _GlassCard(
+        padding: EdgeInsets.zero,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Ảnh
+            Expanded(
+              flex: 3,
+              child: ClipRRect(
+                borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(18)),
+                child: animal['image_url'] != null
+                    ? Image.network(
+                  animal['image_url'],
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  errorBuilder: (_, __, ___) => _emojiPlaceholder(),
+                )
+                    : _emojiPlaceholder(),
               ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Image
-                Expanded(
-                  flex: 3,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.05),
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(18),
-                      ),
-                    ),
-                    child: animal['image_url'] != null
-                        ? ClipRRect(
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(18),
-                      ),
-                      child: Image.network(
-                        animal['image_url'],
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        errorBuilder: (_, __, ___) => Center(
-                          child: Text(
-                            currentConfig?.emoji ?? '🐾',
-                            style: const TextStyle(fontSize: 60),
-                          ),
-                        ),
-                      ),
-                    )
-                        : Center(
-                      child: Text(
-                        currentConfig?.emoji ?? '🐾',
-                        style: const TextStyle(fontSize: 60),
-                      ),
-                    ),
-                  ),
-                ),
 
-                // Info
-                Expanded(
-                  flex: 2,
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          animal['name_vietnamese'] ?? animal['name_english'] ?? '',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        if (animal['scientific_name'] != null) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            animal['scientific_name'],
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontStyle: FontStyle.italic,
-                              color: Colors.white.withOpacity(0.6),
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ],
+            // Tên
+            Expanded(
+              flex: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      animal['name_vietnamese'] ??
+                          animal['name_english'] ??
+                          '—',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
+                    if (animal['scientific_name'] != null) ...[
+                      const SizedBox(height: 3),
+                      Text(
+                        animal['scientific_name'],
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontStyle: FontStyle.italic,
+                          color: Colors.white.withOpacity(0.55),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
-    ).animate()
-        .fadeIn(delay: (50 * index).ms, duration: 400.ms)
-        .scale(begin: const Offset(0.8, 0.8), delay: (50 * index).ms);
+    )
+        .animate()
+        .fadeIn(delay: (50 * index).ms, duration: 350.ms)
+        .scale(begin: const Offset(0.85, 0.85), delay: (50 * index).ms);
   }
 
-  Widget _buildNoMoreQuestions() {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF1A1A2E),
-              Color(0xFF16213E),
-              Color(0xFF0F3460),
-            ],
-          ),
-        ),
-        child: Center(
-          child: Text(
-            'Hết câu hỏi!',
-            style: TextStyle(
-              fontSize: 24,
-              color: Colors.white.withOpacity(0.7),
-            ),
-          ),
+  Widget _emojiPlaceholder() {
+    return Container(
+      color: Colors.white.withOpacity(0.06),
+      child: Center(
+        child: Text(
+          _selectedConfig?.emoji ?? '🐾',
+          style: const TextStyle(fontSize: 52),
         ),
       ),
     );
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // LOGIC
-  // ═══════════════════════════════════════════════════════════════
-
-  Future<void> _fetchResults() async {
-    setState(() => isLoading = true);
-
-    try {
-      const supabaseUrl = 'https://dnvlqnixommhjqwpflmw.supabase.co';
-      String url = '$supabaseUrl/rest/v1/animals?select=*';
-
-      // Separate array filters and normal filters
-      Map<String, dynamic> arrayFilters = {};
-      Map<String, dynamic> normalFilters = {};
-
-      for (var entry in animalFilters.entries) {
-        final key = entry.key;
-        final value = entry.value;
-
-        if (value == null) continue;
-
-        final question = questions.firstWhere(
-              (q) => q.column == key && q.type == QuestionType.animal,
-          orElse: () => questions.first,
-        );
-
-        if (question.isArray) {
-          arrayFilters[key] = value;
-          print('🔵 Array filter: $key = $value'); // Debug
-        } else {
-          normalFilters[key] = value;
-          print('🟢 Normal filter: $key = $value'); // Debug
-        }
-      }
-
-      // Add normal filters to URL
-      for (var entry in normalFilters.entries) {
-        url += '&${entry.key}=eq.${entry.value}';
-      }
-
-      print('🌐 Query URL: $url');
-
-      const apiKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRudmxxbml4b21taGpxd3BmbG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDMzMTUwMSwiZXhwIjoyMDg1OTA3NTAxfQ.W2cxnWC-DJoE9GRdUWMZU3-e27VFVA05BTJotZHfR54';
-
-      final animalResponse = await http.get(
-        Uri.parse(url),
-        headers: {
-          'apikey': apiKey,
-          'Authorization': 'Bearer $apiKey',
-          'Content-Type': 'application/json',
-        },
-      );
-
-      if (animalResponse.statusCode != 200) {
-        print('❌ Animal query error: ${animalResponse.body}');
-        setState(() {
-          currentResults = [];
-          isLoading = false;
-        });
-        return;
-      }
-
-      var animalResults = json.decode(animalResponse.body) as List;
-
-      print('📊 Fetched ${animalResults.length} animals from DB');
-
-      // Debug: Check first animal structure
-      if (animalResults.isNotEmpty) {
-        final first = animalResults[0];
-        print('🔍 First animal primary_colors type: ${first['primary_colors'].runtimeType}');
-        print('🔍 First animal primary_colors value: ${first['primary_colors']}');
-      }
-
-      // Client-side filtering for array columns
-      if (arrayFilters.isNotEmpty) {
-        print('🔄 Applying client-side array filters...');
-        animalResults = animalResults.where((animal) {
-          for (var entry in arrayFilters.entries) {
-            final key = entry.key;
-            final value = entry.value;
-
-            final arrayValue = animal[key];
-
-            print('  🔍 Checking $key: $arrayValue (type: ${arrayValue.runtimeType})');
-
-            // Check if array contains value
-            if (arrayValue is List) {
-              if (!arrayValue.contains(value)) {
-                print('    ❌ List does not contain $value');
-                return false;
-              }
-              print('    ✅ List contains $value');
-            } else if (arrayValue is String) {
-              // If it's text instead of array, check if contains
-              if (!arrayValue.toLowerCase().contains(value.toString().toLowerCase())) {
-                print('    ❌ String does not contain $value');
-                return false;
-              }
-              print('    ✅ String contains $value');
-            } else {
-              print('    ⚠️ Unknown type, skipping');
-              return false;
-            }
-          }
-          return true;
-        }).toList();
-
-        print('✅ After filtering: ${animalResults.length} animals');
-      }
-
-      if (animalResults.isEmpty) {
-        setState(() {
-          currentResults = [];
-          isLoading = false;
-        });
-        return;
-      }
-
-      // If no traits filters, return animals
-      if (traitsFilters.isEmpty) {
-        setState(() {
-          currentResults = List<Map<String, dynamic>>.from(animalResults);
-          isLoading = false;
-        });
-        return;
-      }
-
-      // Query traits table
-      final animalIds = animalResults.map((a) => a['id'] as String).toList();
-
-      print('🔍 Querying traits for ${animalIds.length} animals...');
-
-      var traitsQuery = Supabase.instance.client
-          .from(currentConfig!.traitsTable)
-          .select('*')
-          .inFilter('animal_id', animalIds);
-
-      for (var entry in traitsFilters.entries) {
-        traitsQuery = traitsQuery.eq(entry.key, entry.value);
-      }
-
-      final traitsResults = await traitsQuery;
-      final matchedIds = traitsResults.map((t) => t['animal_id']).toSet();
-
-      final filteredAnimals = animalResults
-          .where((a) => matchedIds.contains(a['id']))
-          .toList();
-
-      print('✅ Final results: ${filteredAnimals.length} animals');
-
-      setState(() {
-        currentResults = List<Map<String, dynamic>>.from(filteredAnimals);
-        isLoading = false;
-      });
-
-      // Auto show results if <= 10
-      if (currentResults.length <= 10 && currentResults.isNotEmpty) {
-        setState(() => showResults = true);
-      }
-
-    } catch (e) {
-      print('❌ Error: $e');
-      setState(() {
-        currentResults = [];
-        isLoading = false;
-      });
-    }
-  }
-
-  void _selectOption(QuestionConfig question, OptionConfig option) {
-    if (question.type == QuestionType.traits) {
-      traitsFilters[option.boolColumn ?? question.column] = option.value;
-    } else {
-      animalFilters[question.column] = option.value;
-    }
-
-    _nextQuestion();
-  }
-
-  void _selectRangeValue(QuestionConfig question, int value) {
-    if (question.type == QuestionType.traits) {
-      traitsFilters[question.column] = value;
-    } else {
-      animalFilters[question.column] = value;
-    }
-
-    _nextQuestion();
-  }
-
-  Future<void> _nextQuestion() async {
-    await _fetchResults();
-
-    if (currentResults.length <= 10 && currentResults.isNotEmpty) {
-      setState(() => showResults = true);
-    } else if (currentQuestionIndex < questions.length - 1) {
-      setState(() => currentQuestionIndex++);
-    } else {
-      setState(() => showResults = true);
-    }
-  }
-
-  void _showAnimalDetail(Map<String, dynamic> animal) {
+  void _showDetail(Map<String, dynamic> animal) {
     showCupertinoDialog(
       context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: Text(animal['name_vietnamese'] ?? animal['name_english'] ?? ''),
+      builder: (ctx) => CupertinoAlertDialog(
+        title: Text(
+            animal['name_vietnamese'] ?? animal['name_english'] ?? ''),
         content: Column(
           children: [
-            if (animal['scientific_name'] != null)
+            if (animal['scientific_name'] != null) ...[
+              const SizedBox(height: 6),
               Text(
                 animal['scientific_name'],
                 style: const TextStyle(fontStyle: FontStyle.italic),
               ),
-            const SizedBox(height: 10),
-            if (animal['description_short'] != null)
+            ],
+            if (animal['description_short'] != null) ...[
+              const SizedBox(height: 10),
               Text(animal['description_short']),
+            ],
           ],
         ),
         actions: [
           CupertinoDialogAction(
             child: const Text('Đóng'),
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(ctx),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// REUSABLE WIDGETS
+// ═══════════════════════════════════════════════════════════════════
+
+class _GlassCard extends StatelessWidget {
+  final Widget child;
+  final EdgeInsets? padding;
+
+  const _GlassCard({required this.child, this.padding});
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          padding: padding ?? const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white.withOpacity(0.14),
+                Colors.white.withOpacity(0.05),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+                color: Colors.white.withOpacity(0.2), width: 1.2),
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+class _GlassIconButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _GlassIconButton({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            padding: const EdgeInsets.all(11),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                  color: Colors.white.withOpacity(0.2), width: 1.2),
+            ),
+            child: Icon(icon, color: Colors.white, size: 20),
+          ),
+        ),
       ),
     );
   }
