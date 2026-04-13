@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:kltn_app/screen/ExploreScreen/explore_service.dart';
+import 'package:provider/provider.dart'; // Đã thêm để sử dụng MultiProvider
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:kltn_app/screen/welcome/welcome_screen.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ✅ Initialize Supabase TRƯỚC khi runApp
+  // Initialize Supabase TRƯỚC khi runApp
   await Supabase.initialize(
-    url: 'https://dnvlqnixommhjqwpflmw.supabase.co',   // ← thay bằng URL thật
+    url: 'https://dnvlqnixommhjqwpflmw.supabase.co',
     anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRudmxxbml4b21taGpxd3BmbG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzE1MDEsImV4cCI6MjA4NTkwNzUwMX0.sz5oI5lhecJ0DCJNByI3CIHFICHh2PBt5FHnrMfmDaE',                      // ← thay bằng key thật
   );
 
@@ -22,7 +25,16 @@ void main() async {
     ),
   );
 
-  runApp(const AniQuestApp());
+  // Cập nhật runApp với MultiProvider
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ExploreService()),
+
+      ],
+      child: const AniQuestApp(),
+    ),
+  );
 }
 
 class AniQuestApp extends StatelessWidget {

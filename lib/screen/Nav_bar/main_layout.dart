@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import '../ExploreScreen/ExploreScreen.dart';
 
+import '../ExploreScreen/explore_page.dart';
 import '../IDENTIFY SCREEN/indentify_screen.dart';
 import '../Search_screen/search_screen.dart';
 import '../Search_smart/search_smart.dart';
@@ -23,7 +24,7 @@ class _MainLayoutState extends State<MainLayout> {
   // Danh sách các màn hình tương ứng với 5 tab
   final List<Widget> _pages = const [
     HomeScreen(),
-    SearchScreen(),
+    ExplorePage(),
     IdentifyScreen(),
     SmartQuizPage(),
     Center(child: Text('Màn hình Cài Đặt')),   // SettingsScreen()
