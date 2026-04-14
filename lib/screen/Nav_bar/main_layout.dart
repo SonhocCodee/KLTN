@@ -6,6 +6,7 @@ import '../ExploreScreen/explore_page.dart';
 import '../IDENTIFY SCREEN/indentify_screen.dart';
 import '../Search_screen/search_screen.dart';
 import '../Search_smart/search_smart.dart';
+import '../SettingsScreen/SettingsScreen.dart';
 import '../home/home_screen.dart';
 import 'navbar.dart';
 // Import các màn hình thực tế của bạn tại đây
@@ -27,7 +28,7 @@ class _MainLayoutState extends State<MainLayout> {
     ExplorePage(),
     IdentifyScreen(),
     SmartQuizPage(),
-    Center(child: Text('Màn hình Cài Đặt')),   // SettingsScreen()
+    AnimalSettingsScreen(),
   ];
 
   @override

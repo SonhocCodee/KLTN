@@ -10,9 +10,9 @@ import 'package:flutter_animate/flutter_animate.dart';
 // ═══════════════════════════════════════════════════════════════════
 
 class AnimalTypeConfig {
-  final String key;         // key nội bộ
-  final String dbTable;     // tên bảng thực trong Supabase
-  final String animalType;  // giá trị của cột animal_type trong DB
+  final String key;
+  final String dbTable;
+  final String animalType;
   final String emoji;
   final String nameVi;
   final String nameEn;
@@ -29,7 +29,7 @@ class AnimalTypeConfig {
   });
 }
 
-// ── CẤU HÌNH MÈO — câu hỏi dựa hoàn toàn vào quan sát ──
+// ── CẤU HÌNH MÈO ──
 const _catConfig = AnimalTypeConfig(
   key: 'cat',
   dbTable: 'cats',
@@ -38,7 +38,6 @@ const _catConfig = AnimalTypeConfig(
   nameVi: 'Mèo',
   nameEn: 'Cat',
   questions: [
-    // Q1: Màu lông — nhìn thấy ngay
     QuestionConfig(
       id: 'primary_colors',
       question: 'Lông màu gì?',
@@ -53,7 +52,6 @@ const _catConfig = AnimalTypeConfig(
         OptionConfig(label: 'Nâu / Kem', emoji: '🟤', value: 'cream'),
       ],
     ),
-    // Q2: Độ dài lông — nhìn thấy ngay
     QuestionConfig(
       id: 'coat_length',
       question: 'Lông dài hay ngắn?',
@@ -66,7 +64,6 @@ const _catConfig = AnimalTypeConfig(
         OptionConfig(label: 'Dài / Rất dài', emoji: '🧶', value: 'long'),
       ],
     ),
-    // Q3: Hoa văn — nhìn thấy ngay
     QuestionConfig(
       id: 'patterns',
       question: 'Có hoa văn không?',
@@ -81,7 +78,6 @@ const _catConfig = AnimalTypeConfig(
         OptionConfig(label: 'Tam thể', emoji: '🌈', value: 'calico'),
       ],
     ),
-    // Q4: Tai — nhìn thấy ngay
     QuestionConfig(
       id: 'has_floppy_ears',
       question: 'Tai như thế nào?',
@@ -93,7 +89,6 @@ const _catConfig = AnimalTypeConfig(
         OptionConfig(label: 'Tai dựng nhọn', emoji: '🦊', value: false),
       ],
     ),
-    // Q5: Bông xù — nhìn thấy ngay
     QuestionConfig(
       id: 'is_fluffy',
       question: 'Lông có bông xù không?',
@@ -105,7 +100,6 @@ const _catConfig = AnimalTypeConfig(
         OptionConfig(label: 'Không xù', emoji: '🪶', value: false),
       ],
     ),
-    // Q6: Kích thước cơ thể — nhìn thấy
     QuestionConfig(
       id: 'size_category',
       question: 'Con to hay nhỏ?',
@@ -117,7 +111,6 @@ const _catConfig = AnimalTypeConfig(
         OptionConfig(label: 'To lớn (> 6kg)', emoji: '🦁', value: 'large'),
       ],
     ),
-    // Q7: Đuôi — nhìn thấy
     QuestionConfig(
       id: 'has_long_tail',
       question: 'Đuôi dài hay ngắn?',
@@ -132,7 +125,7 @@ const _catConfig = AnimalTypeConfig(
   ],
 );
 
-// ── CẤU HÌNH CHÓ — câu hỏi quan sát được ──
+// ── CẤU HÌNH CHÓ ──
 const _dogConfig = AnimalTypeConfig(
   key: 'dog',
   dbTable: 'dogs',
@@ -141,7 +134,6 @@ const _dogConfig = AnimalTypeConfig(
   nameVi: 'Chó',
   nameEn: 'Dog',
   questions: [
-    // Q1: Kích thước — quan sát rõ nhất
     QuestionConfig(
       id: 'size_category',
       question: 'Con to hay nhỏ?',
@@ -154,7 +146,6 @@ const _dogConfig = AnimalTypeConfig(
         OptionConfig(label: 'Khổng lồ (> 40kg)', emoji: '🐻', value: 'giant'),
       ],
     ),
-    // Q2: Màu lông
     QuestionConfig(
       id: 'primary_colors',
       question: 'Lông màu gì?',
@@ -169,7 +160,6 @@ const _dogConfig = AnimalTypeConfig(
         OptionConfig(label: 'Xám', emoji: '🔘', value: 'gray'),
       ],
     ),
-    // Q3: Độ dài lông
     QuestionConfig(
       id: 'coat_length',
       question: 'Lông ngắn hay dài?',
@@ -181,7 +171,6 @@ const _dogConfig = AnimalTypeConfig(
         OptionConfig(label: 'Dài', emoji: '🧶', value: 'long'),
       ],
     ),
-    // Q4: Tai
     QuestionConfig(
       id: 'has_floppy_ears',
       question: 'Tai như thế nào?',
@@ -193,7 +182,6 @@ const _dogConfig = AnimalTypeConfig(
         OptionConfig(label: 'Tai dựng nhọn', emoji: '🦊', value: false),
       ],
     ),
-    // Q5: Hoa văn / đốm
     QuestionConfig(
       id: 'patterns',
       question: 'Lông có hoa văn không?',
@@ -207,7 +195,6 @@ const _dogConfig = AnimalTypeConfig(
         OptionConfig(label: 'Vằn', emoji: '🦓', value: 'brindle'),
       ],
     ),
-    // Q6: Bờm / mane
     QuestionConfig(
       id: 'has_mane',
       question: 'Có bờm lông quanh cổ không?',
@@ -222,7 +209,6 @@ const _dogConfig = AnimalTypeConfig(
   ],
 );
 
-// ── CẤU HÌNH THÚ HOANG — query bảng "animals" theo animal_type ──
 AnimalTypeConfig _makeWildConfig({
   required String key,
   required String animalType,
@@ -240,7 +226,6 @@ AnimalTypeConfig _makeWildConfig({
   questions: questions,
 );
 
-// Danh sách tất cả loài
 final List<AnimalTypeConfig> allAnimalTypes = [
   _catConfig,
   _dogConfig,
@@ -483,9 +468,9 @@ class QuestionConfig {
   final String emoji;
   final String column;
   final List<OptionConfig> options;
-  final bool isArray;   // cột PostgreSQL ARRAY (primary_colors, patterns...)
-  final bool isBool;    // cột boolean
-  final bool isRange;   // dùng slider 1-5
+  final bool isArray;
+  final bool isBool;
+  final bool isRange;
   final String? minLabel;
   final String? maxLabel;
 
@@ -527,122 +512,191 @@ class SmartQuizPage extends StatefulWidget {
 }
 
 class _SmartQuizPageState extends State<SmartQuizPage> {
-  // State chính
   AnimalTypeConfig? _selectedConfig;
   int _questionIndex = 0;
   bool _isLoading = false;
   bool _showResults = false;
 
-  // Bộ lọc tích lũy — key là tên cột, value là giá trị cần lọc
+  // Bộ lọc tích lũy — chỉ thêm filter đã được xác nhận có kết quả
   final Map<String, dynamic> _filters = {};
   List<Map<String, dynamic>> _results = [];
+
+  // Các index câu hỏi đã thực sự được hỏi (skip những câu chỉ có 1 option hợp lệ)
+  final List<int> _askedQuestionIndices = [];
 
   final _client = Supabase.instance.client;
 
   List<QuestionConfig> get _questions => _selectedConfig?.questions ?? [];
-  bool get _hasMoreQuestions => _questionIndex < _questions.length;
 
-  // ── reset toàn bộ state ──
   void _reset() {
     setState(() {
       _selectedConfig = null;
       _questionIndex = 0;
       _filters.clear();
       _results.clear();
+      _askedQuestionIndices.clear();
       _isLoading = false;
       _showResults = false;
     });
   }
 
-  // ── chọn loài → fetch lần đầu, chuyển sang Q1 ──
   Future<void> _selectAnimalType(AnimalTypeConfig config) async {
     setState(() {
       _selectedConfig = config;
       _questionIndex = 0;
       _filters.clear();
       _results.clear();
+      _askedQuestionIndices.clear();
       _showResults = false;
       _isLoading = true;
     });
-    await _fetchResults();
+    await _fetchResults(_filters);
     setState(() => _isLoading = false);
+
+    // Sau khi load xong, kiểm tra câu hỏi đầu tiên có hữu ích không
+    await _advanceToNextUsefulQuestion();
   }
 
-  // ── người dùng chọn 1 đáp án ──
+  // ── Thử apply filter với 1 option cụ thể, trả về số kết quả ──
+  Future<int> _countResultsWithFilter(
+      Map<String, dynamic> baseFilters, QuestionConfig q, dynamic value) async {
+    if (_selectedConfig == null) return 0;
+    final testFilters = Map<String, dynamic>.from(baseFilters);
+    testFilters[q.column] = value;
+    try {
+      final data = await _buildQuery(testFilters).limit(50);
+      return (data as List).length;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  // ── Kiểm tra options nào của câu hỏi hiện tại còn có kết quả ──
+  Future<List<OptionConfig>> _getValidOptions(QuestionConfig q) async {
+    final validOpts = <OptionConfig>[];
+    for (final opt in q.options) {
+      final count = await _countResultsWithFilter(_filters, q, opt.value);
+      if (count > 0) {
+        validOpts.add(opt);
+      }
+    }
+    return validOpts;
+  }
+
+  // ── Tiến đến câu hỏi tiếp theo thực sự có ích ──
+  // Bỏ qua câu nào mà tất cả options đều dẫn đến cùng tập kết quả (không phân biệt được)
+  // hoặc chỉ có đúng 1 option có kết quả → tự động apply luôn, không hỏi
+  Future<void> _advanceToNextUsefulQuestion() async {
+    if (_selectedConfig == null) return;
+
+    while (_questionIndex < _questions.length) {
+      // Dừng lại nếu kết quả đã đủ nhỏ (≤ 3 loài → hiện kết quả)
+      if (_results.length <= 3) {
+        setState(() => _showResults = true);
+        return;
+      }
+
+      final q = _questions[_questionIndex];
+
+      // Lấy danh sách option còn có kết quả
+      final validOpts = await _getValidOptions(q);
+
+      if (validOpts.isEmpty) {
+        // Không option nào có kết quả với filter hiện tại → skip câu này
+        setState(() => _questionIndex++);
+        continue;
+      }
+
+      if (validOpts.length == 1) {
+        // Chỉ 1 option hợp lệ → tự động apply, không hỏi người dùng
+        setState(() {
+          _filters[q.column] = validOpts.first.value;
+          _questionIndex++;
+          _isLoading = true;
+        });
+        await _fetchResults(_filters);
+        setState(() => _isLoading = false);
+        continue;
+      }
+
+      // Câu hỏi này có ≥ 2 option hợp lệ → hiển thị để hỏi
+      // Lưu lại valid options để UI dùng
+      _currentValidOptions = validOpts;
+      setState(() {}); // trigger rebuild
+      return;
+    }
+
+    // Hết câu hỏi → hiện kết quả
+    setState(() => _showResults = true);
+  }
+
+  // Cache valid options cho câu hỏi hiện tại
+  List<OptionConfig> _currentValidOptions = [];
+
+  // ── Người dùng chọn đáp án ──
   Future<void> _answer(QuestionConfig q, dynamic value) async {
     HapticFeedback.lightImpact();
-
-    // Lưu filter
     setState(() {
       _filters[q.column] = value;
+      _questionIndex++;
+      _currentValidOptions = [];
       _isLoading = true;
     });
 
-    await _fetchResults();
+    await _fetchResults(_filters);
+    setState(() => _isLoading = false);
 
-    setState(() {
-      _isLoading = false;
-      // Hiện kết quả nếu còn ≤ 5 hoặc đã hết câu hỏi
-      if (_results.length <= 5 || _questionIndex >= _questions.length - 1) {
-        _showResults = true;
-      } else {
-        _questionIndex++;
-      }
-    });
+    // Tiếp tục tìm câu hỏi hữu ích tiếp theo
+    await _advanceToNextUsefulQuestion();
   }
 
-  // ── người dùng bỏ qua câu hỏi ──
-  void _skip() {
+  // ── Bỏ qua câu hỏi (không thêm filter) ──
+  Future<void> _skip() async {
     HapticFeedback.selectionClick();
     setState(() {
-      if (_results.length <= 5 || _questionIndex >= _questions.length - 1) {
-        _showResults = true;
-      } else {
-        _questionIndex++;
-      }
+      _questionIndex++;
+      _currentValidOptions = [];
     });
+    await _advanceToNextUsefulQuestion();
   }
 
-  // ── query Supabase theo bảng đúng ──
-  Future<void> _fetchResults() async {
-    if (_selectedConfig == null) return;
+  // ── Xây dựng query Supabase với bộ filter ──
+  dynamic _buildQuery(Map<String, dynamic> filters) {
     final config = _selectedConfig!;
+    var query = _client
+        .from(config.dbTable)
+        .select('id, name_vietnamese, name_english, scientific_name, image_url, description_short, animal_type');
 
+    if (config.dbTable == 'animals') {
+      query = query.eq('animal_type', config.animalType) as dynamic;
+    }
+
+    for (final entry in filters.entries) {
+      final col = entry.key;
+      final val = entry.value;
+      final qConfig = _questions.firstWhere(
+            (q) => q.column == col,
+        orElse: () => _questions.first,
+      );
+
+      if (qConfig.isArray) {
+        query = query.contains(col, [val]) as dynamic;
+      } else if (qConfig.isBool || val is bool) {
+        query = query.eq(col, val) as dynamic;
+      } else if (qConfig.isRange && val is int) {
+        query = query.gte(col, val - 1).lte(col, val + 1) as dynamic;
+      } else {
+        query = query.eq(col, val) as dynamic;
+      }
+    }
+
+    return query;
+  }
+
+  Future<void> _fetchResults(Map<String, dynamic> filters) async {
+    if (_selectedConfig == null) return;
     try {
-      var query = _client
-          .from(config.dbTable)
-          .select('id, name_vietnamese, name_english, scientific_name, image_url, description_short, animal_type');
-
-      // Với bảng animals (thú hoang): thêm filter theo animal_type
-      if (config.dbTable == 'animals') {
-        query = query.eq('animal_type', config.animalType) as dynamic;
-      }
-
-      // Áp dụng các filter đã tích lũy
-      for (final entry in _filters.entries) {
-        final col = entry.key;
-        final val = entry.value;
-        final qConfig = _questions.firstWhere(
-              (q) => q.column == col,
-          orElse: () => _questions.first,
-        );
-
-        if (qConfig.isArray) {
-          // Dùng contains để check array: giá trị nằm trong mảng PostgreSQL
-          query = query.contains(col, [val]) as dynamic;
-        } else if (qConfig.isBool || val is bool) {
-          query = query.eq(col, val) as dynamic;
-        } else if (qConfig.isRange && val is int) {
-          // Range: lấy ±1 quanh giá trị chọn
-          query = query
-              .gte(col, val - 1)
-              .lte(col, val + 1) as dynamic;
-        } else {
-          query = query.eq(col, val) as dynamic;
-        }
-      }
-
-      final data = await (query as dynamic).limit(50);
+      final data = await _buildQuery(filters).limit(50);
       setState(() {
         _results = List<Map<String, dynamic>>.from(data as List);
       });
@@ -652,25 +706,24 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
     }
   }
 
-  // ═══════════════════════════════════════════════════════
-  // BUILD
-  // ═══════════════════════════════════════════════════════
+  // ════════════════════════════════════════════════════════════
+  // BUILD — Apple iOS White Style
+  // ════════════════════════════════════════════════════════════
+
+  // Màu sắc Apple-style
+  static const _bg = Color(0xFFF2F2F7);           // iOS systemGroupedBackground
+  static const _surface = Colors.white;
+  static const _primary = Color(0xFF007AFF);       // iOS Blue
+  static const _label = Color(0xFF000000);         // iOS label
+  static const _secondaryLabel = Color(0xFF6C6C70);
+  static const _separator = Color(0xFFD1D1D6);
+  static const _fill = Color(0xFFE5E5EA);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF1A1A2E), Color(0xFF16213E), Color(0xFF0F3460)],
-          ),
-        ),
-        child: SafeArea(
-          child: _buildBody(),
-        ),
-      ),
+      backgroundColor: _bg,
+      body: SafeArea(child: _buildBody()),
     );
   }
 
@@ -678,62 +731,57 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
     if (_selectedConfig == null) return _buildTypeSelection();
     if (_isLoading) return _buildLoading();
     if (_showResults) return _buildResults();
-    if (!_hasMoreQuestions) return _buildResults(); // hết câu → hiện kết quả
+    if (_questionIndex >= _questions.length) return _buildResults();
     return _buildQuestion();
   }
 
   // ── BƯỚC 0: Chọn loài ──
   Widget _buildTypeSelection() {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 40),
-
-        // Tiêu đề
-        const Text('🐾', style: TextStyle(fontSize: 52))
-            .animate()
-            .fadeIn(duration: 400.ms)
-            .scale(begin: const Offset(0.6, 0.6)),
-
-        const SizedBox(height: 12),
-
-        Text(
-          'Tìm động vật',
-          style: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.w700,
-            foreground: Paint()
-              ..shader = const LinearGradient(
-                colors: [Color(0xFFFFD700), Color(0xFFFF6B6B)],
-              ).createShader(const Rect.fromLTWH(0, 0, 280, 60)),
+        // Header iOS-style large title
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Tìm động vật',
+                style: TextStyle(
+                  fontSize: 34,
+                  fontWeight: FontWeight.w700,
+                  color: _label,
+                  letterSpacing: -0.5,
+                ),
+              ).animate().fadeIn(duration: 350.ms),
+              const SizedBox(height: 4),
+              const Text(
+                'Chọn loài bạn muốn khám phá',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: _secondaryLabel,
+                  fontWeight: FontWeight.w400,
+                ),
+              ).animate().fadeIn(delay: 100.ms),
+            ],
           ),
-        ).animate().fadeIn(delay: 100.ms),
+        ),
 
-        const SizedBox(height: 6),
+        const SizedBox(height: 16),
 
-        Text(
-          'Chọn loài bạn muốn khám phá',
-          style: TextStyle(
-              fontSize: 15, color: Colors.white.withOpacity(0.6)),
-        ).animate().fadeIn(delay: 200.ms),
-
-        const SizedBox(height: 32),
-
-        // Grid loài
         Expanded(
           child: GridView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             physics: const BouncingScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
               childAspectRatio: 1.05,
             ),
             itemCount: allAnimalTypes.length,
-            itemBuilder: (context, i) {
-              final config = allAnimalTypes[i];
-              return _buildTypeCard(config, i);
-            },
+            itemBuilder: (context, i) => _buildTypeCard(allAnimalTypes[i], i),
           ),
         ),
       ],
@@ -743,44 +791,60 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
   Widget _buildTypeCard(AnimalTypeConfig config, int index) {
     return GestureDetector(
       onTap: () => _selectAnimalType(config),
-      child: _GlassCard(
+      child: Container(
+        decoration: BoxDecoration(
+          color: _surface,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(config.emoji, style: const TextStyle(fontSize: 52)),
-            const SizedBox(height: 10),
+            Text(config.emoji, style: const TextStyle(fontSize: 48)),
+            const SizedBox(height: 8),
             Text(
               config.nameVi,
               style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white),
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
+                color: _label,
+              ),
             ),
+            const SizedBox(height: 2),
             Text(
               config.nameEn,
-              style: TextStyle(
-                  fontSize: 13, color: Colors.white.withOpacity(0.55)),
+              style: const TextStyle(
+                fontSize: 13,
+                color: _secondaryLabel,
+              ),
             ),
           ],
         ),
       ),
     )
         .animate()
-        .fadeIn(delay: (80 * index).ms, duration: 400.ms)
-        .scale(begin: const Offset(0.85, 0.85), delay: (80 * index).ms);
+        .fadeIn(delay: (60 * index).ms, duration: 350.ms)
+        .scale(begin: const Offset(0.92, 0.92), delay: (60 * index).ms);
   }
 
   // ── LOADING ──
   Widget _buildLoading() {
-    return Center(
+    return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const CircularProgressIndicator(color: Color(0xFFFFD700)),
-          const SizedBox(height: 20),
-          Text('Đang tìm kiếm...',
-              style: TextStyle(
-                  color: Colors.white.withOpacity(0.6), fontSize: 16)),
+          CupertinoActivityIndicator(radius: 16),
+          SizedBox(height: 16),
+          Text(
+            'Đang tìm kiếm...',
+            style: TextStyle(color: _secondaryLabel, fontSize: 16),
+          ),
         ],
       ),
     );
@@ -788,152 +852,177 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
 
   // ── CÂU HỎI ──
   Widget _buildQuestion() {
+    if (_questionIndex >= _questions.length) {
+      return _buildResults();
+    }
     final q = _questions[_questionIndex];
-    final total = _questions.length;
-    final progress = (_questionIndex + 1) / (total + 1);
+    final displayOptions = _currentValidOptions.isNotEmpty
+        ? _currentValidOptions
+        : q.options;
+
+    // Đếm số câu đã hỏi thực tế (có filter)
+    final answeredCount = _filters.length;
+    final totalQ = _questions.length;
+    final progress = (answeredCount) / totalQ.toDouble();
 
     return Column(
       children: [
-        // Header
-        Padding(
-          padding: const EdgeInsets.all(20),
-          child: Row(
-            children: [
-              _GlassIconButton(
-                icon: Icons.arrow_back_ios_new,
-                onTap: () {
-                  if (_questionIndex > 0) {
-                    // Xoá filter của câu trước và quay lại
-                    final prevQ = _questions[_questionIndex - 1];
-                    setState(() {
-                      _filters.remove(prevQ.column);
-                      _questionIndex--;
-                    });
-                    _fetchResults();
-                  } else {
-                    _reset();
-                  }
-                },
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${_selectedConfig!.nameVi} ${_selectedConfig!.emoji}',
-                      style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white),
-                    ),
-                    Text(
-                      '${_results.length} kết quả · Câu ${_questionIndex + 1}/$total',
-                      style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.white.withOpacity(0.55)),
-                    ),
-                  ],
-                ),
-              ),
-              // Nút xem kết quả sớm
-              if (_results.isNotEmpty)
-                GestureDetector(
-                  onTap: () => setState(() => _showResults = true),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFD700).withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                          color: const Color(0xFFFFD700).withOpacity(0.4)),
-                    ),
-                    child: const Text('Xem ngay',
-                        style: TextStyle(
-                            color: Color(0xFFFFD700),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600)),
-                  ),
-                ),
-            ],
+        // iOS Navigation Bar style
+        _buildNavBar(
+          leading: GestureDetector(
+            onTap: () {
+              if (_filters.isNotEmpty) {
+                // Xoá filter cuối và quay lại
+                final lastKey = _filters.keys.last;
+                setState(() {
+                  _filters.remove(lastKey);
+                  _currentValidOptions = [];
+                  // Tìm lại index câu hỏi tương ứng
+                  final prevIdx = _questions.indexWhere((q) => q.column == lastKey);
+                  if (prevIdx >= 0) _questionIndex = prevIdx;
+                });
+                _fetchResults(_filters).then((_) => _advanceToNextUsefulQuestion());
+              } else {
+                _reset();
+              }
+            },
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(CupertinoIcons.back, color: _primary, size: 22),
+                Text('Quay lại',
+                    style: TextStyle(color: _primary, fontSize: 17)),
+              ],
+            ),
           ),
+          title: Text(
+            '${_selectedConfig!.nameVi} ${_selectedConfig!.emoji}',
+            style: const TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w600,
+              color: _label,
+            ),
+          ),
+          trailing: _results.isNotEmpty
+              ? GestureDetector(
+            onTap: () => setState(() => _showResults = true),
+            child: Text(
+              'Xem ${_results.length}',
+              style: const TextStyle(color: _primary, fontSize: 17),
+            ),
+          )
+              : const SizedBox.shrink(),
         ),
 
         // Progress bar
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 5,
-              backgroundColor: Colors.white.withOpacity(0.1),
-              valueColor:
-              const AlwaysStoppedAnimation(Color(0xFFFFD700)),
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 32),
-
-        // Câu hỏi
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(q.emoji, style: const TextStyle(fontSize: 40)),
-              const SizedBox(width: 14),
-              Flexible(
-                child: Text(
-                  q.question,
-                  style: const TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                  textAlign: TextAlign.center,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: progress.clamp(0.0, 1.0),
+                  minHeight: 4,
+                  backgroundColor: _fill,
+                  valueColor: const AlwaysStoppedAnimation(_primary),
                 ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                '${_results.length} kết quả đang khớp',
+                style: const TextStyle(
+                    fontSize: 13, color: _secondaryLabel),
               ),
             ],
           ),
-        ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.2),
+        ),
 
-        const SizedBox(height: 32),
+        const SizedBox(height: 28),
 
-        // Options / Slider
+        // Câu hỏi
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            children: [
+              Text(q.emoji, style: const TextStyle(fontSize: 44))
+                  .animate()
+                  .scale(begin: const Offset(0.7, 0.7), duration: 300.ms),
+              const SizedBox(height: 12),
+              Text(
+                q.question,
+                style: const TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w700,
+                  color: _label,
+                  letterSpacing: -0.3,
+                ),
+                textAlign: TextAlign.center,
+              ).animate().fadeIn(duration: 300.ms).slideY(begin: -0.15),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 24),
+
+        // Options
         Expanded(
           child: SingleChildScrollView(
-            padding:
-            const EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             physics: const BouncingScrollPhysics(),
             child: Column(
               children: [
-                if (q.isRange)
-                  _buildRangeQuestion(q)
-                else
-                  ..._buildOptionsList(q),
+                // iOS grouped list style
+                Container(
+                  decoration: BoxDecoration(
+                    color: _surface,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: displayOptions.asMap().entries.map((entry) {
+                      final i = entry.key;
+                      final opt = entry.value;
+                      final isLast = i == displayOptions.length - 1;
+                      return _buildOptionRow(q, opt, isLast, i);
+                    }).toList(),
+                  ),
+                ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
 
-                // Nút bỏ qua
+                // Bỏ qua — iOS tertiary style
                 GestureDetector(
                   onTap: _skip,
                   child: Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                          color: Colors.white.withOpacity(0.2)),
+                      color: _surface,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.04),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                    child: Text(
-                      'Bỏ qua câu này  ⏭',
+                    child: const Text(
+                      'Không chắc, bỏ qua',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                          color: Colors.white.withOpacity(0.5),
-                          fontSize: 15),
+                        color: _secondaryLabel,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w400,
+                      ),
                     ),
                   ),
                 ),
@@ -946,152 +1035,107 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
     );
   }
 
-  List<Widget> _buildOptionsList(QuestionConfig q) {
-    return q.options.asMap().entries.map((entry) {
-      final i = entry.key;
-      final opt = entry.value;
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 14),
-        child: GestureDetector(
-          onTap: () => _answer(q, opt.value),
-          child: _GlassCard(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 20, vertical: 16),
+  Widget _buildOptionRow(QuestionConfig q, OptionConfig opt, bool isLast, int index) {
+    return GestureDetector(
+      onTap: () => _answer(q, opt.value),
+      child: Column(
+        children: [
+          Container(
+            color: Colors.transparent,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             child: Row(
               children: [
-                Text(opt.emoji,
-                    style: const TextStyle(fontSize: 36)),
-                const SizedBox(width: 18),
+                Text(opt.emoji, style: const TextStyle(fontSize: 28)),
+                const SizedBox(width: 14),
                 Expanded(
                   child: Text(
                     opt.label,
                     style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      fontSize: 17,
+                      color: _label,
+                      fontWeight: FontWeight.w400,
                     ),
                   ),
                 ),
-                Icon(Icons.arrow_forward_ios,
-                    color: Colors.white.withOpacity(0.4),
-                    size: 18),
+                const Icon(CupertinoIcons.chevron_forward,
+                    color: _separator, size: 16),
               ],
             ),
           ),
-        ).animate().fadeIn(delay: (80 * i).ms).slideX(begin: 0.25),
-      );
-    }).toList();
-  }
-
-  Widget _buildRangeQuestion(QuestionConfig q) {
-    return _GlassCard(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(q.minLabel ?? '1',
-                  style: TextStyle(
-                      color: Colors.white.withOpacity(0.6))),
-              Text(q.maxLabel ?? '5',
-                  style: TextStyle(
-                      color: Colors.white.withOpacity(0.6))),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: List.generate(5, (i) {
-              final val = i + 1;
-              return GestureDetector(
-                onTap: () => _answer(q, val),
-                child: Container(
-                  width: 52,
-                  height: 52,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                        color: Colors.white.withOpacity(0.25)),
-                  ),
-                  child: Center(
-                    child: Text(
-                      '$val',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            }),
-          ),
+          if (!isLast)
+            const Divider(
+              height: 1,
+              indent: 58,
+              color: _separator,
+            ),
         ],
       ),
-    );
+    ).animate().fadeIn(delay: (50 * index).ms).slideX(begin: 0.1);
   }
 
   // ── KẾT QUẢ ──
   Widget _buildResults() {
     return Column(
       children: [
-        // Header
-        Padding(
-          padding: const EdgeInsets.all(20),
-          child: Row(
-            children: [
-              _GlassIconButton(
-                  icon: Icons.home_outlined, onTap: _reset),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(
-                  _results.isEmpty
-                      ? 'Không tìm thấy kết quả 😢'
-                      : '🎯  ${_results.length} kết quả phù hợp',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              // Nút làm lại từ đầu
-              _GlassIconButton(
-                icon: Icons.refresh,
-                onTap: () => _selectAnimalType(_selectedConfig!),
-              ),
-            ],
+        _buildNavBar(
+          leading: GestureDetector(
+            onTap: _reset,
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(CupertinoIcons.house, color: _primary, size: 20),
+                SizedBox(width: 4),
+                Text('Trang chủ',
+                    style: TextStyle(color: _primary, fontSize: 17)),
+              ],
+            ),
           ),
+          title: Text(
+            _results.isEmpty
+                ? 'Không tìm thấy'
+                : '${_results.length} kết quả',
+            style: const TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w600,
+              color: _label,
+            ),
+          ),
+          trailing: _results.isNotEmpty
+              ? GestureDetector(
+            onTap: () => _selectAnimalType(_selectedConfig!),
+            child: const Text(
+              'Tìm lại',
+              style: TextStyle(color: _primary, fontSize: 17),
+            ),
+          )
+              : const SizedBox.shrink(),
         ),
 
-        // Sub-text
         if (_results.isNotEmpty)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Text(
-              'Chọn một con để xem chi tiết',
-              style: TextStyle(
-                  color: Colors.white.withOpacity(0.5), fontSize: 14),
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+            child: Row(
+              children: [
+                Text(
+                  'Chọn một con để xem chi tiết',
+                  style: const TextStyle(
+                      color: _secondaryLabel, fontSize: 13),
+                ),
+              ],
             ),
           ),
 
-        const SizedBox(height: 12),
-
-        // Danh sách
         Expanded(
           child: _results.isEmpty
               ? _buildNoResults()
               : GridView.builder(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
             physics: const BouncingScrollPhysics(),
             gridDelegate:
             const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              crossAxisSpacing: 14,
-              mainAxisSpacing: 14,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
               childAspectRatio: 0.72,
             ),
             itemCount: _results.length,
@@ -1108,31 +1152,38 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Text('😢', style: TextStyle(fontSize: 72)),
+          const Text('🔍', style: TextStyle(fontSize: 64)),
           const SizedBox(height: 16),
-          Text(
-            'Không tìm thấy kết quả phù hợp',
+          const Text(
+            'Không tìm thấy',
             style: TextStyle(
-                color: Colors.white.withOpacity(0.7), fontSize: 18),
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              color: _label,
+            ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 8),
+          const Text(
+            'Thử tìm lại với ít tiêu chí hơn',
+            style: TextStyle(color: _secondaryLabel, fontSize: 16),
+          ),
+          const SizedBox(height: 28),
           GestureDetector(
             onTap: () => _selectAnimalType(_selectedConfig!),
             child: Container(
               padding: const EdgeInsets.symmetric(
                   horizontal: 28, vertical: 14),
               decoration: BoxDecoration(
-                color: const Color(0xFFFFD700).withOpacity(0.2),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                    color: const Color(0xFFFFD700).withOpacity(0.5)),
+                color: _primary,
+                borderRadius: BorderRadius.circular(14),
               ),
               child: const Text(
                 'Tìm lại từ đầu',
                 style: TextStyle(
-                    color: Color(0xFFFFD700),
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600),
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
@@ -1144,17 +1195,26 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
   Widget _buildResultCard(Map<String, dynamic> animal, int index) {
     return GestureDetector(
       onTap: () => _showDetail(animal),
-      child: _GlassCard(
-        padding: EdgeInsets.zero,
+      child: Container(
+        decoration: BoxDecoration(
+          color: _surface,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.07),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Ảnh
             Expanded(
               flex: 3,
               child: ClipRRect(
                 borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(18)),
+                const BorderRadius.vertical(top: Radius.circular(16)),
                 child: animal['image_url'] != null
                     ? Image.network(
                   animal['image_url'],
@@ -1165,8 +1225,6 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
                     : _emojiPlaceholder(),
               ),
             ),
-
-            // Tên
             Expanded(
               flex: 2,
               child: Padding(
@@ -1181,8 +1239,8 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
                           '—',
                       style: const TextStyle(
                         fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        color: _label,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -1191,10 +1249,10 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
                       const SizedBox(height: 3),
                       Text(
                         animal['scientific_name'],
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 11,
                           fontStyle: FontStyle.italic,
-                          color: Colors.white.withOpacity(0.55),
+                          color: _secondaryLabel,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -1210,16 +1268,16 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
     )
         .animate()
         .fadeIn(delay: (50 * index).ms, duration: 350.ms)
-        .scale(begin: const Offset(0.85, 0.85), delay: (50 * index).ms);
+        .scale(begin: const Offset(0.88, 0.88), delay: (50 * index).ms);
   }
 
   Widget _emojiPlaceholder() {
     return Container(
-      color: Colors.white.withOpacity(0.06),
+      color: _fill,
       child: Center(
         child: Text(
           _selectedConfig?.emoji ?? '🐾',
-          style: const TextStyle(fontSize: 52),
+          style: const TextStyle(fontSize: 48),
         ),
       ),
     );
@@ -1255,71 +1313,22 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
       ),
     );
   }
-}
 
-// ═══════════════════════════════════════════════════════════════════
-// REUSABLE WIDGETS
-// ═══════════════════════════════════════════════════════════════════
-
-class _GlassCard extends StatelessWidget {
-  final Widget child;
-  final EdgeInsets? padding;
-
-  const _GlassCard({required this.child, this.padding});
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          padding: padding ?? const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.white.withOpacity(0.14),
-                Colors.white.withOpacity(0.05),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-                color: Colors.white.withOpacity(0.2), width: 1.2),
-          ),
-          child: child,
-        ),
-      ),
-    );
-  }
-}
-
-class _GlassIconButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onTap;
-
-  const _GlassIconButton({required this.icon, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            padding: const EdgeInsets.all(11),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                  color: Colors.white.withOpacity(0.2), width: 1.2),
-            ),
-            child: Icon(icon, color: Colors.white, size: 20),
-          ),
-        ),
+  // ── iOS Navigation Bar helper ──
+  Widget _buildNavBar({
+    required Widget leading,
+    required Widget title,
+    required Widget trailing,
+  }) {
+    return Container(
+      color: _bg,
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+      child: Row(
+        children: [
+          leading,
+          Expanded(child: Center(child: title)),
+          trailing,
+        ],
       ),
     );
   }
