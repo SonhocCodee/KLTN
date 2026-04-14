@@ -12,7 +12,6 @@ import 'package:http/http.dart' as http;
 import '../animal_list/Animal detail screen.dart';
 import '../home/animal_category_model.dart';
 
-
 class IdentifyScreen extends StatefulWidget {
   const IdentifyScreen({super.key});
 
@@ -22,9 +21,10 @@ class IdentifyScreen extends StatefulWidget {
 
 class _IdentifyScreenState extends State<IdentifyScreen>
     with SingleTickerProviderStateMixin {
-  // ── Colors ────────────────────────────────────────────────────────────────
-  static const _primaryGreen = Color(0xFF34D399);
-  static const _bgColor = Color(0xFFF8FAFC);
+  // ── Colors (Đã tinh chỉnh cho độ tương phản cao, phong cách động vật) ─────
+  static const _primaryGreen = Color(0xFF2E7D32); // Xanh Safari
+  static const _accentOrange = Color(0xFFEF6C00); // Cam Hổ
+  static const _bgColor = Colors.white; // Nền trắng tinh
 
   // ── API ───────────────────────────────────────────────────────────────────
   static const _geminiApiKey = 'AIzaSyCWcewCDAfJZASHrb5RyjTjEz2c901Wb_U';
@@ -40,7 +40,6 @@ class _IdentifyScreenState extends State<IdentifyScreen>
   static const _supabaseKey =
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRudmxxbml4b21taGpxd3BmbG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDMzMTUwMSwiZXhwIjoyMDg1OTA3NTAxfQ.W2cxnWC-DJoE9GRdUWMZU3-e27VFVA05BTJotZHfR54';
 
-  // ── State (AI nhận diện tự do, Supabase fuzzy search khớp tên) ─────────
   // ── State ─────────────────────────────────────────────────────────────────
   final ImagePicker _picker = ImagePicker();
   bool _isAnalyzing = false;
@@ -69,16 +68,16 @@ class _IdentifyScreenState extends State<IdentifyScreen>
     _loadModel();
     _cardAnimCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 600), // Làm mượt hơn chút
     );
     _cardFadeAnim = CurvedAnimation(
       parent: _cardAnimCtrl,
       curve: Curves.easeOut,
     );
     _cardSlideAnim = Tween<Offset>(
-      begin: const Offset(0, 0.3),
+      begin: const Offset(0, 0.4),
       end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _cardAnimCtrl, curve: Curves.easeOut));
+    ).animate(CurvedAnimation(parent: _cardAnimCtrl, curve: Curves.easeOutBack));
   }
 
   @override
@@ -184,8 +183,6 @@ class _IdentifyScreenState extends State<IdentifyScreen>
   }
 
   // ── Prompt: AI nhận diện tự do, trả tên chuẩn quốc tế ─────────────────────
-  // Không hard-code danh sách → dùng được cho mọi loài (mèo, chó, trâu, hổ...)
-  // Supabase sẽ fuzzy search để khớp tên dù AI trả về hơi khác
   static const _prompt =
       'You are an expert zoologist and animal breed identifier. '
       'Look at this image carefully and identify:\n'
@@ -228,13 +225,11 @@ class _IdentifyScreenState extends State<IdentifyScreen>
     if (tiLe.isEmpty) tiLe = '?';
 
     return {
-      'breed': breed,     // tên AI trả về → Supabase sẽ fuzzy search
+      'breed': breed,
       'nameVi': nameVi,
       'confidence': tiLe,
     };
   }
-
-  // Không cần local list matching nữa — Supabase xử lý trong _fetchAndSetResult
 
   // ── Gemini ────────────────────────────────────────────────────────────────
   Future<bool> _identifyWithGemini(File f) async {
@@ -263,7 +258,6 @@ class _IdentifyScreenState extends State<IdentifyScreen>
       }
 
       final json = jsonDecode(res.body);
-      // Kiểm tra có candidates không (đôi khi Gemini trả 200 nhưng bị filter)
       final candidates = json['candidates'] as List?;
       if (candidates == null || candidates.isEmpty) {
         debugPrint('⚠️ Gemini không có candidates → thử Groq');
@@ -361,11 +355,9 @@ class _IdentifyScreenState extends State<IdentifyScreen>
       'Somali', 'Sphynx', 'Thai', 'Tonkinese', 'Toyger', 'Turkish Angora',
       'Turkish Van', 'Ukranian Levkoy', 'York Chocolate',
     ],
-    // Khi có data chó/hổ/trâu trong DB → thêm vào đây:
-    // 'dog': ['Golden Retriever', 'Labrador', ...],
   };
 
-  // ── Query Supabase 3 tầng + AI remap tầng 4 nếu vẫn không tìm thấy ─────────
+  // ── Query Supabase 3 tầng + AI remap tầng 4 ─────────────────────────────
   Future<bool> _fetchAndSetResult(Map<String, String> parsed, String source) async {
     final breed = parsed['breed']!;
     final nameVi = parsed['nameVi']!;
@@ -374,26 +366,17 @@ class _IdentifyScreenState extends State<IdentifyScreen>
     Map<String, dynamic>? animal;
 
     try {
-      // Tầng 1: exact match
       animal = await _querySupabase('name_english=eq.${Uri.encodeComponent(breed)}');
-
-      // Tầng 2: ilike English
-      animal ??= await _querySupabase(
-          'name_english=ilike.${Uri.encodeComponent('%${breed.trim()}%')}');
-
-      // Tầng 3: ilike Vietnamese
+      animal ??= await _querySupabase('name_english=ilike.${Uri.encodeComponent('%${breed.trim()}%')}');
       if (animal == null && nameVi.isNotEmpty) {
-        animal ??= await _querySupabase(
-            'name_vietnamese=ilike.${Uri.encodeComponent('%${nameVi.trim()}%')}');
+        animal ??= await _querySupabase('name_vietnamese=ilike.${Uri.encodeComponent('%${nameVi.trim()}%')}');
       }
 
-      // Tầng 4: AI remap — Domestic Shorthair → American Shorthair
       if (animal == null) {
         debugPrint('⚠️ Không khớp DB → Tầng 4: AI remap...');
         final remapped = await _remapBreedWithAI(breed, nameVi);
         if (remapped != null) {
-          animal = await _querySupabase(
-              'name_english=eq.${Uri.encodeComponent(remapped)}');
+          animal = await _querySupabase('name_english=eq.${Uri.encodeComponent(remapped)}');
           if (animal != null) debugPrint('✅ Remap: "$breed" → "$remapped"');
         }
       }
@@ -415,7 +398,6 @@ class _IdentifyScreenState extends State<IdentifyScreen>
       return true;
     }
 
-    // Vẫn không tìm → hiển thị nhưng không navigate
     debugPrint('⚠️ "$breed" không có trong DB');
     setState(() {
       _resultNameVi = nameVi;
@@ -429,10 +411,6 @@ class _IdentifyScreenState extends State<IdentifyScreen>
     return true;
   }
 
-  // ── Tầng 4: Groq text model map tên lạ → tên chuẩn trong DB ─────────────────
-  // "Domestic Shorthair" → "American Shorthair"
-  // "Tabby cat"          → "American Shorthair"
-  // "Mixed Persian"      → "Persian"
   Future<String?> _remapBreedWithAI(String breed, String nameVi) async {
     try {
       final animalType = _detectAnimalType(breed, nameVi);
@@ -462,7 +440,6 @@ class _IdentifyScreenState extends State<IdentifyScreen>
       if (res.statusCode == 200) {
         final text = (jsonDecode(res.body)['choices'][0]['message']['content'] as String)
             .trim().replaceAll('"', '').replaceAll("'", '');
-        // Validate phải nằm trong DB list
         for (final b in dbList) {
           if (b.toLowerCase() == text.toLowerCase()) return b;
         }
@@ -473,14 +450,12 @@ class _IdentifyScreenState extends State<IdentifyScreen>
     return null;
   }
 
-  // Detect loài từ tên breed
   String _detectAnimalType(String breed, String nameVi) {
     final s = '${breed.toLowerCase()} ${nameVi.toLowerCase()}';
     if (s.contains('dog') || s.contains('chó') || s.contains('puppy')) return 'dog';
-    return 'cat'; // mặc định cat
+    return 'cat';
   }
-  // ── Supabase helper: query 1 record theo filter bất kỳ ──────────────────────
-  // Dùng chung cho exact, ilike English, ilike Vietnamese
+
   Future<Map<String, dynamic>?> _querySupabase(String filter) async {
     final url = '$_supabaseUrl/rest/v1/animals'
         '?$filter'
@@ -542,7 +517,6 @@ class _IdentifyScreenState extends State<IdentifyScreen>
     }
   }
 
-  // ── Mở trang chi tiết ─────────────────────────────────────────────────────
   void _openDetail() {
     if (_resultAnimalId == null) return;
     Navigator.push(
@@ -557,7 +531,6 @@ class _IdentifyScreenState extends State<IdentifyScreen>
   }
 
   AnimalCategory _buildCatCategory() {
-    // Dùng getById để lấy đúng category đã định nghĩa sẵn trong allCategories
     return AnimalCategory.getById('cat') ??
         AnimalCategory(
           id: 'cat',
@@ -571,7 +544,7 @@ class _IdentifyScreenState extends State<IdentifyScreen>
   }
 
   // ═════════════════════════════════════════════════════════════════════════
-  // UI
+  // GIAO DIỆN MỚI (Lively, High Contrast, Animal Theme)
   // ═════════════════════════════════════════════════════════════════════════
   @override
   Widget build(BuildContext context) {
@@ -586,19 +559,18 @@ class _IdentifyScreenState extends State<IdentifyScreen>
                 _buildHeader(),
                 Expanded(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         _buildImageFrame(),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 24),
                         _buildPickButtons(),
                         if (_selectedImage != null) ...[
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 20),
                           _buildSearchButton(),
                         ],
-                        const SizedBox(height: 20),
-                        // Result section
+                        const SizedBox(height: 24),
                         if (_resultNameVi != null) _buildResultSection(),
                       ],
                     ),
@@ -615,21 +587,33 @@ class _IdentifyScreenState extends State<IdentifyScreen>
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
       child: Row(
         children: [
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Nhận Diện',
-                    style: TextStyle(
+                Row(
+                  children: [
+                    const Text(
+                      'Camera Thú Vị',
+                      style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w900,
-                        color: Color(0xFF1E293B))),
-                const Text('Chụp hoặc tải ảnh để nhận diện động vật',
-                    style:
-                    TextStyle(fontSize: 13, color: Color(0xFF64748B))),
+                        color: _primaryGreen, // Chữ xanh nổi bật
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Icon(Icons.pets_rounded, color: _accentOrange, size: 28), // Icon chân thú
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Khám phá thế giới động vật qua ống kính',
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600], fontWeight: FontWeight.w500),
+                ),
               ],
             ),
           ),
@@ -641,62 +625,79 @@ class _IdentifyScreenState extends State<IdentifyScreen>
 
   Widget _buildImageFrame() {
     return AspectRatio(
-      aspectRatio: 4 / 3,
+      aspectRatio: 4 / 3.5, // Hơi vuông một chút giống polaroid
       child: Container(
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: _primaryGreen.withOpacity(0.3), width: 2),
-          boxShadow: [
+          color: _selectedImage == null ? Colors.grey[50] : Colors.white,
+          borderRadius: BorderRadius.circular(32), // Bo góc tròn trịa hơn
+          border: Border.all(
+            color: _selectedImage == null ? Colors.grey[300]! : _primaryGreen,
+            width: 3, // Viền dày tạo độ tương phản
+          ),
+          boxShadow: _selectedImage != null
+              ? [
             BoxShadow(
-                color: Colors.black.withOpacity(0.06),
-                blurRadius: 20,
-                offset: const Offset(0, 8))
-          ],
+              color: _primaryGreen.withOpacity(0.2),
+              blurRadius: 24,
+              offset: const Offset(0, 12),
+            )
+          ]
+              : null,
         ),
         child: _selectedImage != null
-            ? Stack(fit: StackFit.expand, children: [
-          Image.file(_selectedImage!, fit: BoxFit.cover),
-          Positioned(
-            top: 10,
-            right: 10,
-            child: GestureDetector(
-              onTap: () => setState(() {
-                _selectedImage = null;
-                _clearResult();
-              }),
-              child: Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                    color: Colors.black54, shape: BoxShape.circle),
-                child: const Icon(CupertinoIcons.clear,
-                    color: Colors.white, size: 18),
+            ? Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.file(_selectedImage!, fit: BoxFit.cover),
+            // Nút xóa ảnh nổi bật
+            Positioned(
+              top: 16,
+              right: 16,
+              child: GestureDetector(
+                onTap: () => setState(() {
+                  _selectedImage = null;
+                  _clearResult();
+                }),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        )
+                      ]
+                  ),
+                  child: const Icon(CupertinoIcons.clear_thick, color: Colors.redAccent, size: 20),
+                ),
               ),
             ),
-          ),
-        ])
+          ],
+        )
             : Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                  color: _primaryGreen.withOpacity(0.1),
+                  color: _accentOrange.withOpacity(0.1),
                   shape: BoxShape.circle),
-              child: const Icon(CupertinoIcons.photo,
-                  color: _primaryGreen, size: 40),
+              child: Icon(Icons.center_focus_strong_rounded,
+                  color: _accentOrange, size: 50),
             ),
-            const SizedBox(height: 12),
-            const Text('Chưa có ảnh nào',
+            const SizedBox(height: 16),
+            const Text('Chưa có dấu chân nào',
                 style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF64748B))),
-            const SizedBox(height: 6),
-            const Text('Vui lòng chụp hoặc tải ảnh từ thư viện',
-                style: TextStyle(
-                    fontSize: 13, color: Color(0xFF94A3B8))),
+                    color: Colors.black87)),
+            const SizedBox(height: 8),
+            Text('Chọn một bức ảnh để bắt đầu',
+                style: TextStyle(fontSize: 14, color: Colors.grey[500])),
           ],
         ),
       ),
@@ -708,20 +709,57 @@ class _IdentifyScreenState extends State<IdentifyScreen>
       children: [
         Expanded(
             child: _buildOptionCard(
-              icon: CupertinoIcons.camera_fill,
-              label: 'Chụp ảnh',
-              gradient: const [Color(0xFF818CF8), Color(0xFF6366F1)],
+              icon: Icons.camera_alt_rounded,
+              label: 'Chụp Mới',
+              bgColor: _primaryGreen, // Màu mảng khối rõ ràng
               onTap: () => _pickImage(ImageSource.camera),
             )),
-        const SizedBox(width: 12),
+        const SizedBox(width: 16),
         Expanded(
             child: _buildOptionCard(
-              icon: CupertinoIcons.photo_on_rectangle,
-              label: 'Thư viện',
-              gradient: const [Color(0xFF818CF8), Color(0xFF6366F1)],
+              icon: Icons.photo_library_rounded,
+              label: 'Thư Viện',
+              bgColor: _accentOrange, // Tương phản với màu xanh
               onTap: () => _pickImage(ImageSource.gallery),
             )),
       ],
+    );
+  }
+
+  Widget _buildOptionCard({
+    required IconData icon,
+    required String label,
+    required Color bgColor,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+                color: bgColor.withOpacity(0.3),
+                blurRadius: 12,
+                offset: const Offset(0, 6))
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white, size: 32),
+            const SizedBox(height: 10),
+            Text(label,
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5)),
+          ],
+        ),
+      ),
     );
   }
 
@@ -729,22 +767,23 @@ class _IdentifyScreenState extends State<IdentifyScreen>
     return ElevatedButton(
       onPressed: _isAnalyzing ? null : _startSearching,
       style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        backgroundColor: _primaryGreen,
-        shape:
-        RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        elevation: 0,
+        padding: const EdgeInsets.symmetric(vertical: 18),
+        backgroundColor: Colors.black87, // Màu đen tạo sự tập trung chú ý
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        elevation: 8,
+        shadowColor: Colors.black.withOpacity(0.4),
       ),
-      child: const Row(
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(CupertinoIcons.search, color: Colors.white),
-          SizedBox(width: 8),
-          Text('Tìm kiếm loài vật',
+          Icon(Icons.saved_search_rounded, color: Colors.white, size: 28),
+          const SizedBox(width: 12),
+          const Text('Bắt Đầu Phân Tích',
               style: TextStyle(
                   color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold)),
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5)),
         ],
       ),
     );
@@ -759,27 +798,18 @@ class _IdentifyScreenState extends State<IdentifyScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Label
             Row(
               children: [
-                Container(
-                  width: 4,
-                  height: 20,
-                  decoration: BoxDecoration(
-                    color: _primaryGreen,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
+                Icon(Icons.stars_rounded, color: _accentOrange),
                 const SizedBox(width: 8),
-                const Text('Kết quả nhận diện',
+                const Text('Kết Quả Hồ Sơ',
                     style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF1E293B))),
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.black87)),
               ],
             ),
-            const SizedBox(height: 12),
-            // Card loài
+            const SizedBox(height: 16),
             _buildResultCard(),
           ],
         ),
@@ -795,104 +825,100 @@ class _IdentifyScreenState extends State<IdentifyScreen>
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: canNavigate
-                ? _primaryGreen.withOpacity(0.5)
-                : Colors.grey.withOpacity(0.2),
-            width: 1.5,
+            color: canNavigate ? _primaryGreen : Colors.grey[300]!,
+            width: 2,
           ),
           boxShadow: [
             BoxShadow(
-              color: _primaryGreen.withOpacity(0.08),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
+              color: canNavigate ? _primaryGreen.withOpacity(0.1) : Colors.black.withOpacity(0.05),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
             )
           ],
         ),
         child: Row(
           children: [
-            // Ảnh preview từ DB hoặc ảnh người dùng chọn
-            ClipRRect(
-              borderRadius:
-              const BorderRadius.horizontal(left: Radius.circular(19)),
-              child: SizedBox(
-                width: 110,
-                height: 110,
-                child: _resultImageUrl != null
-                    ? Image.network(
-                  _resultImageUrl!,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => _buildImagePlaceholder(),
-                )
-                    : _selectedImage != null
-                    ? Image.file(_selectedImage!, fit: BoxFit.cover)
-                    : _buildImagePlaceholder(),
+            // Ảnh preview
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(18),
+                child: SizedBox(
+                  width: 100,
+                  height: 100,
+                  child: _resultImageUrl != null
+                      ? Image.network(
+                    _resultImageUrl!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => _buildImagePlaceholder(),
+                  )
+                      : _selectedImage != null
+                      ? Image.file(_selectedImage!, fit: BoxFit.cover)
+                      : _buildImagePlaceholder(),
+                ),
               ),
             ),
-
             // Info
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(14),
+                padding: const EdgeInsets.only(left: 8, right: 16, top: 12, bottom: 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Tên tiếng Việt
                     Text(
                       _resultNameVi ?? '',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF1E293B)),
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.black87,
+                          height: 1.2),
                     ),
-                    const SizedBox(height: 2),
-                    // Tên tiếng Anh
+                    const SizedBox(height: 4),
                     Text(
                       _resultNameEn ?? '',
-                      style: const TextStyle(
-                          fontSize: 13, color: Color(0xFF64748B)),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          fontSize: 14, color: Colors.grey[600], fontStyle: FontStyle.italic),
                     ),
-                    const SizedBox(height: 8),
-                    // Tỉ lệ chính xác
+                    const SizedBox(height: 12),
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
+                        // Badge tỉ lệ
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 3),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: _primaryGreen.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(20),
+                            color: _accentOrange.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            '${_resultConfidence ?? '?'}% phù hợp',
+                            '${_resultConfidence ?? '?'}% Khớp',
                             style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: _primaryGreen),
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: _accentOrange),
                           ),
                         ),
+                        if (canNavigate)
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: _primaryGreen,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.arrow_forward_rounded, size: 16, color: Colors.white),
+                          ),
                       ],
                     ),
-                    if (canNavigate) ...[
+                    if (!canNavigate) ...[
                       const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          const Text('Xem chi tiết',
-                              style: TextStyle(
-                                  fontSize: 13,
-                                  color: _primaryGreen,
-                                  fontWeight: FontWeight.w600)),
-                          const SizedBox(width: 4),
-                          const Icon(Icons.arrow_forward_ios,
-                              size: 12, color: _primaryGreen),
-                        ],
-                      ),
-                    ] else ...[
-                      const SizedBox(height: 8),
-                      const Text('Không tìm thấy trong database',
-                          style: TextStyle(
-                              fontSize: 12, color: Color(0xFF94A3B8))),
+                      const Text('Loài này chưa có trong từ điển',
+                          style: TextStyle(fontSize: 12, color: Colors.redAccent, fontWeight: FontWeight.w600)),
                     ]
                   ],
                 ),
@@ -906,9 +932,9 @@ class _IdentifyScreenState extends State<IdentifyScreen>
 
   Widget _buildImagePlaceholder() {
     return Container(
-      color: _primaryGreen.withOpacity(0.08),
-      child: const Center(
-        child: Icon(CupertinoIcons.photo, color: _primaryGreen, size: 32),
+      color: Colors.grey[100],
+      child: Center(
+        child: Icon(Icons.pets_rounded, color: Colors.grey[400], size: 36),
       ),
     );
   }
@@ -916,27 +942,53 @@ class _IdentifyScreenState extends State<IdentifyScreen>
   // ── Loading overlay ───────────────────────────────────────────────────────
   Widget _buildLoadingOverlay() {
     return Container(
-      color: Colors.black.withOpacity(0.5),
+      color: Colors.white.withOpacity(0.9), // Nền trắng mờ để vẫn nhìn thấy mờ mờ UI phía sau
       child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const CircularProgressIndicator(color: _primaryGreen),
-            const SizedBox(height: 16),
-            const Text('Đang phân tích hình ảnh...',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600)),
-            const SizedBox(height: 6),
-            Text(
-              _aiSource == 'groq'
-                  ? '⚡ Groq Llama 4'
-                  : '✨ Gemini 2.5 Flash',
-              style:
-              const TextStyle(color: _primaryGreen, fontSize: 13),
-            ),
-          ],
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+          decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 30,
+                  offset: const Offset(0, 10),
+                )
+              ]
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  SizedBox(
+                    width: 60,
+                    height: 60,
+                    child: CircularProgressIndicator(
+                      color: _accentOrange,
+                      strokeWidth: 4,
+                    ),
+                  ),
+                  Icon(Icons.pets_rounded, color: _primaryGreen, size: 28),
+                ],
+              ),
+              const SizedBox(height: 24),
+              const Text('Đang đánh hơi...',
+                  style: TextStyle(
+                      color: Colors.black87,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              Text(
+                _aiSource == 'groq'
+                    ? '⚡ Groq Llama 4 đang dò tìm'
+                    : '✨ Gemini 2.5 đang tra cứu',
+                style: TextStyle(color: Colors.grey[600], fontSize: 14),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -952,11 +1004,11 @@ class _IdentifyScreenState extends State<IdentifyScreen>
         ? const Color(0xFF7C3AED)
         : _primaryGreen;
     final String label = isGemini
-        ? 'Gemini'
+        ? 'Gemini AI'
         : isGroq
-        ? 'Groq'
+        ? 'Groq AI'
         : _aiSource == 'local_fallback'
-        ? 'Local*'
+        ? 'Local AI*'
         : 'Local AI';
     final IconData icon = isGemini
         ? Icons.auto_awesome
@@ -967,60 +1019,21 @@ class _IdentifyScreenState extends State<IdentifyScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.4)),
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.3), width: 1.5),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 14, color: color),
-          const SizedBox(width: 4),
+          const SizedBox(width: 6),
           Text(label,
               style: TextStyle(
                   fontSize: 12,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.bold,
                   color: color)),
         ],
-      ),
-    );
-  }
-
-  Widget _buildOptionCard({
-    required IconData icon,
-    required String label,
-    required List<Color> gradient,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-              colors: gradient,
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-                color: gradient[0].withOpacity(0.3),
-                blurRadius: 8,
-                offset: const Offset(0, 4))
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: Colors.white, size: 24),
-            const SizedBox(height: 8),
-            Text(label,
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700)),
-          ],
-        ),
       ),
     );
   }

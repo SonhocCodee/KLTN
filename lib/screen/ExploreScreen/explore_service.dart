@@ -81,22 +81,31 @@ class QuizQuestion {
 }
 
 class ExploreService extends ChangeNotifier {
-  static const _keyDate         = 'explore_date';
-  static const _keyAnimalIds    = 'explore_animal_ids';
-  static const _keyReadCount    = 'explore_read_count';
-  static const _keyStreak       = 'explore_streak';
-  static const _keyLastPlayed   = 'explore_last_played';
-  static const _keyTotalFacts   = 'explore_total_facts';
-  static const _keyTotalSpecies = 'explore_total_species';
+  static const _keyDate              = 'explore_date';
+  static const _keyAnimalIds         = 'explore_animal_ids';
+  static const _keyReadCount         = 'explore_read_count';
+  static const _keyStreak            = 'explore_streak';
+  static const _keyLastPlayed        = 'explore_last_played';
+  static const _keyTotalFacts        = 'explore_total_facts';
+  static const _keyTotalSpecies      = 'explore_total_species';
+  static const _keyDailySpecies      = 'explore_daily_species';
+  // Streak recovery: lưu số lần đã dùng trong tháng hiện tại
+  static const _keyRecoveryMonth     = 'streak_recovery_month';
+  static const _keyRecoveryUsed      = 'streak_recovery_used';
 
   final _supabase = Supabase.instance.client;
 
-  bool  isLoading      = true;
-  int   readCount      = 0;
-  int   streakDays     = 0;
-  int   totalFactsRead = 0;
-  int   totalSpecies   = 0;
-  int   quizCorrectPct = 0;
+  bool  isLoading        = true;
+  int   readCount        = 0;
+  int   streakDays       = 0;
+  int   totalFactsRead   = 0;
+  int   totalSpecies     = 0;
+  int   quizCorrectPct   = 0;
+  // Số lần khôi phục chuỗi còn lại trong tháng (tối đa 2)
+  int   streakRecoveryLeft = 0;
+
+  // Cache daily species trong memory để tránh race condition khi đọc prefs
+  int _dailySpeciesInMemory = 0;
 
   List<DailyAnimal>  dailyAnimals  = [];
   List<QuizQuestion> quizQuestions = [];
@@ -106,12 +115,14 @@ class ExploreService extends ChangeNotifier {
   int  get remainingFacts    => 10 - readCount;
 
   // ── Init ────────────────────────────────────────────────────
+  // FIX: _loadStats() TRƯỚC để load totalFacts/totalSpecies từ prefs vào memory,
+  // sau đó _checkAndRefreshDaily() dùng các giá trị đó làm baseline — không bị ghi đè.
   Future<void> init() async {
     isLoading = true;
     notifyListeners();
 
-    await _checkAndRefreshDaily();
-    await _loadStats();
+    await _loadStats();           // load tất cả stats vào memory trước
+    await _checkAndRefreshDaily(); // chỉ update readCount + dailyAnimals, không đụng totalFacts/totalSpecies
 
     isLoading = false;
     notifyListeners();
@@ -124,15 +135,20 @@ class ExploreService extends ChangeNotifier {
     final savedDate = prefs.getString(_keyDate);
 
     if (savedDate != today) {
+      // Ngày mới: CHỈ reset tiến độ ngày (readCount, dailySpecies)
+      // KHÔNG đụng totalFactsRead / totalSpecies — đó là tổng tích lũy toàn thời gian
       await _updateStreak(prefs, savedDate);
       await prefs.setString(_keyDate, today);
       await prefs.setInt(_keyReadCount, 0);
-      await prefs.setInt('explore_daily_species', 0); // reset counter loài hôm nay
+      await prefs.setInt(_keyDailySpecies, 0);
       await prefs.remove(_keyAnimalIds);
-      readCount    = 0;
-      dailyAnimals = [];
+      readCount             = 0;
+      _dailySpeciesInMemory = 0;
+      dailyAnimals          = [];
     } else {
-      readCount = prefs.getInt(_keyReadCount) ?? 0;
+      readCount             = prefs.getInt(_keyReadCount) ?? 0;
+      // Đọc dailySpecies vào memory để markFactRead không cần đọc prefs mỗi lần
+      _dailySpeciesInMemory = prefs.getInt(_keyDailySpecies) ?? 0;
     }
 
     final savedIds = prefs.getStringList(_keyAnimalIds);
@@ -232,7 +248,6 @@ class ExploreService extends ChangeNotifier {
 
     final prefs = await SharedPreferences.getInstance();
 
-    // Tính số fact MỚI vừa đọc trong lần gọi này (luôn = 1)
     final prevReadCount = readCount;
     readCount = index + 1;
     await prefs.setInt(_keyReadCount, readCount);
@@ -242,14 +257,14 @@ class ExploreService extends ChangeNotifier {
     totalFactsRead += newFactsThisCall;
     await prefs.setInt(_keyTotalFacts, totalFactsRead);
 
-    // totalSpecies: lưu riêng "đã khám phá hôm nay bao nhiêu loài"
-    // rồi cộng vào tổng toàn thời gian đúng 1 lần/loài
-    final prevDailySpecies = prefs.getInt('explore_daily_species') ?? 0;
-    if (readCount > prevDailySpecies) {
-      final gained = readCount - prevDailySpecies;
+    // FIX: dùng _dailySpeciesInMemory thay vì đọc lại từ prefs mỗi lần
+    // tránh race condition khi prefs chưa flush kịp
+    if (readCount > _dailySpeciesInMemory) {
+      final gained = readCount - _dailySpeciesInMemory;
       totalSpecies += gained;
+      _dailySpeciesInMemory = readCount;
       await prefs.setInt(_keyTotalSpecies, totalSpecies);
-      await prefs.setInt('explore_daily_species', readCount);
+      await prefs.setInt(_keyDailySpecies, _dailySpeciesInMemory);
     }
 
     if (isQuizUnlocked && quizQuestions.isEmpty) {
@@ -304,29 +319,70 @@ class ExploreService extends ChangeNotifier {
       String? lastDate,
       ) async {
     final yesterday = _yesterdayString();
-    streakDays = prefs.getInt(_keyStreak) ?? 0;
+    // FIX: dùng streakDays đã load vào memory từ _loadStats(), không đọc lại từ prefs
+    // (tránh ghi đè giá trị đúng bằng giá trị cũ chưa được flush)
 
     if (lastDate == yesterday) {
+      // Mở app đúng ngày sau ngày cuối: tăng chuỗi
       streakDays++;
     } else if (lastDate != null && lastDate != yesterday) {
+      // Bỏ qua ít nhất 1 ngày: mất chuỗi
       streakDays = 0;
     }
+    // Nếu lastDate == null (lần đầu dùng app): giữ nguyên streakDays = 0
 
     await prefs.setInt(_keyStreak, streakDays);
     await prefs.setString(_keyLastPlayed, _todayString());
   }
 
+  // ── Streak recovery: khôi phục chuỗi khi bỏ lỡ 1 ngày ─────
+  // Tối đa 2 lần/tháng. Gọi từ UI khi người dùng xác nhận dùng lượt khôi phục.
+  Future<bool> recoverStreak() async {
+    if (streakRecoveryLeft <= 0) return false;
+
+    final prefs = await SharedPreferences.getInstance();
+    // Khôi phục: tăng lại streak lên (streak hiện tại đã bị reset = 0)
+    // Ta cộng lại số ngày chuỗi cũ — nhưng vì không lưu chuỗi cũ,
+    // ta tăng lên 1 để tính "không bị gián đoạn"
+    streakDays = (prefs.getInt(_keyStreak) ?? 0) + 1;
+    streakRecoveryLeft--;
+
+    await prefs.setInt(_keyStreak, streakDays);
+    await prefs.setInt(_keyRecoveryUsed,
+        2 - streakRecoveryLeft + (prefs.getInt(_keyRecoveryUsed) ?? 0));
+
+    notifyListeners();
+    return true;
+  }
+
   Future<void> _loadStats() async {
     final prefs = await SharedPreferences.getInstance();
-    streakDays     = prefs.getInt(_keyStreak) ?? 0;
+
+    // FIX: _loadStats chỉ load stats tích lũy (facts, species, quiz)
+    // KHÔNG load streakDays ở đây — streak được tính đúng trong _updateStreak()
+    // và chỉ được đọc lại từ prefs SAU KHI _updateStreak đã xong (trong _checkAndRefreshDaily)
     totalFactsRead = prefs.getInt(_keyTotalFacts) ?? 0;
     totalSpecies   = prefs.getInt(_keyTotalSpecies) ?? 0;
+    streakDays     = prefs.getInt(_keyStreak) ?? 0; // baseline — sẽ được update đúng bởi _updateStreak nếu ngày mới
 
     final totalAnswered = prefs.getInt('quiz_total_answered') ?? 0;
     final totalCorrect  = prefs.getInt('quiz_total_correct') ?? 0;
     quizCorrectPct = totalAnswered > 0
         ? ((totalCorrect / totalAnswered) * 100).round()
         : 0;
+
+    // Load streak recovery quota
+    final thisMonth = _monthString();
+    final savedMonth = prefs.getString(_keyRecoveryMonth) ?? '';
+    if (savedMonth != thisMonth) {
+      // Tháng mới: reset quota về 2
+      await prefs.setString(_keyRecoveryMonth, thisMonth);
+      await prefs.setInt(_keyRecoveryUsed, 0);
+      streakRecoveryLeft = 2;
+    } else {
+      final used = prefs.getInt(_keyRecoveryUsed) ?? 0;
+      streakRecoveryLeft = (2 - used).clamp(0, 2);
+    }
   }
 
   // ── Helpers ─────────────────────────────────────────────────
@@ -338,6 +394,11 @@ class ExploreService extends ChangeNotifier {
   String _yesterdayString() {
     final y = DateTime.now().subtract(const Duration(days: 1));
     return '${y.year}-${y.month.toString().padLeft(2, '0')}-${y.day.toString().padLeft(2, '0')}';
+  }
+
+  String _monthString() {
+    final n = DateTime.now();
+    return '${n.year}-${n.month.toString().padLeft(2, '0')}';
   }
 
   String _sevenDaysAgo() {
