@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'explore_service.dart';
@@ -18,34 +17,32 @@ class _FactSwipePageState extends State<FactSwipePage>
   late AnimationController _fadeCtrl;
   late Animation<double> _fadeAnim;
 
-  // Màu gradient cho từng card — xoay vòng
-  final List<List<Color>> _cardGradients = [
-    [const Color(0xFF1a1a2e), const Color(0xFF0f3460)],
-    [const Color(0xFF0d2117), const Color(0xFF0a3020)],
-    [const Color(0xFF1a0d2e), const Color(0xFF2d1f3d)],
-    [const Color(0xFF1a1200), const Color(0xFF2a1f00)],
-    [const Color(0xFF001a1a), const Color(0xFF002a2a)],
-    [const Color(0xFF1a0011), const Color(0xFF2d001e)],
-    [const Color(0xFF00111a), const Color(0xFF001e2d)],
-    [const Color(0xFF1a1a00), const Color(0xFF2a2a00)],
-    [const Color(0xFF0d001a), const Color(0xFF1a002d)],
-    [const Color(0xFF001a0d), const Color(0xFF002d1a)],
+  // Màu sắc nhẹ nhàng, tươi sáng phù hợp chủ đề tự nhiên
+  final List<Color> _accentColors = [
+    const Color(0xFFE8F5E9), // Xanh lá nhạt
+    const Color(0xFFE3F2FD), // Xanh dương nhạt
+    const Color(0xFFFFF3E0), // Cam nhạt
+    const Color(0xFFF3E5F5), // Tím nhạt
+    const Color(0xFFE0F2F1), // Teal nhạt
+    const Color(0xFFFFFDE7), // Vàng nhạt
+    const Color(0xFFEFEBE9), // Nâu nhạt
+    const Color(0xFFF1F8E9), // Lime nhạt
+    const Color(0xFFE8EAF6), // Indigo nhạt
+    const Color(0xFFFCE4EC), // Hồng nhạt
   ];
 
   @override
   void initState() {
     super.initState();
     final service = context.read<ExploreService>();
-    // Bắt đầu từ fact chưa đọc
     _currentIndex = (service.readCount).clamp(0, 9);
-
     _pageController = PageController(initialPage: _currentIndex);
 
     _fadeCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 500),
     );
-    _fadeAnim = CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeIn);
+    _fadeAnim = CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOut);
     _fadeCtrl.forward();
   }
 
@@ -58,18 +55,28 @@ class _FactSwipePageState extends State<FactSwipePage>
 
   void _onPageChanged(int index) {
     setState(() => _currentIndex = index);
-    // Mark fact as read khi người dùng đến trang đó
     context.read<ExploreService>().markFactRead(index);
   }
 
-  void _nextPage() {
+  void _nextPage() async {
     if (_currentIndex < 9) {
       _pageController.nextPage(
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.easeInOut,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.elasticOut,
       );
     } else {
-      _showCompletionSheet();
+      // Đảm bảo fact cuối (index 9) đã được mark trước khi show sheet.
+      // markFactRead có guard nên gọi lại nhiều lần không bị double count.
+      final service = context.read<ExploreService>();
+      await service.markFactRead(_currentIndex);
+
+      // Nếu quiz questions chưa fetch xong (fetch được trigger bên trong markFactRead),
+      // chờ 1 chút để Supabase query trả về kết quả
+      if (service.quizQuestions.isEmpty) {
+        await Future.delayed(const Duration(milliseconds: 400));
+      }
+
+      if (mounted) _showCompletionSheet();
     }
   }
 
@@ -80,10 +87,10 @@ class _FactSwipePageState extends State<FactSwipePage>
       isScrollControlled: true,
       builder: (_) => _CompletionSheet(
         onQuiz: () {
-          Navigator.pop(context); // đóng sheet
-          Navigator.pop(context); // về explore page
-          // Navigate to quiz
+          // Capture service TRƯỚC khi pop — tránh dùng context sau khi widget bị dispose
           final service = context.read<ExploreService>();
+          Navigator.pop(context);  // đóng bottom sheet
+          Navigator.pop(context);  // đóng FactSwipePage
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (_) => ChangeNotifierProvider.value(
@@ -94,8 +101,8 @@ class _FactSwipePageState extends State<FactSwipePage>
           );
         },
         onBack: () {
-          Navigator.pop(context);
-          Navigator.pop(context);
+          Navigator.pop(context);  // đóng bottom sheet
+          Navigator.pop(context);  // đóng FactSwipePage
         },
       ),
     );
@@ -108,13 +115,13 @@ class _FactSwipePageState extends State<FactSwipePage>
 
     if (animals.isEmpty) {
       return const Scaffold(
-        backgroundColor: Color(0xFF0A0A0F),
-        body: Center(child: CircularProgressIndicator(color: Color(0xFF7C6FFF))),
+        backgroundColor: Color(0xFFF8F9FB),
+        body: Center(child: CircularProgressIndicator(color: Color(0xFF2D3142))),
       );
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A0F),
+      backgroundColor: const Color(0xFFF8F9FB),
       body: SafeArea(
         child: Column(
           children: [
@@ -125,7 +132,20 @@ class _FactSwipePageState extends State<FactSwipePage>
                 onPageChanged: _onPageChanged,
                 physics: const BouncingScrollPhysics(),
                 itemCount: animals.length,
-                itemBuilder: (_, i) => _buildFactCard(animals[i], i),
+                itemBuilder: (_, i) => AnimatedBuilder(
+                  animation: _pageController,
+                  builder: (context, child) {
+                    double value = 1.0;
+                    if (_pageController.position.haveDimensions) {
+                      value = (_pageController.page! - i).abs();
+                      value = (1 - (value * 0.1)).clamp(0.0, 1.0);
+                    }
+                    return Transform.scale(
+                      scale: value,
+                      child: _buildFactCard(animals[i], i),
+                    );
+                  },
+                ),
               ),
             ),
             _buildBottomControls(service),
@@ -140,50 +160,39 @@ class _FactSwipePageState extends State<FactSwipePage>
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
       child: Row(
         children: [
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              width: 36, height: 36,
-              decoration: BoxDecoration(
-                color: const Color(0xFF16161F),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF2A2A3A)),
-              ),
-              child: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 16),
+          IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.close_rounded, color: Colors.black87),
+            style: IconButton.styleFrom(
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Sự thật thú vị',
-                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700),
+                  'Khám phá loài vật',
+                  style: TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.w800),
                 ),
                 Text(
-                  '${_currentIndex + 1} / ${service.dailyAnimals.length}',
-                  style: const TextStyle(color: Color(0xFF666666), fontSize: 12),
+                  'Thẻ số ${_currentIndex + 1} trên ${service.dailyAnimals.length}',
+                  style: TextStyle(color: Colors.black.withOpacity(0.4), fontSize: 13),
                 ),
               ],
             ),
           ),
-          // Progress dots
-          Row(
-            children: List.generate(
-              service.dailyAnimals.length,
-                  (i) => AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                margin: const EdgeInsets.only(left: 4),
-                width: i == _currentIndex ? 16 : 6,
-                height: 6,
-                decoration: BoxDecoration(
-                  color: i <= service.readCount - 1
-                      ? const Color(0xFF7C6FFF)
-                      : const Color(0xFF2A2A3A),
-                  borderRadius: BorderRadius.circular(3),
-                ),
-              ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2D3142),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              '${((_currentIndex + 1) / 10 * 100).toInt()}%',
+              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -192,141 +201,141 @@ class _FactSwipePageState extends State<FactSwipePage>
   }
 
   Widget _buildFactCard(DailyAnimal animal, int index) {
-    final gradColors = _cardGradients[index % _cardGradients.length];
+    final accentColor = _accentColors[index % _accentColors.length];
 
     return FadeTransition(
       opacity: _fadeAnim,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
         child: Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: gradColors,
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(28),
-            border: Border.all(color: Colors.white.withOpacity(0.08)),
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(32),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
           ),
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.all(28),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Animal image
-                if (animal.imageUrl != null) ...[
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: Image.network(
-                      animal.imageUrl!,
-                      height: 200,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _imagePlaceholder(),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                ] else ...[
-                  _imagePlaceholder(),
-                  const SizedBox(height: 24),
-                ],
-
-                // Type badge
-                if (animal.animalType != null)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      animal.animalType!.toUpperCase(),
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.7),
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 1,
-                      ),
-                    ),
-                  ),
-                const SizedBox(height: 12),
-
-                // Animal name
-                Text(
-                  animal.nameVietnamese,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 26,
-                    fontWeight: FontWeight.w700,
-                    height: 1.2,
-                  ),
-                ),
-                if (animal.nameEnglish != null) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    animal.nameEnglish!,
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.5),
-                      fontSize: 14,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 24),
-
-                // Fun fact
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.07),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white.withOpacity(0.1)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(32),
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Image Section
+                  Stack(
                     children: [
-                      Row(
-                        children: [
-                          const Text('✨', style: TextStyle(fontSize: 14)),
-                          const SizedBox(width: 6),
-                          Text(
-                            'Sự thật thú vị',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.6),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 0.5,
-                            ),
+                      if (animal.imageUrl != null)
+                        Image.network(
+                          animal.imageUrl!,
+                          height: 280,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => _imagePlaceholder(),
+                        )
+                      else
+                        _imagePlaceholder(),
+                      Positioned(
+                        top: 20,
+                        right: 20,
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.9),
+                            shape: BoxShape.circle,
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        animal.funFactVietnamese ?? 'Chưa có thông tin.',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          height: 1.6,
-                          fontWeight: FontWeight.w400,
+                          child: const Icon(Icons.favorite_border_rounded, size: 20),
                         ),
                       ),
                     ],
                   ),
-                ),
 
-                // Extra info chips
-                const SizedBox(height: 20),
-                Wrap(
-                  spacing: 8, runSpacing: 8,
-                  children: [
-                    if (animal.primaryHabitat != null)
-                      _infoChip('📍 ${animal.primaryHabitat!}'),
-                    if (animal.conservationStatus != null)
-                      _infoChip('🌿 ${animal.conservationStatus!}'),
-                  ],
-                ),
-              ],
+                  Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: accentColor,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                animal.animalType?.toUpperCase() ?? 'ĐỘNG VẬT',
+                                style: const TextStyle(
+                                  color: Colors.black87,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 1,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          animal.nameVietnamese,
+                          style: const TextStyle(
+                            color: Color(0xFF2D3142),
+                            fontSize: 32,
+                            fontWeight: FontWeight.w900,
+                            height: 1.1,
+                          ),
+                        ),
+                        if (animal.nameEnglish != null)
+                          Text(
+                            animal.nameEnglish!,
+                            style: TextStyle(
+                              color: Colors.black.withOpacity(0.3),
+                              fontSize: 16,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+
+                        const SizedBox(height: 24),
+                        const Text(
+                          "Bạn có biết?",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF2D3142),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          animal.funFactVietnamese ?? 'Chưa có thông tin.',
+                          style: const TextStyle(
+                            color: Color(0xFF4F5D75),
+                            fontSize: 16,
+                            height: 1.6,
+                          ),
+                        ),
+
+                        const SizedBox(height: 24),
+                        Divider(color: Colors.black.withOpacity(0.05)),
+                        const SizedBox(height: 16),
+                        Wrap(
+                          spacing: 12,
+                          runSpacing: 12,
+                          children: [
+                            if (animal.primaryHabitat != null)
+                              _infoChip(Icons.location_on_rounded, animal.primaryHabitat!, accentColor),
+                            if (animal.conservationStatus != null)
+                              _infoChip(Icons.shield_rounded, animal.conservationStatus!, accentColor),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -336,28 +345,30 @@ class _FactSwipePageState extends State<FactSwipePage>
 
   Widget _imagePlaceholder() {
     return Container(
-      height: 160,
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: const Center(
-        child: Text('🐾', style: TextStyle(fontSize: 48)),
-      ),
+      height: 280,
+      width: double.infinity,
+      color: const Color(0xFFF0F2F5),
+      child: const Center(child: Icon(Icons.pets_rounded, size: 64, color: Colors.black12)),
     );
   }
 
-  Widget _infoChip(String text) {
+  Widget _infoChip(IconData icon, String text, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        color: color.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(16),
       ),
-      child: Text(
-        text,
-        style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 12),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: Colors.black54),
+          const SizedBox(width: 6),
+          Text(
+            text,
+            style: const TextStyle(color: Colors.black87, fontSize: 13, fontWeight: FontWeight.w600),
+          ),
+        ],
       ),
     );
   }
@@ -366,47 +377,30 @@ class _FactSwipePageState extends State<FactSwipePage>
     final isLast = _currentIndex == service.dailyAnimals.length - 1;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+      padding: const EdgeInsets.fromLTRB(24, 10, 24, 24),
       child: Row(
         children: [
-          if (_currentIndex > 0)
-            GestureDetector(
-              onTap: () => _pageController.previousPage(
-                duration: const Duration(milliseconds: 400),
-                curve: Curves.easeInOut,
-              ),
-              child: Container(
-                width: 52, height: 52,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF16161F),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFF2A2A3A)),
-                ),
-                child: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-              ),
-            ),
-          if (_currentIndex > 0) const SizedBox(width: 12),
           Expanded(
             child: SizedBox(
-              height: 52,
+              height: 64,
               child: ElevatedButton(
                 onPressed: _nextPage,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: isLast
-                      ? const Color(0xFF22C55E)
-                      : const Color(0xFF7C6FFF),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
+                  backgroundColor: isLast ? const Color(0xFF4CAF50) : const Color(0xFF2D3142),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                   elevation: 0,
                 ),
-                child: Text(
-                  isLast ? '🎉  Hoàn thành!' : 'Tiếp theo  →',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      isLast ? 'KHÁM PHÁ XONG' : 'TIẾP TỤC',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1),
+                    ),
+                    const SizedBox(width: 8),
+                    Icon(isLast ? Icons.check_circle_outline : Icons.arrow_forward_ios, size: 18),
+                  ],
                 ),
               ),
             ),
@@ -417,7 +411,6 @@ class _FactSwipePageState extends State<FactSwipePage>
   }
 }
 
-// ── Completion bottom sheet ────────────────────────────────────
 class _CompletionSheet extends StatelessWidget {
   final VoidCallback onQuiz;
   final VoidCallback onBack;
@@ -427,51 +420,55 @@ class _CompletionSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(28),
+      margin: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: const Color(0xFF16161F),
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: const Color(0xFF2A2A3A)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(36),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 40)],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('🎉', style: TextStyle(fontSize: 52)),
-          const SizedBox(height: 16),
-          const Text(
-            'Khám phá hoàn tất!',
-            style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w700),
+          Container(
+            width: 80, height: 80,
+            decoration: const BoxDecoration(color: Color(0xFFE8F5E9), shape: BoxShape.circle),
+            child: const Center(child: Text('🌿', style: TextStyle(fontSize: 40))),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 24),
           const Text(
-            'Bạn đã đọc xong 10 sự thật thú vị hôm nay.\nSẵn sàng kiểm tra kiến thức chưa?',
+            'Tuyệt vời!',
+            style: TextStyle(color: Color(0xFF2D3142), fontSize: 28, fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Bạn đã hoàn thành hành trình khám phá 10 loài vật hôm nay.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Color(0xFF888888), fontSize: 14, height: 1.5),
+            style: TextStyle(color: Colors.black.withOpacity(0.5), fontSize: 16, height: 1.4),
           ),
-          const SizedBox(height: 28),
+          const SizedBox(height: 32),
           SizedBox(
             width: double.infinity,
+            height: 60,
             child: ElevatedButton(
               onPressed: onQuiz,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF7C6FFF),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                backgroundColor: const Color(0xFF2D3142),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
                 elevation: 0,
               ),
               child: const Text(
-                '🧠  Làm Quiz ngay!',
-                style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700),
+                'Bắt đầu thử thách Quiz',
+                style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           TextButton(
             onPressed: onBack,
-            child: const Text(
-              'Để sau',
-              style: TextStyle(color: Color(0xFF666666), fontSize: 15),
+            child: Text(
+              'Để sau nhé',
+              style: TextStyle(color: Colors.black.withOpacity(0.4), fontSize: 15, fontWeight: FontWeight.w600),
             ),
           ),
         ],

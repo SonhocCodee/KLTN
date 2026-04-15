@@ -607,7 +607,13 @@ class _ExplorePageState extends State<ExplorePage> {
     );
   }
 
-  void _goToQuiz(ExploreService service) {
+  void _goToQuiz(ExploreService service) async {
+    // Nếu quiz chưa được fetch (vd: vào lại app sau khi đã đọc đủ facts),
+    // gọi fetch trước rồi mới navigate để tránh màn hình đen
+    if (service.quizQuestions.isEmpty) {
+      await service.ensureQuizLoaded();
+    }
+    if (!mounted) return;
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => ChangeNotifierProvider.value(

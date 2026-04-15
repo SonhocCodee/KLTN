@@ -107,6 +107,10 @@ class ExploreService extends ChangeNotifier {
   // Cache daily species trong memory để tránh race condition khi đọc prefs
   int _dailySpeciesInMemory = 0;
 
+  // Guard: tránh init() chạy lại nhiều lần trong cùng 1 phiên
+  bool _isInitialized = false;
+  String _initializedForDate = '';
+
   List<DailyAnimal>  dailyAnimals  = [];
   List<QuizQuestion> quizQuestions = [];
 
@@ -115,14 +119,25 @@ class ExploreService extends ChangeNotifier {
   int  get remainingFacts    => 10 - readCount;
 
   // ── Init ────────────────────────────────────────────────────
-  // FIX: _loadStats() TRƯỚC để load totalFacts/totalSpecies từ prefs vào memory,
-  // sau đó _checkAndRefreshDaily() dùng các giá trị đó làm baseline — không bị ghi đè.
+  // Guard: nếu đã init trong cùng 1 ngày và đã có data, không init lại.
+  // Tránh trường hợp ExplorePage re-mount gọi init() lại và set isLoading = true
+  // khiến UI flicker + đọc lại prefs đè lên giá trị đang đúng trong memory.
   Future<void> init() async {
+    final today = _todayString();
+
+    // Nếu đã init hôm nay và có data → chỉ notify lại UI, không fetch lại
+    if (_isInitialized && _initializedForDate == today && dailyAnimals.isNotEmpty) {
+      return;
+    }
+
     isLoading = true;
     notifyListeners();
 
-    await _loadStats();           // load tất cả stats vào memory trước
+    await _loadStats();            // load tất cả stats tích lũy vào memory trước
     await _checkAndRefreshDaily(); // chỉ update readCount + dailyAnimals, không đụng totalFacts/totalSpecies
+
+    _isInitialized = true;
+    _initializedForDate = today;
 
     isLoading = false;
     notifyListeners();
@@ -135,6 +150,8 @@ class ExploreService extends ChangeNotifier {
     final savedDate = prefs.getString(_keyDate);
 
     if (savedDate != today) {
+      // Ngày mới: reset guard để init() chạy đầy đủ
+      _isInitialized = false;
       // Ngày mới: CHỈ reset tiến độ ngày (readCount, dailySpecies)
       // KHÔNG đụng totalFactsRead / totalSpecies — đó là tổng tích lũy toàn thời gian
       await _updateStreak(prefs, savedDate);
@@ -238,6 +255,15 @@ class ExploreService extends ChangeNotifier {
       quizQuestions = allQ.take(5).toList();
     } catch (e) {
       debugPrint('Fetch quiz error: $e');
+    }
+  }
+
+  // ── Public: đảm bảo quiz questions đã được load ────────────
+  // Gọi từ UI trước khi navigate vào QuizPage để tránh màn hình đen
+  Future<void> ensureQuizLoaded() async {
+    if (quizQuestions.isEmpty && isQuizUnlocked) {
+      await _fetchQuizQuestions();
+      notifyListeners();
     }
   }
 

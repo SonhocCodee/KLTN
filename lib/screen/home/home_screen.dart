@@ -296,12 +296,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(0),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF4CAF50),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(13),
                     ),
-                    child: const Icon(Icons.pets, color: Colors.white, size: 24),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(13),
+                      child: Image.asset(
+                        'assets/images/appicon.jpg', // Thay đúng đuôi file của bạn (.png/.jpg)
+                        width: 60,
+                        height: 60,
+                        fit: BoxFit.cover, // Đảm bảo ảnh lấp đầy khung hình vuông 24x24
+                      ),
+                    ),
                   ),
                   const SizedBox(width: 10),
                   const Text(
@@ -548,7 +555,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  // ── GIỮ NGUYÊN các widget bên dưới ──
 
   Widget _buildWelcomeText() {
     return const Padding(
