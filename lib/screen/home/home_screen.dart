@@ -5,7 +5,8 @@ import 'dart:ui';
 import 'package:lottie/lottie.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/animal_home_service.dart';
-import '../animal_list/Breed list screen.dart';
+import '../Animal_detail/Animal detail screen.dart';
+import '../Breed_List/Breed list screen.dart';
 import 'animal_category_model.dart';
 
 // ═══════════════════════════════════════════════════════
@@ -70,9 +71,6 @@ class AnimalSuggestion {
 
 // ═══════════════════════════════════════════════════════
 // SERVICE tìm kiếm
-// Nguyên nhân duplicate: cats/dogs là subset của animals
-// → Chỉ query bảng animals — 1 lần duy nhất, không bao giờ trùng kết quả.
-//   Sau này thêm loài mới vào DB thì tự động xuất hiện, không cần sửa code.
 // ═══════════════════════════════════════════════════════
 class AnimalSearchService {
   final _client = Supabase.instance.client;
@@ -137,6 +135,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   bool _isSearching = false;
   Timer? _debounce;
 
+  // Overlay dropdown
+  final LayerLink _layerLink = LayerLink();
+  OverlayEntry? _overlayEntry;
+
   @override
   void initState() {
     super.initState();
@@ -145,16 +147,93 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _searchFocus.addListener(() {
       if (!_searchFocus.hasFocus) {
         setState(() => _showSuggestions = false);
+        _removeOverlay();
       }
     });
   }
 
   @override
   void dispose() {
+    _removeOverlay();
     _searchController.dispose();
     _searchFocus.dispose();
     _debounce?.cancel();
     super.dispose();
+  }
+
+  void _removeOverlay() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+  }
+
+  void _showOverlay() {
+    _removeOverlay();
+    _overlayEntry = _buildOverlayEntry();
+    Overlay.of(context).insert(_overlayEntry!);
+  }
+
+  OverlayEntry _buildOverlayEntry() {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return OverlayEntry(
+      builder: (context) {
+        return Positioned(
+          width: MediaQuery.of(context).size.width - 48,
+          child: CompositedTransformFollower(
+            link: _layerLink,
+            showWhenUnlinked: false,
+            offset: const Offset(0, 56),
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                margin: const EdgeInsets.only(top: 4),
+                constraints: const BoxConstraints(maxHeight: 380),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 24,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: _suggestions.isEmpty && !_isSearching
+                      ? Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 18, horizontal: 16),
+                    child: Row(
+                      children: [
+                        const Text('😕', style: TextStyle(fontSize: 22)),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Không tìm thấy "${_searchController.text}"',
+                            style: TextStyle(
+                                color: colorScheme.onSurfaceVariant,
+                                fontSize: 14),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                      : ListView.builder(
+                    padding: EdgeInsets.zero,
+                    shrinkWrap: true,
+                    itemCount: _suggestions.length,
+                    itemBuilder: (_, i) => _buildSuggestionItem(
+                        _suggestions[i], i, i == _suggestions.length - 1),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _loadData() async {
@@ -180,7 +259,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
   }
 
-  // ── Xử lý tìm kiếm có debounce 300ms ──
   void _onSearchChanged(String value) {
     _debounce?.cancel();
     if (value.trim().length < 2) {
@@ -189,10 +267,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         _showSuggestions = false;
         _isSearching = false;
       });
+      _removeOverlay();
       return;
     }
 
     setState(() => _isSearching = true);
+    _showOverlay();
 
     _debounce = Timer(const Duration(milliseconds: 300), () async {
       final results = await _searchService.search(value);
@@ -202,31 +282,39 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           _showSuggestions = true;
           _isSearching = false;
         });
+        _overlayEntry?.markNeedsBuild();
       }
     });
   }
 
   void _onSuggestionTap(AnimalSuggestion suggestion) {
     _searchFocus.unfocus();
+    _removeOverlay();
     setState(() {
       _showSuggestions = false;
       _searchController.clear();
+      _suggestions = [];
     });
-    // TODO: Navigate đến trang chi tiết con vật
-    // Navigator.push(context, MaterialPageRoute(
-    //   builder: (_) => AnimalDetailScreen(id: suggestion.id, table: suggestion.animalType),
-    // ));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Mở: ${suggestion.nameVi}'),
-        duration: const Duration(seconds: 1),
-        backgroundColor: const Color(0xFF4CAF50),
+
+    final category = AnimalCategory.getEnabledCategories().firstWhere(
+          (c) => c.id.toLowerCase().contains(suggestion.animalType.toLowerCase()),
+      orElse: () => AnimalCategory.getEnabledCategories().first,
+    );
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AnimalDetailScreen(
+          animalId: suggestion.id,
+          category: category,
+        ),
       ),
     );
   }
 
   void _clearSearch() {
     _searchController.clear();
+    _removeOverlay();
     setState(() {
       _suggestions = [];
       _showSuggestions = false;
@@ -244,48 +332,64 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF9FBF9),
-      body: Stack(
-        children: [
-          // Nền Pattern chấm bi nhẹ
-          Positioned.fill(
-            child: Opacity(
-              opacity: 0.05,
-              child: CustomPaint(painter: _PatternPainter()),
-            ),
-          ),
+    final colorScheme = Theme.of(context).colorScheme;
 
-          SafeArea(
-            child: _isLoading
-                ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFF4CAF50)),
-            )
-                : CustomScrollView(
-              physics: const BouncingScrollPhysics(),
-              slivers: [
-                SliverToBoxAdapter(child: _buildTopBar()),
-                SliverToBoxAdapter(child: _buildWelcomeText()),
-                SliverToBoxAdapter(child: _buildAnimatedQuickAccess()),
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 100),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                          (context, index) =>
-                          _buildAnimalSection(_categoryData[index]),
-                      childCount: _categoryData.length,
+    return GestureDetector(
+      onTap: () {
+        if (_showSuggestions) {
+          _searchFocus.unfocus();
+          _removeOverlay();
+          setState(() {
+            _showSuggestions = false;
+          });
+        }
+      },
+      behavior: HitTestBehavior.translucent,
+      child: Scaffold(
+        backgroundColor: colorScheme.surface, // Nền tổng vẫn là surface (đen tuyền)
+        body: Stack(
+          children: [
+            // Nền Pattern chấm bi nhẹ
+            Positioned.fill(
+              child: Opacity(
+                opacity: 0.05,
+                child: CustomPaint(painter: _PatternPainter(colorScheme)),
+              ),
+            ),
+
+            SafeArea(
+              child: _isLoading
+                  ? Center(
+                child: CircularProgressIndicator(color: colorScheme.primary),
+              )
+                  : CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  SliverToBoxAdapter(child: _buildTopBar()),
+                  SliverToBoxAdapter(child: _buildWelcomeText()),
+                  SliverToBoxAdapter(child: _buildAnimatedQuickAccess()),
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(16, 10, 16, 100),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                            (context, index) =>
+                            _buildAnimalSection(_categoryData[index]),
+                        childCount: _categoryData.length,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildTopBar() {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 15, 24, 10),
       child: Column(
@@ -303,23 +407,23 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(13),
                       child: Image.asset(
-                        'assets/images/appicon.jpg', // Thay đúng đuôi file của bạn (.png/.jpg)
+                        'assets/images/appicon.jpg',
                         width: 60,
                         height: 60,
-                        fit: BoxFit.cover, // Đảm bảo ảnh lấp đầy khung hình vuông 24x24
+                        fit: BoxFit.cover,
                       ),
                     ),
                   ),
                   const SizedBox(width: 10),
-                  const Text(
+                  Text(
                     'AniQuest',
-                    style: TextStyle(fontSize: 22, color: Color(0xFF2D4B2A)),
+                    style: TextStyle(fontSize: 22, color: colorScheme.onSurface),
                   ),
                 ],
               ),
-              const CircleAvatar(
-                backgroundColor: Colors.white,
-                child: Icon(Icons.person_outline, color: Colors.grey),
+              CircleAvatar(
+                backgroundColor: colorScheme.surfaceContainerHighest,
+                child: Icon(Icons.person_outline, color: colorScheme.onSurfaceVariant),
               ),
             ],
           ),
@@ -333,112 +437,59 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildSearchBox() {
-    return Column(
-      children: [
-        // Input container
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.07),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: TextField(
-            controller: _searchController,
-            focusNode: _searchFocus,
-            onChanged: _onSearchChanged,
-            textInputAction: TextInputAction.search,
-            decoration: InputDecoration(
-              hintText: 'Tìm kiếm bạn động vật...',
-              hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-              border: InputBorder.none,
-              icon: _isSearching
-                  ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Color(0xFF4CAF50),
-                ),
-              )
-                  : const Icon(Icons.search, color: Color(0xFF4CAF50)),
-              suffixIcon: _searchController.text.isNotEmpty
-                  ? GestureDetector(
-                onTap: _clearSearch,
-                child: const Icon(Icons.close, color: Colors.grey, size: 18),
-              )
-                  : null,
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return CompositedTransformTarget(
+      link: _layerLink,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: colorScheme.shadow.withOpacity(0.07),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
+          ],
+        ),
+        child: TextField(
+          controller: _searchController,
+          focusNode: _searchFocus,
+          onChanged: _onSearchChanged,
+          textInputAction: TextInputAction.search,
+          style: TextStyle(color: colorScheme.onSurface),
+          decoration: InputDecoration(
+            hintText: 'Tìm kiếm bạn động vật...',
+            hintStyle: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 14),
+            border: InputBorder.none,
+            icon: _isSearching
+                ? SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: colorScheme.primary,
+              ),
+            )
+                : Icon(Icons.search, color: colorScheme.primary),
+            suffixIcon: _searchController.text.isNotEmpty
+                ? GestureDetector(
+              onTap: _clearSearch,
+              child: Icon(Icons.close,
+                  color: colorScheme.onSurfaceVariant, size: 18),
+            )
+                : null,
           ),
         ),
-
-        // Dropdown gợi ý
-        if (_showSuggestions && _suggestions.isNotEmpty)
-          Container(
-            margin: const EdgeInsets.only(top: 4),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 16,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Column(
-                children: _suggestions.asMap().entries.map((entry) {
-                  final i = entry.key;
-                  final s = entry.value;
-                  return _buildSuggestionItem(s, i, i == _suggestions.length - 1);
-                }).toList(),
-              ),
-            ),
-          ),
-
-        // Không có kết quả
-        if (_showSuggestions && _suggestions.isEmpty && !_isSearching)
-          Container(
-            margin: const EdgeInsets.only(top: 4),
-            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                const Text('😕', style: TextStyle(fontSize: 20)),
-                const SizedBox(width: 12),
-                Text(
-                  'Không tìm thấy "${_searchController.text}"',
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-                ),
-              ],
-            ),
-          ),
-      ],
+      ),
     );
   }
 
   Widget _buildSuggestionItem(AnimalSuggestion s, int index, bool isLast) {
-    // Highlight phần text khớp
     final query = _searchController.text.trim();
+    final colorScheme = Theme.of(context).colorScheme;
 
     return GestureDetector(
       onTap: () => _onSuggestionTap(s),
@@ -448,17 +499,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           border: isLast
               ? null
               : Border(
-            bottom: BorderSide(color: Colors.grey.shade100, width: 0.8),
+            bottom: BorderSide(color: colorScheme.outlineVariant, width: 0.8),
           ),
         ),
         child: Row(
           children: [
-            // Avatar ảnh hoặc emoji
             Container(
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: const Color(0xFF4CAF50).withOpacity(0.1),
+                color: colorScheme.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: s.imageUrl != null
@@ -478,39 +528,35 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     style: const TextStyle(fontSize: 20)),
               ),
             ),
-
             const SizedBox(width: 12),
-
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildHighlightedText(s.nameVi, query,
-                      baseStyle: const TextStyle(
+                      baseStyle: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF2D4B2A))),
+                          color: colorScheme.onSurface)),
                   const SizedBox(height: 2),
                   _buildHighlightedText(s.nameEn, query,
                       baseStyle: TextStyle(
-                          fontSize: 12, color: Colors.grey.shade500)),
+                          fontSize: 12, color: colorScheme.onSurfaceVariant)),
                 ],
               ),
             ),
-
-            // Badge loài
             Container(
               padding:
               const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
-                color: const Color(0xFF4CAF50).withOpacity(0.1),
+                color: colorScheme.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 s.typeLabel,
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 11,
-                    color: Color(0xFF4CAF50),
+                    color: colorScheme.primary,
                     fontWeight: FontWeight.w600),
               ),
             ),
@@ -520,7 +566,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  // Highlight phần text khớp với query
   Widget _buildHighlightedText(
       String text,
       String query, {
@@ -534,6 +579,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
     if (start == -1) return Text(text, style: baseStyle);
 
+    final colorScheme = Theme.of(context).colorScheme;
+
     return RichText(
       text: TextSpan(
         style: baseStyle,
@@ -542,7 +589,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           TextSpan(
             text: text.substring(start, start + query.length),
             style: baseStyle.copyWith(
-              color: const Color(0xFF4CAF50),
+              color: colorScheme.primary,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -555,10 +602,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-
   Widget _buildWelcomeText() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -566,11 +614,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.w900,
-                  color: Color(0xFF2D4B2A))),
+                  color: colorScheme.onSurface)),
           Text('Hôm nay bạn muốn xem loài nào?',
               style: TextStyle(
                   fontSize: 16,
-                  color: Colors.blueGrey,
+                  color: colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w500)),
         ],
       ),
@@ -578,6 +626,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildAnimatedQuickAccess() {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return SizedBox(
       height: 120,
       child: ListView.builder(
@@ -595,7 +645,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   width: 75,
                   height: 75,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: colorScheme.surfaceContainerHighest, // <--- ĐÃ SỬA THÀNH NỀN XÁM ĐEN CHO CÁC VÒNG TRÒN
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
@@ -610,9 +660,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 const SizedBox(height: 8),
                 Text(
                   cat.nameVi,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF2D4B2A),
+                    color: colorScheme.onSurface,
                     fontSize: 14,
                   ),
                 ),
@@ -635,12 +685,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       fit: BoxFit.cover,
       repeat: true,
       animate: true,
-      errorBuilder: (context, error, stackTrace) =>
-      const Icon(Icons.pets, color: Colors.grey),
+      errorBuilder: (ctx, error, stackTrace) =>
+          Icon(Icons.pets, color: Theme.of(ctx).colorScheme.onSurfaceVariant),
     );
   }
 
   Widget _buildAnimalSection(AnimalCategoryData data) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 25),
       child: Column(
@@ -658,13 +710,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(data.category.nameVi,
-                          style: const TextStyle(
-                              fontSize: 22, color: Color(0xFF1E293B))),
+                          style: TextStyle(
+                              fontSize: 22, color: colorScheme.onSurface)),
                       Text(
                         _getShortDesc(data.category.id),
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 13,
-                            color: Colors.grey,
+                            color: colorScheme.onSurfaceVariant,
                             fontWeight: FontWeight.w500),
                       ),
                     ],
@@ -733,6 +785,7 @@ class _InteractiveAnimalCardState extends State<_InteractiveAnimalCard>
   Widget build(BuildContext context) {
     final hasData = widget.data.hasData;
     final category = widget.data.category;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return GestureDetector(
       onTapDown: (_) => hasData ? _controller.forward() : null,
@@ -764,7 +817,7 @@ class _InteractiveAnimalCardState extends State<_InteractiveAnimalCard>
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: colorScheme.shadow.withOpacity(0.1),
                 blurRadius: 15,
                 offset: const Offset(0, 8),
               )
@@ -841,9 +894,13 @@ class _InteractiveAnimalCardState extends State<_InteractiveAnimalCard>
 }
 
 class _PatternPainter extends CustomPainter {
+  final ColorScheme colorScheme;
+
+  _PatternPainter(this.colorScheme);
+
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = Colors.green.withOpacity(0.15);
+    final paint = Paint()..color = colorScheme.primary.withOpacity(0.15);
     for (double i = 0; i < size.width; i += 40) {
       for (double j = 0; j < size.height; j += 40) {
         canvas.drawCircle(Offset(i, j), 1.2, paint);

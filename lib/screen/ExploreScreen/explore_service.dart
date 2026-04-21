@@ -252,7 +252,7 @@ class ExploreService extends ChangeNotifier {
           .toList();
 
       allQ.shuffle();
-      quizQuestions = allQ.take(5).toList();
+      quizQuestions = allQ.take(10).toList();
     } catch (e) {
       debugPrint('Fetch quiz error: $e');
     }

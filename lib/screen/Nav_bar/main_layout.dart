@@ -4,8 +4,7 @@ import '../ExploreScreen/ExploreScreen.dart';
 
 import '../ExploreScreen/explore_page.dart';
 import '../IDENTIFY SCREEN/indentify_screen.dart';
-import '../Search_screen/search_screen.dart';
-import '../Search_smart/search_smart.dart';
+import '../Search_smart/search_smart_screen.dart';
 import '../SettingsScreen/SettingsScreen.dart';
 import '../home/home_screen.dart';
 import 'navbar.dart';

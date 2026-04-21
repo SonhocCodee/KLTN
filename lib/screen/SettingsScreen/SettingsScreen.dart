@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:kltn_app/screen/SettingsScreen/widgets/ettings_info_options.dart';
+
+import 'widgets/settings_animated_header.dart';
+import 'widgets/settings_appearance_options.dart';
+import 'widgets/settings_content_options.dart';
+import 'widgets/settings_notification_options.dart';
 
 class AnimalSettingsScreen extends StatefulWidget {
-  const AnimalSettingsScreen({Key? key}) : super(key: key);
+  const AnimalSettingsScreen({super.key});
 
   @override
   State<AnimalSettingsScreen> createState() => _AnimalSettingsScreenState();
@@ -9,24 +15,19 @@ class AnimalSettingsScreen extends StatefulWidget {
 
 class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
     with SingleTickerProviderStateMixin {
-  // Các biến state
-  bool isDarkMode = false;
-  String selectedLanguage = 'Tiếng Việt';
-  double fontSizeFactor = 1.0;
-  String selectedUnit = 'Hệ Mét (kg, m)';
-  bool dailyAnimalNotif = true;
-  bool streakNotif = true;
 
-  // Animation cho icon chân thú ở Header
+  String selectedLanguage = 'Tiếng Việt';
+  String selectedUnit     = 'Hệ Mét (kg, m)';
+  bool   dailyAnimalNotif = true;
+  bool   streakNotif      = true;
+
+  // ✅ fontSizeFactor đã chuyển sang ThemeProvider — không cần state local nữa
+
   late AnimationController _animController;
-  late Animation<double> _scaleAnimation;
+  late Animation<double>   _scaleAnimation;
 
   final Color primaryGreen = const Color(0xFF2E7D32);
   final Color accentOrange = const Color(0xFFEF6C00);
-  final Color cardColor = Colors.white;
-
-  // Kích thước chữ gốc (chuẩn)
-  final double baseFontSize = 14.0;
 
   @override
   void initState() {
@@ -49,8 +50,9 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.grey[50],
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -68,255 +70,59 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
         children: [
-          _buildAnimatedHeader(),
+          SettingsAnimatedHeader(
+            scaleAnimation: _scaleAnimation,
+            accentOrange: accentOrange,
+          ),
           const SizedBox(height: 20),
 
-          _buildSectionHeader('Giao diện & Hiển thị', Icons.palette_outlined),
-          _buildCard([
-            _buildSwitchTile(
-              title: 'Chế độ tối (Dark Mode)',
-              icon: Icons.dark_mode_rounded,
-              value: isDarkMode,
-              onChanged: (val) => setState(() => isDarkMode = val),
-            ),
-            _buildDivider(),
-            ListTile(
-              leading: Icon(Icons.language_rounded, color: primaryGreen),
-              title: const Text('Ngôn ngữ', style: TextStyle(fontWeight: FontWeight.w600)),
-              trailing: DropdownButton<String>(
-                value: selectedLanguage,
-                underline: const SizedBox(),
-                items: ['Tiếng Việt', 'English'].map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  );
-                }).toList(),
-                onChanged: (val) => setState(() => selectedLanguage = val!),
-              ),
-            ),
-            _buildDivider(),
-            // --- PHẦN CỠ CHỮ CÓ PREVIEW MỚI ---
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.text_fields_rounded, color: primaryGreen),
-                      const SizedBox(width: 16),
-                      const Text('Cỡ chữ hiển thị', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Slider(
-                    value: fontSizeFactor,
-                    min: 0.8,
-                    max: 1.5,
-                    divisions: 7, // Chia nhỏ hơn để kéo mượt hơn
-                    activeColor: accentOrange,
-                    inactiveColor: Colors.orange[100],
-                    onChanged: (val) => setState(() => fontSizeFactor = val),
-                  ),
-                  // Khung xem trước (Preview Box)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: accentOrange.withOpacity(0.05), // Nền cam nhạt
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: accentOrange.withOpacity(0.3)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Xem trước:',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: accentOrange,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Sư tử (Panthera leo) là một trong những đại miêu thuộc họ Mèo. Khác với phần lớn các loài họ Mèo khác, sư tử là loài có tính xã hội cao, sống tập trung thành các bầy đàn.',
-                          // Cỡ chữ ở đây sẽ thay đổi theo thanh trượt
-                          style: TextStyle(
-                            fontSize: baseFontSize * fontSizeFactor,
-                            color: Colors.black87,
-                            height: 1.4, // Giãn dòng cho dễ đọc
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // --- KẾT THÚC PHẦN CỠ CHỮ ---
-          ]),
+          // ✅ Bỏ fontSizeFactor + baseFontSize + onFontSizeChanged
+          // ThemeProvider lo hết bên trong widget rồi
+          SettingsAppearanceOptions(
+            selectedLanguage: selectedLanguage,
+            onLanguageChanged: (val) => setState(() => selectedLanguage = val!),
+            primaryGreen: primaryGreen,
+            accentOrange: accentOrange,
+          ),
 
           const SizedBox(height: 24),
-          _buildSectionHeader('Tùy chỉnh Nội dung', Icons.book_outlined),
-          _buildCard([
-            ListTile(
-              leading: Icon(Icons.straighten_rounded, color: primaryGreen),
-              title: const Text('Đơn vị đo lường', style: TextStyle(fontWeight: FontWeight.w600)),
-              trailing: DropdownButton<String>(
-                value: selectedUnit,
-                underline: const SizedBox(),
-                iconEnabledColor: accentOrange,
-                items: ['Hệ Mét (kg, m)', 'Hệ Anh (lbs, ft)'].map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  );
-                }).toList(),
-                onChanged: (val) => setState(() => selectedUnit = val!),
-              ),
-            ),
-          ]),
+          SettingsContentOptions(
+            selectedUnit: selectedUnit,
+            onUnitChanged: (val) => setState(() => selectedUnit = val!),
+            primaryGreen: primaryGreen,
+            accentOrange: accentOrange,
+          ),
 
           const SizedBox(height: 24),
-          _buildSectionHeader('Thông báo & Tương tác', Icons.notifications_active_outlined),
-          _buildCard([
-            _buildSwitchTile(
-              title: 'Động vật của ngày',
-              subtitle: 'Khám phá một loài vật mới mỗi ngày',
-              icon: Icons.pets_rounded,
-              value: dailyAnimalNotif,
-              onChanged: (val) => setState(() => dailyAnimalNotif = val),
-            ),
-            _buildDivider(),
-            _buildSwitchTile(
-              title: 'Nhắc nhở chuỗi (Streak)',
-              subtitle: 'Đừng quên làm nhiệm vụ thám hiểm!',
-              icon: Icons.local_fire_department_rounded,
-              iconColor: Colors.redAccent,
-              value: streakNotif,
-              onChanged: (val) => setState(() => streakNotif = val),
-            ),
-          ]),
+          SettingsNotificationOptions(
+            dailyAnimalNotif: dailyAnimalNotif,
+            streakNotif: streakNotif,
+            onDailyChanged: (val) => setState(() => dailyAnimalNotif = val),
+            onStreakChanged: (val) => setState(() => streakNotif = val),
+            primaryGreen: primaryGreen,
+            accentOrange: accentOrange,
+          ),
 
           const SizedBox(height: 24),
-          _buildSectionHeader('Thông tin', Icons.info_outline_rounded),
-          _buildCard([
-            ListTile(
-              leading: Icon(Icons.bug_report_rounded, color: primaryGreen),
-              title: const Text('Góp ý & Báo lỗi', style: TextStyle(fontWeight: FontWeight.w600)),
-              trailing: const Icon(Icons.chevron_right_rounded),
-              onTap: () {},
-            ),
-            _buildDivider(),
-            ListTile(
-              leading: Icon(Icons.security_rounded, color: primaryGreen),
-              title: const Text('Chính sách bảo mật', style: TextStyle(fontWeight: FontWeight.w600)),
-              trailing: const Icon(Icons.chevron_right_rounded),
-              onTap: () {},
-            ),
-          ]),
+          SettingsInfoOptions(
+            primaryGreen: primaryGreen,
+          ),
 
           const SizedBox(height: 30),
           Center(
             child: Text(
               'Phiên bản 1.0.0\nĐộng Vật Bách Khoa Toàn Thư',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey[500], fontSize: 13, height: 1.5),
+              style: TextStyle(
+                color: colorScheme.onSurfaceVariant,
+                fontSize: 13,
+                height: 1.5,
+              ),
             ),
           ),
           const SizedBox(height: 40),
         ],
       ),
     );
-  }
-
-  Widget _buildAnimatedHeader() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Column(
-        children: [
-          ScaleTransition(
-            scale: _scaleAnimation,
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: accentOrange.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(Icons.pets_rounded, size: 50, color: accentOrange),
-            ),
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            'Tùy chỉnh chuyến thám hiểm của bạn',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSectionHeader(String title, IconData icon) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 8.0, bottom: 12.0),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: primaryGreen),
-          const SizedBox(width: 8),
-          Text(
-            title.toUpperCase(),
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: primaryGreen,
-              letterSpacing: 1.2,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCard(List<Widget> children) {
-    return Container(
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(children: children),
-    );
-  }
-
-  Widget _buildSwitchTile({
-    required String title,
-    String? subtitle,
-    required IconData icon,
-    Color? iconColor,
-    required bool value,
-    required ValueChanged<bool> onChanged,
-  }) {
-    return ListTile(
-      leading: Icon(icon, color: iconColor ?? primaryGreen),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-      subtitle: subtitle != null ? Text(subtitle, style: const TextStyle(fontSize: 13)) : null,
-      trailing: Switch(
-        value: value,
-        activeColor: accentOrange,
-        onChanged: onChanged,
-      ),
-    );
-  }
-
-  Widget _buildDivider() {
-    return Divider(height: 1, thickness: 1, color: Colors.grey[200], indent: 56);
   }
 }

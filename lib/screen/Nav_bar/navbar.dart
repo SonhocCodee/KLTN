@@ -17,9 +17,9 @@ class NavBarIOS extends StatelessWidget {
     // Danh sách tab cho app nhận diện
     final List<CNTabBarItem> items = const [
       CNTabBarItem(label: 'Trang chủ', icon: CNSymbol('house.fill')),
-      CNTabBarItem(label: 'Tìm kiếm', icon: CNSymbol('magnifyingglass')),
+      CNTabBarItem(label: 'Khám phá', icon: CNSymbol('magnifyingglass')),
       CNTabBarItem(label: 'Nhận diện', icon: CNSymbol('camera.viewfinder')),
-      CNTabBarItem(label: 'Khám phá', icon: CNSymbol('safari.fill')),
+      CNTabBarItem(label: 'Tìm kiếm', icon: CNSymbol('safari.fill')),
       CNTabBarItem(label: 'Cài đặt', icon: CNSymbol('gearshape.fill')),
     ];
 

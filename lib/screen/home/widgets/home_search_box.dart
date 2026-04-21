@@ -25,16 +25,18 @@ class HomeSearchBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Column(
       children: [
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: colorScheme.surfaceContainerHigh,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.07),
+                color: colorScheme.shadow.withOpacity(0.07),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -45,24 +47,25 @@ class HomeSearchBox extends StatelessWidget {
             focusNode: searchFocus,
             onChanged: onSearchChanged,
             textInputAction: TextInputAction.search,
+            style: TextStyle(color: colorScheme.onSurface),
             decoration: InputDecoration(
               hintText: 'Tìm kiếm bạn động vật...',
-              hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+              hintStyle: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 14),
               border: InputBorder.none,
               icon: isSearching
-                  ? const SizedBox(
+                  ? SizedBox(
                 width: 20,
                 height: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: Color(0xFF4CAF50),
+                  color: colorScheme.primary,
                 ),
               )
-                  : const Icon(Icons.search, color: Color(0xFF4CAF50)),
+                  : Icon(Icons.search, color: colorScheme.primary),
               suffixIcon: searchController.text.isNotEmpty
                   ? GestureDetector(
                 onTap: onClearSearch,
-                child: const Icon(Icons.close, color: Colors.grey, size: 18),
+                child: Icon(Icons.close, color: colorScheme.onSurfaceVariant, size: 18),
               )
                   : null,
             ),
@@ -73,11 +76,11 @@ class HomeSearchBox extends StatelessWidget {
           Container(
             margin: const EdgeInsets.only(top: 4),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: colorScheme.surfaceContainerHighest, // SỬA Ở ĐÂY
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: colorScheme.shadow.withOpacity(0.1),
                   blurRadius: 16,
                   offset: const Offset(0, 4),
                 ),
@@ -100,11 +103,11 @@ class HomeSearchBox extends StatelessWidget {
             margin: const EdgeInsets.only(top: 4),
             padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: colorScheme.surfaceContainerHighest, // SỬA Ở ĐÂY
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
+                  color: colorScheme.shadow.withOpacity(0.08),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -116,7 +119,7 @@ class HomeSearchBox extends StatelessWidget {
                 const SizedBox(width: 12),
                 Text(
                   'Không tìm thấy "${searchController.text}"',
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                  style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 14),
                 ),
               ],
             ),
@@ -127,6 +130,7 @@ class HomeSearchBox extends StatelessWidget {
 
   Widget _buildSuggestionItem(AnimalSuggestion s, int index, bool isLast, BuildContext context) {
     final query = searchController.text.trim();
+    final colorScheme = Theme.of(context).colorScheme;
 
     return GestureDetector(
       onTap: () => onSuggestionTap(s),
@@ -136,7 +140,7 @@ class HomeSearchBox extends StatelessWidget {
           border: isLast
               ? null
               : Border(
-            bottom: BorderSide(color: Colors.grey.shade100, width: 0.8),
+            bottom: BorderSide(color: colorScheme.outlineVariant, width: 0.8),
           ),
         ),
         child: Row(
@@ -145,7 +149,7 @@ class HomeSearchBox extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: const Color(0xFF4CAF50).withOpacity(0.1),
+                color: colorScheme.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: s.imageUrl != null
@@ -166,29 +170,29 @@ class HomeSearchBox extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildHighlightedText(s.nameVi, query,
-                      baseStyle: const TextStyle(
+                  _buildHighlightedText(s.nameVi, query, context,
+                      baseStyle: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF2D4B2A))),
+                          color: colorScheme.onSurface)),
                   const SizedBox(height: 2),
-                  _buildHighlightedText(s.nameEn, query,
+                  _buildHighlightedText(s.nameEn, query, context,
                       baseStyle: TextStyle(
-                          fontSize: 12, color: Colors.grey.shade500)),
+                          fontSize: 12, color: colorScheme.onSurfaceVariant)),
                 ],
               ),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
-                color: const Color(0xFF4CAF50).withOpacity(0.1),
+                color: colorScheme.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 s.typeLabel,
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 11,
-                    color: Color(0xFF4CAF50),
+                    color: colorScheme.primary,
                     fontWeight: FontWeight.w600),
               ),
             ),
@@ -198,7 +202,7 @@ class HomeSearchBox extends StatelessWidget {
     );
   }
 
-  Widget _buildHighlightedText(String text, String query, {required TextStyle baseStyle}) {
+  Widget _buildHighlightedText(String text, String query, BuildContext context, {required TextStyle baseStyle}) {
     if (query.isEmpty) return Text(text, style: baseStyle);
 
     final lower = text.toLowerCase();
@@ -206,6 +210,8 @@ class HomeSearchBox extends StatelessWidget {
     final start = lower.indexOf(lowerQuery);
 
     if (start == -1) return Text(text, style: baseStyle);
+
+    final colorScheme = Theme.of(context).colorScheme;
 
     return RichText(
       text: TextSpan(
@@ -215,7 +221,7 @@ class HomeSearchBox extends StatelessWidget {
           TextSpan(
             text: text.substring(start, start + query.length),
             style: baseStyle.copyWith(
-              color: const Color(0xFF4CAF50),
+              color: colorScheme.primary,
               fontWeight: FontWeight.w700,
             ),
           ),

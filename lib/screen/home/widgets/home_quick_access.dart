@@ -9,6 +9,8 @@ class HomeQuickAccess extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return SizedBox(
       height: 120,
       child: ListView.builder(
@@ -26,7 +28,7 @@ class HomeQuickAccess extends StatelessWidget {
                   width: 75,
                   height: 75,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: colorScheme.surface,
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
@@ -36,14 +38,14 @@ class HomeQuickAccess extends StatelessWidget {
                       )
                     ],
                   ),
-                  child: ClipOval(child: _getLottieForCategory(cat.id)),
+                  child: ClipOval(child: _getLottieForCategory(cat.id, context)),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   cat.nameVi,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF2D4B2A),
+                    color: colorScheme.onSurface,
                     fontSize: 14,
                   ),
                 ),
@@ -55,7 +57,7 @@ class HomeQuickAccess extends StatelessWidget {
     );
   }
 
-  Widget _getLottieForCategory(String id) {
+  Widget _getLottieForCategory(String id, BuildContext context) {
     String fileName = 'default_anim.json';
     if (id.contains('dog')) fileName = 'dog_anim.json';
     if (id.contains('cat')) fileName = 'cat_anim.json';
@@ -66,8 +68,8 @@ class HomeQuickAccess extends StatelessWidget {
       fit: BoxFit.cover,
       repeat: true,
       animate: true,
-      errorBuilder: (context, error, stackTrace) =>
-      const Icon(Icons.pets, color: Colors.grey),
+      errorBuilder: (ctx, error, stackTrace) =>
+          Icon(Icons.pets, color: Theme.of(ctx).colorScheme.onSurfaceVariant),
     );
   }
 }

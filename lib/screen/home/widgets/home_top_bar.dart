@@ -8,6 +8,8 @@ class HomeTopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 15, 24, 10),
       child: Column(
@@ -33,15 +35,15 @@ class HomeTopBar extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  const Text(
+                  Text(
                     'AniQuest',
-                    style: TextStyle(fontSize: 22, color: Color(0xFF2D4B2A)),
+                    style: TextStyle(fontSize: 22, color: colorScheme.onSurface),
                   ),
                 ],
               ),
-              const CircleAvatar(
-                backgroundColor: Colors.white,
-                child: Icon(Icons.person_outline, color: Colors.grey),
+              CircleAvatar(
+                backgroundColor: colorScheme.surfaceContainerHighest, // Dùng surfaceContainerHighest để nổi bật hơn nền 1 chút
+                child: Icon(Icons.person_outline, color: colorScheme.onSurfaceVariant),
               ),
             ],
           ),

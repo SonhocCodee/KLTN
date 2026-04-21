@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../animal_list/Breed list screen.dart';
+import '../../Breed_List/Breed list screen.dart';
 import '../animal_category_model.dart';
 import '../home_screen.dart'; // Để gọi _getShortDesc (sẽ di chuyển hàm này)
 
@@ -18,6 +18,8 @@ class HomeAnimalSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 25),
       child: Column(
@@ -35,13 +37,13 @@ class HomeAnimalSection extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(data.category.nameVi,
-                          style: const TextStyle(
-                              fontSize: 22, color: Color(0xFF1E293B))),
+                          style: TextStyle(
+                              fontSize: 22, color: colorScheme.onSurface)),
                       Text(
                         getShortDesc(data.category.id),
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 13,
-                            color: Colors.grey,
+                            color: colorScheme.onSurfaceVariant,
                             fontWeight: FontWeight.w500),
                       ),
                     ],
@@ -109,6 +111,7 @@ class _InteractiveAnimalCardState extends State<_InteractiveAnimalCard>
   Widget build(BuildContext context) {
     final hasData = widget.data.hasData;
     final category = widget.data.category;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return GestureDetector(
       onTapDown: (_) => hasData ? _controller.forward() : null,
@@ -140,7 +143,7 @@ class _InteractiveAnimalCardState extends State<_InteractiveAnimalCard>
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: colorScheme.shadow.withOpacity(0.1),
                 blurRadius: 15,
                 offset: const Offset(0, 8),
               )
@@ -148,6 +151,7 @@ class _InteractiveAnimalCardState extends State<_InteractiveAnimalCard>
           ),
           child: Stack(
             children: [
+              // Lớp phủ đen trong suốt để nổi bật text trên ảnh (giữ nguyên màu đen)
               Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(30),
@@ -172,7 +176,7 @@ class _InteractiveAnimalCardState extends State<_InteractiveAnimalCard>
                       padding: const EdgeInsets.symmetric(
                           horizontal: 18, vertical: 10),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withOpacity(0.2), // Giữ nguyên màu sáng vì nền đã làm tối
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                             color: Colors.white.withOpacity(0.3)),
@@ -183,7 +187,7 @@ class _InteractiveAnimalCardState extends State<_InteractiveAnimalCard>
                           Text(
                             hasData ? 'Khám phá ngay' : 'Đang cập nhật',
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: Colors.white, // Giữ màu trắng
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
                             ),
@@ -200,7 +204,7 @@ class _InteractiveAnimalCardState extends State<_InteractiveAnimalCard>
               if (!hasData)
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.black45,
+                    color: Colors.black45, // Giữ màu đen mờ che ảnh
                     borderRadius: BorderRadius.circular(30),
                   ),
                   child: const Center(
