@@ -191,7 +191,7 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
               ),
             ),
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 80),
         ],
       ),
     );
