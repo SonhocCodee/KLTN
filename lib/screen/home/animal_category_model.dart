@@ -71,7 +71,7 @@ class AnimalCategory {
       icon: Icons.stars,
       gradient: [Color(0xFFFFB800), Color(0xFFFF8A00)],
       imageAssetPath: 'assets/images/lion.jpg',
-      totalExpected: 8, // Các subspecies sư tử
+      totalExpected: 5, // Các subspecies sư tử
       isEnabled: true,
     ),
 

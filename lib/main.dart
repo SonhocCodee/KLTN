@@ -7,6 +7,9 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:kltn_app/screen/welcome/welcome_screen.dart';
 
+// ── BƯỚC 1: IMPORT HOME WRAPPER (Sửa lại đường dẫn nếu cần) ──
+import 'package:kltn_app/screen/home/home_wrapper.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -32,7 +35,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => ExploreService()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider.value(value: localeProvider), // ← MỚI
+        ChangeNotifierProvider.value(value: localeProvider),
       ],
       child: const AniQuestApp(),
     ),
@@ -46,6 +49,9 @@ class AniQuestApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
 
+    // ── BƯỚC 2: KIỂM TRA TRẠNG THÁI ĐĂNG NHẬP (SESSION) ──
+    final session = Supabase.instance.client.auth.currentSession;
+
     return MaterialApp(
       title: 'AniQuest',
       debugShowCheckedModeBanner: false,
@@ -58,7 +64,8 @@ class AniQuestApp extends StatelessWidget {
           child: child!,
         );
       },
-      home: const WelcomeScreen(),
+
+      home: session != null ? const HomeWrapper() : const WelcomeScreen(),
     );
   }
 }

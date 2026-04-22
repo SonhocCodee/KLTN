@@ -1,7 +1,9 @@
 import 'dart:math' as math;
+import 'dart:async'; // Đã thêm thư viện này để dùng StreamSubscription
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'Forgot password screen.dart';
 import 'auth_service.dart';
 import '../home/home_wrapper.dart';
 
@@ -22,6 +24,9 @@ class _AuthScreenState extends State<AuthScreen>
   late Animation<Offset> _formSlide;
 
   bool _isLogin = true;
+
+  // Biến lắng nghe trạng thái đăng nhập của Supabase
+  late final StreamSubscription<AuthState> _authSubscription;
 
   // Gradient màu vàng-cam giống trang 4 onboarding (trang "Sẵn sàng")
   final List<Color> _gradientColors = [
@@ -47,10 +52,40 @@ class _AuthScreenState extends State<AuthScreen>
         .animate(CurvedAnimation(parent: _formController, curve: Curves.easeOut));
 
     _formController.forward();
+
+    // ── LẮNG NGHE TRẠNG THÁI ĐĂNG NHẬP (AUTO-LOGIN & REDIRECT) ──
+    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+      final AuthChangeEvent event = data.event;
+      final Session? session = data.session;
+
+      // 1. Nếu user bấm link Quên mật khẩu từ Email -> Mở trang ResetPasswordScreen
+      if (event == AuthChangeEvent.passwordRecovery) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const ResetPasswordScreen()),
+            );
+          }
+        });
+      }
+      // 2. Nếu vừa mở app hoặc login thành công -> Vào thẳng Home
+      else if ((event == AuthChangeEvent.initialSession || event == AuthChangeEvent.signedIn) && session != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (_) => const HomeWrapper()),
+            );
+          }
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
+    // Huỷ lắng nghe để tránh rò rỉ bộ nhớ
+    _authSubscription.cancel();
+
     _bgController.dispose();
     _formController.dispose();
     super.dispose();
@@ -63,6 +98,7 @@ class _AuthScreenState extends State<AuthScreen>
   }
 
   void _onLoginSuccess() {
+
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) => const HomeWrapper()),
     );
@@ -226,7 +262,7 @@ class _LoginFormState extends State<_LoginForm> {
     setState(() { _loading = true; _error = null; });
     try {
       await AuthService.signInWithGoogle();
-      // Kết quả sẽ được xử lý qua deep link / authStateStream
+      // Kết quả sẽ được xử lý qua authStateStream listener ở màn hình chính
     } catch (e) {
       setState(() { _error = 'Đăng nhập Google thất bại.'; _loading = false; });
     }
@@ -256,6 +292,18 @@ class _LoginFormState extends State<_LoginForm> {
               color: Colors.black38, size: 20,
             ),
             onPressed: () => setState(() => _obscure = !_obscure),
+          ),
+        ),
+        Align(
+          alignment: Alignment.centerRight,
+          child: GestureDetector(
+            onTap: () => Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const ForgotPasswordScreen())),
+            child: Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text('Quên mật khẩu?',
+                  style: TextStyle(fontSize: 13, color: widget.gradientColors[0], fontWeight: FontWeight.w600)),
+            ),
           ),
         ),
 
@@ -376,6 +424,7 @@ class _RegisterFormState extends State<_RegisterForm> {
     setState(() { _loading = true; _error = null; });
     try {
       await AuthService.signInWithGoogle();
+      // Chờ Listener xử lý chuyển trang
     } catch (e) {
       setState(() { _error = 'Đăng nhập Google thất bại.'; _loading = false; });
     }
