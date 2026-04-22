@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../home/animal_category_model.dart';
+import '../../report/Animal report sheet.dart';
 
 // ── Trạng thái Loading ────────────────────────────────────────
 class AnimalDetailLoading extends StatelessWidget {
@@ -147,9 +148,16 @@ class AnimalDetailImageHeader extends StatelessWidget {
   }
 }
 
-// ── Nút Floating (Back + Share) ───────────────────────────────
+// ── Nút Floating (Back + Report) ───────────────────────────────
 class AnimalDetailFloatingButtons extends StatelessWidget {
-  const AnimalDetailFloatingButtons({super.key});
+  final String animalId;
+  final Map<String, dynamic> animal;
+
+  const AnimalDetailFloatingButtons({
+    super.key,
+    required this.animalId,
+    required this.animal,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -164,12 +172,10 @@ class AnimalDetailFloatingButtons extends StatelessWidget {
               onTap: () => Navigator.pop(context),
             ),
             _buildGlassButton(
-              icon: Icons.ios_share_rounded,
+              icon: Icons.flag_rounded,
               onTap: () {
                 HapticFeedback.lightImpact();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Chia sẻ...')),
-                );
+                showAnimalReportSheet(context, animalId: animalId, animal: animal);
               },
             ),
           ],

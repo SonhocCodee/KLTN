@@ -10,6 +10,7 @@ import 'package:kltn_app/screen/welcome/widgets/particle_system.dart';
 
 import 'package:kltn_app/screen/welcome/widgets/page_content.dart';
 
+import '../Auth/auth_screen.dart';
 import '../home/home_wrapper.dart';
 
 
@@ -163,10 +164,13 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   /// Xử lý khi người dùng nhấn "Bắt đầu ngay"
   /// Hiển thị SnackBar chào mừng
   void _getStarted() {
-    // Navigate to Home Screen
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (context) => const HomeWrapper(),
+      PageRouteBuilder(
+        pageBuilder: (_, animation, __) => const AuthScreen(),
+        transitionsBuilder: (_, animation, __, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+        transitionDuration: const Duration(milliseconds: 500),
       ),
     );
   }

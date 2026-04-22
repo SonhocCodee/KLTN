@@ -36,7 +36,7 @@ class IdentifyLoadingOverlay extends StatelessWidget {
               Text('Đang đánh hơi...', style: TextStyle(color: colorScheme.onSurface, fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               Text(
-                service.aiSource == 'groq' ? '⚡ Groq Llama 4 đang dò tìm' : '✨ Gemini 2.5 đang tra cứu',
+                service.aiSource == 'groq' ? '⚡ Groq Llama 4 đang dò tìm' : ' Đang nhận diện',
                 style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 14),
               ),
             ],

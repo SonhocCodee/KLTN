@@ -1,20 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:kltn_app/screen/Animal_detail/widgets/animal_detail_header.dart';
 import '../../services/animal_home_service.dart';
+import '../Animal_detail/widgets/animal_detail_characteristics.dart';
+import '../Animal_detail/widgets/animal_detail_conservation.dart';
+import '../Animal_detail/widgets/animal_detail_description.dart';
+import '../Animal_detail/widgets/animal_detail_habitat.dart';
+import '../Animal_detail/widgets/animal_detail_physical.dart';
+import '../Animal_detail/widgets/animal_detail_quick_stats.dart';
+import '../Animal_detail/widgets/animal_detail_taxonomy.dart';
+import '../Animal_detail/widgets/animal_detail_title.dart';
+import '../Animal_detail/widgets/animal_detail_utils.dart';
 import '../home/animal_category_model.dart';
 
 
-
-// Import Content Widgets (Các file vừa tạo)
-import 'widgets/animal_detail_utils.dart';
-import 'widgets/animal_detail_title.dart';
-import 'widgets/animal_detail_quick_stats.dart';
-import 'widgets/animal_detail_description.dart';
-import 'widgets/animal_detail_characteristics.dart';
-import 'widgets/animal_detail_physical.dart';
-import 'widgets/animal_detail_habitat.dart';
-import 'widgets/animal_detail_conservation.dart';
-import 'widgets/animal_detail_taxonomy.dart';
 
 class AnimalDetailScreen extends StatefulWidget {
   final String animalId;
@@ -48,7 +46,8 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> with TickerProv
     _fadeController = AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
     _slideController = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
     _fadeAnimation = CurvedAnimation(parent: _fadeController, curve: Curves.easeOut);
-    _slideAnimation = Tween<Offset>(begin: const Offset(0, 0.06), end: Offset.zero).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
+    _slideAnimation = Tween<Offset>(begin: const Offset(0, 0.06), end: Offset.zero)
+        .animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
     _loadAnimalDetails();
   }
 
@@ -147,6 +146,8 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> with TickerProv
               ),
             ],
           ),
+
+          // ── Floating Buttons (Back + Report) ──────────────────
           AnimalDetailFloatingButtons(
             animalId: widget.animalId,
             animal: _animal!,
