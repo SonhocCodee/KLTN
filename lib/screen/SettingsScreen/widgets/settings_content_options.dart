@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../language/Locale_provider.dart'; // Chỉnh lại đường dẫn nếu cần
 import 'settings_components.dart';
 
 class SettingsContentOptions extends StatelessWidget {
@@ -18,11 +20,12 @@ class SettingsContentOptions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>();
 
     return Column(
       children: [
         SettingsSectionHeader(
-          title: 'Tùy chỉnh Nội dung',
+          title: t.tr( 'Tùy chỉnh Nội dung'),
           icon: Icons.book_outlined,
           primaryGreen: primaryGreen,
         ),
@@ -31,22 +34,29 @@ class SettingsContentOptions extends StatelessWidget {
             ListTile(
               leading: Icon(Icons.straighten_rounded, color: primaryGreen),
               title: Text(
-                'Đơn vị đo lường',
+                t.tr('Đơn vị đo lường'),
                 style: TextStyle(fontWeight: FontWeight.w600, color: colorScheme.onSurface),
               ),
               trailing: DropdownButton<String>(
-                value: selectedUnit,
+                value: selectedUnit, // Đang nhận chữ 'metric' hoặc 'imperial'
                 underline: const SizedBox(),
                 iconEnabledColor: accentOrange,
-                items: ['Hệ Mét (kg, m)', 'Hệ Anh (lbs, ft)'].map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
+                items: [
+                  DropdownMenuItem<String>(
+                    value: 'metric',
                     child: Text(
-                      value,
+                      t.tr('Hệ Mét (kg, m)'),
                       style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface),
                     ),
-                  );
-                }).toList(),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: 'imperial',
+                    child: Text(
+                      t.tr('Hệ Anh (lbs, ft)'),
+                      style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+                    ),
+                  ),
+                ],
                 onChanged: onUnitChanged,
               ),
             ),

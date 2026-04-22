@@ -61,7 +61,13 @@ class HomeQuickAccess extends StatelessWidget {
     String fileName = 'default_anim.json';
     if (id.contains('dog')) fileName = 'dog_anim.json';
     if (id.contains('cat')) fileName = 'cat_anim.json';
-    if (id.contains('bird')) fileName = 'bird_anim.json';
+    if (id.contains('cattle')) fileName = 'cocattle_anim.json';
+    if (id.contains('tiger')) fileName = 'Tiger_anim.json';
+    if (id.contains('lion')) fileName = 'Lion_anim.json';
+    if (id.contains('bear')) fileName = 'bear_anim.json';
+    if (id.contains('horse')) fileName = 'horse_anim.json';
+    if (id.contains('buffalo')) fileName = 'buffalo_anim.json';
+
 
     return Lottie.asset(
       'assets/icons/$fileName',

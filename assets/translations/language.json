@@ -1,0 +1,45 @@
+{
+  "Cài đặt": "Settings",
+  "Tùy chỉnh chuyến thám hiểm của bạn": "Customize your expedition",
+
+  "Giao diện & Hiển thị": "Appearance & Display",
+  "Chế độ tối (Dark Mode)": "Dark Mode",
+  "Ngôn ngữ": "Language",
+  "Cỡ chữ hiển thị": "Display Text Size",
+  "Nhỏ": "Small",
+  "Bình thường": "Normal",
+  "Lớn": "Large",
+  "Xem trước:": "Preview:",
+  "Sư tử (Panthera leo) là một trong những đại miêu thuộc họ Mèo. Khác với phần lớn các loài họ Mèo khác, sư tử là loài có tính xã hội cao, sống tập trung thành các bầy đàn.": "The lion (Panthera leo) is a large cat of the genus Panthera native to Africa and India. Unlike most other cat species, lions are highly social, living in groups called prides.",
+
+  "Tùy chỉnh Nội dung": "Content Customization",
+  "Đơn vị đo lường": "Measurement Unit",
+  "Hệ Mét (kg, m)": "Metric (kg, m)",
+  "Hệ Anh (lbs, ft)": "Imperial (lbs, ft)",
+
+  "Thông báo & Tương tác": "Notifications & Interactions",
+  "Động vật của ngày": "Animal of the Day",
+  "Khám phá một loài vật mới mỗi ngày": "Discover a new animal every day",
+  "Nhắc nhở chuỗi (Streak)": "Streak Reminders",
+  "Đừng quên làm nhiệm vụ thám hiểm!": "Don't forget your expedition tasks!",
+
+  "Thông tin": "Information",
+  "Góp ý & Báo lỗi": "Feedback & Report Bugs",
+  "Chính sách bảo mật": "Privacy Policy",
+
+  "Phiên bản 1.0.0\nĐộng Vật Bách Khoa Toàn Thư": "Version 1.0.0\nAnimal Encyclopedia",
+  "Thông tin & Trợ giúp": "Information & Help",
+  "Câu hỏi thường gặp (FAQ)": "Frequently Asked Questions (FAQ)",
+  "Trung tâm trợ giúp": "Help Center",
+  "Liên hệ": "Contact",
+  "Tính năng nhận diện động vật bằng AI hoạt động thế nào?": "How does the AI animal recognition feature work?",
+  "Bạn chỉ cần hướng camera vào con vật hoặc tải ảnh lên. AI của AniQuest sẽ phân tích hình ảnh và trả về kết quả dự đoán với độ chính xác cao nhất kèm theo thông tin chi tiết về loài vật đó.": "Simply point your camera at the animal or upload a photo. AniQuest's AI will analyze the image and return the most accurate prediction along with detailed information about that species.",
+  "Ứng dụng có cần kết nối Internet không?": "Does the app require an Internet connection?",
+  "Có. Để AI có thể phân tích hình ảnh nhanh chóng và truy xuất dữ liệu từ bách khoa toàn thư, thiết bị của bạn cần được kết nối Wi-Fi hoặc 4G/5G.": "Yes. In order for the AI to quickly analyze images and retrieve data from the encyclopedia, your device needs to be connected to Wi-Fi or 4G/5G.",
+  "Dữ liệu động vật được lấy từ đâu?": "Where is the animal data sourced from?",
+  "Tất cả thông tin, đặc tính và hình ảnh động vật trên AniQuest được tổng hợp và kiểm duyệt từ các nguồn bách khoa khoa học uy tín, đảm bảo tính giáo dục và độ chính xác cao.": "All animal information, characteristics, and images on AniQuest are compiled and moderated from reputable scientific encyclopedias, ensuring high educational value and accuracy.",
+  "Tôi có thể lưu lại những con vật đã tìm kiếm không?": "Can I save the animals I've searched for?",
+  "Chắc chắn rồi! Bạn có thể nhấn vào biểu tượng \"Trái tim\" hoặc \"Đánh dấu\" ở trang chi tiết con vật để lưu chúng vào Bộ sưu tập cá nhân.": "Absolutely! You can tap the \"Heart\" or \"Bookmark\" icon on the animal's detail page to save them to your personal Collection.",
+  "Chúng tôi luôn sẵn sàng lắng nghe bạn!": "We are always ready to listen to you!",
+  "Email Hỗ Trợ": "Support Email"
+}

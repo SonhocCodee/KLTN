@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../language/Locale_provider.dart';
 
 class SettingsAnimatedHeader extends StatelessWidget {
   final Animation<double> scaleAnimation;
@@ -13,6 +15,8 @@ class SettingsAnimatedHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>(); // Lấy provider
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Column(
@@ -30,7 +34,7 @@ class SettingsAnimatedHeader extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Tùy chỉnh chuyến thám hiểm của bạn',
+            t.tr('Tùy chỉnh chuyến thám hiểm của bạn'),
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,

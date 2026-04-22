@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:kltn_app/screen/SettingsScreen/widgets/ettings_info_options.dart';
+import 'package:provider/provider.dart';
 
+import '../language/Locale_provider.dart';
 import 'widgets/settings_animated_header.dart';
 import 'widgets/settings_appearance_options.dart';
 import 'widgets/settings_content_options.dart';
@@ -16,12 +18,10 @@ class AnimalSettingsScreen extends StatefulWidget {
 class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
     with SingleTickerProviderStateMixin {
 
-  String selectedLanguage = 'Tiếng Việt';
-  String selectedUnit     = 'Hệ Mét (kg, m)';
+  // selectedLanguage đã xóa — giờ dùng LocaleProvider ✅
+  String selectedUnit     = 'metric'; // 'metric' | 'imperial'
   bool   dailyAnimalNotif = true;
   bool   streakNotif      = true;
-
-  // ✅ fontSizeFactor đã chuyển sang ThemeProvider — không cần state local nữa
 
   late AnimationController _animController;
   late Animation<double>   _scaleAnimation;
@@ -51,13 +51,14 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final t           = context.watch<LocaleProvider>();
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Text(
-          'Cài đặt',
+          t.tr('Cài đặt'),
           style: TextStyle(
             fontWeight: FontWeight.bold,
             color: primaryGreen,
@@ -76,11 +77,8 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
           ),
           const SizedBox(height: 20),
 
-          // ✅ Bỏ fontSizeFactor + baseFontSize + onFontSizeChanged
-          // ThemeProvider lo hết bên trong widget rồi
+          // ← không cần truyền selectedLanguage/onLanguageChanged nữa
           SettingsAppearanceOptions(
-            selectedLanguage: selectedLanguage,
-            onLanguageChanged: (val) => setState(() => selectedLanguage = val!),
             primaryGreen: primaryGreen,
             accentOrange: accentOrange,
           ),
@@ -104,14 +102,12 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
           ),
 
           const SizedBox(height: 24),
-          SettingsInfoOptions(
-            primaryGreen: primaryGreen,
-          ),
+          SettingsInfoOptions(primaryGreen: primaryGreen),
 
           const SizedBox(height: 30),
           Center(
             child: Text(
-              'Phiên bản 1.0.0\nĐộng Vật Bách Khoa Toàn Thư',
+              t.tr( 'Phiên bản 1.0.0\nĐộng Vật Bách Khoa Toàn Thư'),
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: colorScheme.onSurfaceVariant,

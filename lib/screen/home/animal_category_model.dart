@@ -59,7 +59,7 @@ class AnimalCategory {
       nameEn: 'Tiger',
       icon: Icons.close_fullscreen,
       gradient: [Color(0xFFFF6B35), Color(0xFFF7931E)],
-      imageAssetPath: 'assets/animals/tiger.jpg',
+      imageAssetPath: 'assets/images/tiger.jpg',
       totalExpected: 9, // 6 subspecies còn sống + 3 đã tuyệt chủng
       isEnabled: true,
     ),
@@ -70,7 +70,7 @@ class AnimalCategory {
       nameEn: 'Lion',
       icon: Icons.stars,
       gradient: [Color(0xFFFFB800), Color(0xFFFF8A00)],
-      imageAssetPath: 'assets/animals/lion.jpg',
+      imageAssetPath: 'assets/images/lion.jpg',
       totalExpected: 8, // Các subspecies sư tử
       isEnabled: true,
     ),
@@ -81,7 +81,7 @@ class AnimalCategory {
       nameEn: 'Bear',
       icon: Icons.landscape,
       gradient: [Color(0xFF8B4513), Color(0xFF654321)],
-      imageAssetPath: 'assets/animals/bear.jpg',
+      imageAssetPath: 'assets/images/bear.jpg',
       totalExpected: 10, // 8 loài chính + subspecies
       isEnabled: true,
     ),
@@ -95,7 +95,7 @@ class AnimalCategory {
       nameEn: 'Horse',
       icon: Icons.directions_run,
       gradient: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
-      imageAssetPath: 'assets/animals/horse.jpg',
+      imageAssetPath: 'assets/images/horse.jpg',
       totalExpected: 350, // Tổng số giống ngựa trên thế giới
       isEnabled: true,
     ),
@@ -106,7 +106,7 @@ class AnimalCategory {
       nameEn: 'Cattle',
       icon: Icons.agriculture,
       gradient: [Color(0xFF10B981), Color(0xFF059669)],
-      imageAssetPath: 'assets/animals/cattle.jpg',
+      imageAssetPath: 'assets/images/cow.jpg',
       totalExpected: 800, // Tổng số giống bò trên thế giới
       isEnabled: true,
     ),
@@ -117,7 +117,7 @@ class AnimalCategory {
       nameEn: 'Buffalo',
       icon: Icons.water,
       gradient: [Color(0xFF0EA5E9), Color(0xFF0284C7)],
-      imageAssetPath: 'assets/animals/buffalo.jpg',
+      imageAssetPath: 'assets/images/buffalo.jpg',
       totalExpected: 18, // Các giống trâu chính
       isEnabled: true,
     ),
@@ -131,7 +131,7 @@ class AnimalCategory {
       nameEn: 'Bird',
       icon: Icons.flutter_dash,
       gradient: [Color(0xFF60A5FA), Color(0xFF3B82F6)],
-      imageAssetPath: 'assets/animals/bird.jpg',
+      imageAssetPath: 'assets/images/bird.jpg',
       totalExpected: 10000, // Tổng số loài chim trên thế giới
       isEnabled: false, // 👈 TẮT vì chưa có data
     ),
@@ -142,7 +142,7 @@ class AnimalCategory {
       nameEn: 'Fish',
       icon: Icons.set_meal,
       gradient: [Color(0xFF14B8A6), Color(0xFF0891B2)],
-      imageAssetPath: 'assets/animals/fish.jpg',
+      imageAssetPath: 'assets/images/fish.jpg',
       totalExpected: 35000, // Tổng số loài cá
       isEnabled: false, // 👈 TẮT vì chưa có data
     ),
@@ -153,7 +153,7 @@ class AnimalCategory {
       nameEn: 'Reptile',
       icon: Icons.bug_report,
       gradient: [Color(0xFF84CC16), Color(0xFF65A30D)],
-      imageAssetPath: 'assets/animals/reptile.jpg',
+      imageAssetPath: 'assets/images/reptile.jpg',
       totalExpected: 11000, // Tổng số loài bò sát
       isEnabled: false, // 👈 TẮT vì chưa có data
     ),

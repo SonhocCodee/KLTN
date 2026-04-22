@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../language/Locale_provider.dart';
 import 'settings_components.dart';
 
 class SettingsNotificationOptions extends StatelessWidget {
@@ -21,18 +23,20 @@ class SettingsNotificationOptions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.watch<LocaleProvider>(); // Lấy provider
+
     return Column(
       children: [
         SettingsSectionHeader(
-          title: 'Thông báo & Tương tác',
+          title: t.tr('Thông báo & Tương tác'),
           icon: Icons.notifications_active_outlined,
           primaryGreen: primaryGreen,
         ),
         SettingsCard(
           children: [
             SettingsSwitchTile(
-              title: 'Động vật của ngày',
-              subtitle: 'Khám phá một loài vật mới mỗi ngày',
+              title: t.tr('Động vật của ngày'),
+              subtitle: t.tr('Khám phá một loài vật mới mỗi ngày'),
               icon: Icons.pets_rounded,
               value: dailyAnimalNotif,
               onChanged: onDailyChanged,
@@ -41,8 +45,8 @@ class SettingsNotificationOptions extends StatelessWidget {
             ),
             const SettingsDivider(),
             SettingsSwitchTile(
-              title: 'Nhắc nhở chuỗi (Streak)',
-              subtitle: 'Đừng quên làm nhiệm vụ thám hiểm!',
+              title: t.tr('Nhắc nhở chuỗi (Streak)'),
+              subtitle: t.tr('Đừng quên làm nhiệm vụ thám hiểm!'),
               icon: Icons.local_fire_department_rounded,
               iconColor: Colors.redAccent,
               value: streakNotif,

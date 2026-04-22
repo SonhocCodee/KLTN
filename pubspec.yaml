@@ -50,4 +50,5 @@ flutter:
       - assets/labels.txt
       - assets/
       - assets/icons/
+      - assets/translations/language.json
 
