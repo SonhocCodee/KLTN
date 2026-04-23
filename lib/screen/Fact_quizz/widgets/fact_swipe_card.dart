@@ -53,18 +53,7 @@ class FactSwipeCard extends StatelessWidget {
                         )
                       else
                         _imagePlaceholder(colorScheme),
-                      Positioned(
-                        top: 20,
-                        right: 20,
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: colorScheme.surface.withOpacity(0.85),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(Icons.favorite_border_rounded, size: 20, color: colorScheme.onSurface),
-                        ),
-                      ),
+
                     ],
                   ),
 

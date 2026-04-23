@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 
 class AuthService {
   static final _client = Supabase.instance.client;
@@ -34,10 +35,22 @@ class AuthService {
 
   // ── Google Sign-In ───────────────────────────────────────
   static Future<bool> signInWithGoogle() async {
-    return await _client.auth.signInWithOAuth(
-      OAuthProvider.google,
+    // Lấy URL redirect từ Supabase
+    final res = await _client.auth.getOAuthSignInUrl(
+      provider: OAuthProvider.google,
       redirectTo: 'io.supabase.kltnapp://login-callback',
     );
+
+    // Mở browser và CHỜ callback về
+    final result = await FlutterWebAuth2.authenticate(
+      url: res.url.toString(),
+      callbackUrlScheme: 'io.supabase.kltnapp',
+    );
+
+    // Trao token cho Supabase
+    final uri = Uri.parse(result);
+    await _client.auth.getSessionFromUrl(uri);
+    return true;
   }
 
   // ── Sign Out ─────────────────────────────────────────────
