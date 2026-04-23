@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kltn_app/screen/Animal_detail/widgets/animal_detail_external_links.dart';
 import 'package:kltn_app/screen/Animal_detail/widgets/animal_detail_header.dart';
 import '../../services/animal_home_service.dart';
 import '../home/animal_category_model.dart';
@@ -108,6 +109,8 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> with TickerProv
                         children: [
                           AnimalDetailTitle(animal: _animal!, category: widget.category),
                           AnimalDetailQuickStats(animal: _animal!),
+
+                          AnimalExternalLinks(animal: _animal!),
 
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
