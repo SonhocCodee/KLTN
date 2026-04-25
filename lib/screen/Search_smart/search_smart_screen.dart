@@ -5,6 +5,8 @@ import 'package:kltn_app/screen/Search_smart/widgets/search_smart_widgets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'models/search_smart_models.dart';
+import '../Animal_detail/Animal detail screen.dart';
+import '../home/animal_category_model.dart';
 
 class SmartQuizPage extends StatefulWidget {
   const SmartQuizPage({super.key});
@@ -173,29 +175,169 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
   }
 
   void _showDetail(Map<String, dynamic> animal) {
-    showCupertinoDialog(
+    final colorScheme = Theme.of(context).colorScheme;
+
+    showModalBottomSheet(
       context: context,
-      builder: (ctx) => CupertinoAlertDialog(
-        title: Text(animal['name_vietnamese'] ?? animal['name_english'] ?? ''),
-        content: Column(
-          children: [
-            if (animal['scientific_name'] != null) ...[
-              const SizedBox(height: 6),
-              Text(animal['scientific_name'], style: const TextStyle(fontStyle: FontStyle.italic)),
-            ],
-            if (animal['description_short'] != null) ...[
-              const SizedBox(height: 10),
-              Text(animal['description_short']),
-            ],
-          ],
-        ),
-        actions: [
-          CupertinoDialogAction(
-            child: const Text('Đóng'),
-            onPressed: () => Navigator.pop(ctx),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           ),
-        ],
-      ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                margin: const EdgeInsets.only(top: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: colorScheme.outlineVariant,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              if (animal['image_url'] != null)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.network(
+                      animal['image_url'],
+                      height: 200,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        height: 200,
+                        color: colorScheme.surfaceContainer,
+                        child: Center(
+                          child: Text(
+                            _selectedConfig?.emoji ?? '🐾',
+                            style: const TextStyle(fontSize: 64),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      animal['name_vietnamese'] ?? animal['name_english'] ?? '—',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    if (animal['scientific_name'] != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        animal['scientific_name'],
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontStyle: FontStyle.italic,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                    if (animal['name_english'] != null &&
+                        animal['name_english'] != animal['name_vietnamese']) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        animal['name_english'],
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                    if (animal['description_short'] != null) ...[
+                      const SizedBox(height: 12),
+                      Text(
+                        animal['description_short'],
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: colorScheme.onSurface,
+                          height: 1.5,
+                        ),
+                        maxLines: 4,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.fromLTRB(
+                    16, 20, 16, MediaQuery.of(ctx).padding.bottom + 16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14)),
+                          side: BorderSide(color: colorScheme.outline),
+                        ),
+                        child: Text(
+                          'Đóng',
+                          style: TextStyle(
+                              fontSize: 16, color: colorScheme.onSurface),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      flex: 2,
+                      child: FilledButton.icon(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          final animalType =
+                          (animal['animal_type'] ?? '').toString();
+                          final category = AnimalCategory
+                              .getEnabledCategories()
+                              .firstWhere(
+                                (c) => c.id
+                                .toLowerCase()
+                                .contains(animalType.toLowerCase()),
+                            orElse: () =>
+                            AnimalCategory.getEnabledCategories().first,
+                          );
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => AnimalDetailScreen(
+                                animalId: animal['id'],
+                                category: category,
+                              ),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.open_in_new_rounded, size: 18),
+                        label: const Text('Xem chi tiết',
+                            style: TextStyle(fontSize: 16)),
+                        style: FilledButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -206,7 +348,8 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      body: SafeArea(child: _buildBody(colorScheme)),
+      // CHỦ CHỐT: Dùng bottom: false để màu nền Scaffold tràn đáy
+      body: SafeArea(bottom: false, child: _buildBody(colorScheme)),
     );
   }
 
@@ -242,7 +385,8 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
         const SizedBox(height: 16),
         Expanded(
           child: GridView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            // CHỦ CHỐT: Padding đáy lớn để nội dung không bị che
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
             physics: const BouncingScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 1.05,
@@ -292,7 +436,6 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
               ? GestureDetector(onTap: () => setState(() => _showResults = true), child: Text('Xem ${_results.length}', style: TextStyle(color: colorScheme.primary, fontSize: 17)))
               : const SizedBox.shrink(),
         ),
-
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Column(
@@ -312,9 +455,7 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
             ],
           ),
         ),
-
         const SizedBox(height: 28),
-
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Column(
@@ -325,12 +466,11 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
             ],
           ),
         ),
-
         const SizedBox(height: 24),
-
         Expanded(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            // CHỦ CHỐT: Padding đáy lớn
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
             physics: const BouncingScrollPhysics(),
             child: Column(
               children: [
@@ -348,9 +488,7 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
                     }).toList(),
                   ),
                 ),
-
                 const SizedBox(height: 12),
-
                 GestureDetector(
                   onTap: _skip,
                   child: Container(
@@ -397,7 +535,6 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
               ? GestureDetector(onTap: () => _selectAnimalType(_selectedConfig!), child: Text('Tìm lại', style: TextStyle(color: colorScheme.primary, fontSize: 17)))
               : const SizedBox.shrink(),
         ),
-
         if (_results.isNotEmpty)
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
@@ -407,12 +544,12 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
               ],
             ),
           ),
-
         Expanded(
           child: _results.isEmpty
               ? SmartNoResultsView(onRetry: () => _selectAnimalType(_selectedConfig!))
               : GridView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+            // CHỦ CHỐT: Padding đáy lớn
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
             physics: const BouncingScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 0.72,

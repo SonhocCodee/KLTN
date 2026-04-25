@@ -5,15 +5,17 @@ import 'package:kltn_app/screen/home/widgets/home_quick_access.dart';
 import 'package:kltn_app/screen/home/widgets/home_search_box.dart';
 import 'package:kltn_app/screen/home/widgets/home_top_bar.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shorebird_code_push/shorebird_code_push.dart'; // Import package Shorebird
 
 // --- Import các file Service và Model ---
 import '../../services/animal_home_service.dart';
 import '../Animal_detail/Animal detail screen.dart';
+import '../profile/Profile page.dart';
 import 'animal_category_model.dart';
 import 'models/animal_suggestion.dart';
 
 // ═══════════════════════════════════════════════════════
-// SERVICE TÌM KIẾM (Có thể tách ra file riêng nếu muốn)
+// SERVICE TÌM KIẾM
 // ═══════════════════════════════════════════════════════
 class AnimalSearchService {
   final _client = Supabase.instance.client;
@@ -52,7 +54,7 @@ class AnimalSearchService {
 }
 
 // ═══════════════════════════════════════════════════════
-// HOME SCREEN (Đã được dọn dẹp sạch sẽ)
+// HOME SCREEN
 // ═══════════════════════════════════════════════════════
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -65,8 +67,12 @@ class _HomeScreenState extends State<HomeScreen> {
   final AnimalHomeService _service = AnimalHomeService();
   final AnimalSearchService _searchService = AnimalSearchService();
 
+  // Khởi tạo đối tượng Shorebird Code Push (API v2.0+)
+  final _updater = ShorebirdUpdater();
+
   List<AnimalCategoryData> _categoryData = [];
   bool _isLoading = true;
+  bool _sortAZ = false; // false = mặc định, true = A-Z
 
   // --- Search State ---
   final TextEditingController _searchController = TextEditingController();
@@ -87,6 +93,11 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() => _showSuggestions = false);
       }
     });
+
+    // Chạy kiểm tra bản cập nhật sau khi giao diện đã vẽ xong khung đầu tiên
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkForUpdate();
+    });
   }
 
   @override
@@ -95,6 +106,84 @@ class _HomeScreenState extends State<HomeScreen> {
     _searchFocus.dispose();
     _debounce?.cancel();
     super.dispose();
+  }
+
+  // --- Logic Cập nhật OTA Shorebird (API v2.0+) ---
+  // --- Logic Cập nhật OTA Shorebird (API v2.0+) ---
+  Future<void> _checkForUpdate() async {
+    try {
+      debugPrint('🔄 [Shorebird] Bắt đầu kiểm tra bản cập nhật...');
+
+      // Hàm checkForUpdate trả về trạng thái UpdateStatus
+      final status = await _updater.checkForUpdate();
+
+      debugPrint('📊 [Shorebird] Trạng thái trả về: ${status.name}');
+
+      if (status == UpdateStatus.upToDate) {
+        debugPrint('✅ [Shorebird] App đang chạy bản mới nhất, không có Patch mới.');
+      }
+      else if (status == UpdateStatus.outdated && mounted) {
+        debugPrint('⚠️ [Shorebird] Phát hiện bản vá mới (Outdated)! Hiển thị Popup...');
+
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Có bản cập nhật mới! 🎉'),
+            content: const Text('Ứng dụng vừa có phiên bản giao diện mới mượt mà hơn. Bạn có muốn tải về và áp dụng ngay không?'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  debugPrint('⏭️ [Shorebird] Người dùng chọn Bỏ qua cập nhật.');
+                  Navigator.pop(ctx);
+                },
+                child: const Text('Để sau'),
+              ),
+              FilledButton(
+                onPressed: () async {
+                  debugPrint('⬇️ [Shorebird] Người dùng đồng ý tải. Đang tiến hành tải Patch...');
+                  Navigator.pop(ctx);
+
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Đang tải bản cập nhật...'),
+                        duration: Duration(seconds: 3),
+                      ),
+                    );
+                  }
+
+                  // Gọi lệnh tải Patch về máy (API v2.0)
+                  await _updater.update();
+
+                  debugPrint('🚀 [Shorebird] Tải Patch thành công! Yêu cầu Restart app.');
+
+                  if (mounted) {
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (innerCtx) => AlertDialog(
+                        title: const Text('Tải hoàn tất! ✅'),
+                        content: const Text('Vui lòng thoát hẳn (kill app) và mở lại ứng dụng để trải nghiệm phiên bản mới nhé.'),
+                        actions: [
+                          FilledButton(
+                            onPressed: () => Navigator.pop(innerCtx),
+                            child: const Text('Đã hiểu'),
+                          )
+                        ],
+                      ),
+                    );
+                  }
+                },
+                child: const Text('Cập nhật ngay'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('❌ [Shorebird] Lỗi Crash khi kiểm tra cập nhật: $e');
+    }
   }
 
   Future<void> _loadData() async {
@@ -181,7 +270,13 @@ class _HomeScreenState extends State<HomeScreen> {
     _searchFocus.unfocus();
   }
 
-  // Truyền hàm này vào HomeAnimalSection
+  List<AnimalCategoryData> get _displayedCategoryData {
+    if (!_sortAZ) return _categoryData;
+    final sorted = List<AnimalCategoryData>.from(_categoryData);
+    sorted.sort((a, b) => a.category.nameVi.compareTo(b.category.nameVi));
+    return sorted;
+  }
+
   String _getShortDesc(String id) {
     if (id.contains('dog')) return 'Người bạn trung thành và đáng yêu nhất của bé.';
     if (id.contains('cat')) return 'Những người bạn nhỏ thích cuộn tròn và làm nũng.';
@@ -216,6 +311,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             // 2. Nội dung chính
             SafeArea(
+              bottom: false,
               child: _isLoading
                   ? Center(child: CircularProgressIndicator(color: colorScheme.primary))
                   : CustomScrollView(
@@ -224,6 +320,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   // --- TOP BAR & SEARCH BOX ---
                   SliverToBoxAdapter(
                     child: HomeTopBar(
+                      // 1. Thêm sự kiện nhấn vào Profile ở đây
+                      onProfileTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ProfilePage(), // Hoặc ProfilePage của Sơn
+                          ),
+                        );
+                      },
                       searchBox: HomeSearchBox(
                         searchController: _searchController,
                         searchFocus: _searchFocus,
@@ -247,16 +352,50 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: HomeQuickAccess(categoryData: _categoryData),
                   ),
 
+                  // --- BỘ LỌC ---
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                      child: Row(
+                        children: [
+                          Text(
+                            'Danh sách loài',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
+                          const Spacer(),
+                          // Chip: Mặc định
+                          _FilterChip(
+                            label: 'Mặc định',
+                            selected: !_sortAZ,
+                            onTap: () => setState(() => _sortAZ = false),
+                          ),
+                          const SizedBox(width: 8),
+                          // Chip: A-Z
+                          _FilterChip(
+                            label: 'A - Z',
+                            icon: Icons.sort_by_alpha_rounded,
+                            selected: _sortAZ,
+                            onTap: () => setState(() => _sortAZ = true),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
                   // --- DANH SÁCH THẺ ĐỘNG VẬT ---
                   SliverPadding(
                     padding: const EdgeInsets.fromLTRB(16, 10, 16, 100),
                     sliver: SliverList(
                       delegate: SliverChildBuilderDelegate(
                             (context, index) => HomeAnimalSection(
-                          data: _categoryData[index],
+                          data: _displayedCategoryData[index],
                           getShortDesc: _getShortDesc,
                         ),
-                        childCount: _categoryData.length,
+                        childCount: _displayedCategoryData.length,
                       ),
                     ),
                   ),
@@ -292,7 +431,62 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 // ═══════════════════════════════════════════════════════
-// PAINTER VẼ NỀN (Giữ nguyên)
+// FILTER CHIP WIDGET
+// ═══════════════════════════════════════════════════════
+class _FilterChip extends StatelessWidget {
+  final String label;
+  final IconData? icon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _FilterChip({
+    required this.label,
+    this.icon,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          color: selected ? colorScheme.primary : colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: selected ? colorScheme.primary : colorScheme.outlineVariant,
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(icon, size: 14,
+                  color: selected ? colorScheme.onPrimary : colorScheme.onSurfaceVariant),
+              const SizedBox(width: 4),
+            ],
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: selected ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// PAINTER VẼ NỀN
 // ═══════════════════════════════════════════════════════
 class _PatternPainter extends CustomPainter {
   final ColorScheme colorScheme;

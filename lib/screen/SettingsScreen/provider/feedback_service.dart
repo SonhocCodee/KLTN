@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart'; // Bắt buộc thêm dòng này để dùng debugPrint
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class FeedbackService {
@@ -11,6 +12,8 @@ class FeedbackService {
       final ext = fileName.split('.').last.toLowerCase();
       final path = 'feedback/${DateTime.now().millisecondsSinceEpoch}_$fileName';
 
+      debugPrint('⬆️ Đang upload: $path');
+
       await _db.storage.from('feedback-media').upload(
         path,
         file,
@@ -21,8 +24,10 @@ class FeedbackService {
       );
 
       final url = _db.storage.from('feedback-media').getPublicUrl(path);
+      debugPrint('✅ Upload OK: $url');
       return url;
     } catch (e) {
+      debugPrint('❌ Upload lỗi chi tiết: $e'); // ← xem lỗi này
       return null;
     }
   }

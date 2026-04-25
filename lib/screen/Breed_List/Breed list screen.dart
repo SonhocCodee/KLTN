@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:kltn_app/screen/Breed_List/widgets/Breed_list_filter.dart';
 import '../../services/animal_home_service.dart';
 import '../Animal_detail/Animal detail screen.dart';
 import '../home/animal_category_model.dart';
@@ -30,6 +30,7 @@ class _BreedListScreenState extends State<BreedListScreen> {
   List<Map<String, dynamic>> _animals = [];
   bool _isLoading = true;
   String _searchQuery = '';
+  AnimalFilterState _filterState = const AnimalFilterState();
 
   @override
   void initState() {
@@ -39,7 +40,6 @@ class _BreedListScreenState extends State<BreedListScreen> {
 
   Future<void> _loadAnimals() async {
     setState(() => _isLoading = true);
-
     try {
       final animals = await _service.getAnimalsByType(widget.category.id);
       setState(() {
@@ -52,16 +52,21 @@ class _BreedListScreenState extends State<BreedListScreen> {
     }
   }
 
+  /// Search trước, rồi filter+sort sau
   List<Map<String, dynamic>> get _filteredAnimals {
-    if (_searchQuery.isEmpty) return _animals;
+    // 1. Search
+    var list = _animals;
+    if (_searchQuery.isNotEmpty) {
+      final q = _searchQuery.toLowerCase();
+      list = list.where((a) {
+        final nameVi = (a['name_vietnamese'] ?? '').toString().toLowerCase();
+        final nameEn = (a['name_english'] ?? '').toString().toLowerCase();
+        return nameVi.contains(q) || nameEn.contains(q);
+      }).toList();
+    }
 
-    return _animals.where((animal) {
-      final nameVi = (animal['name_vietnamese'] ?? '').toString().toLowerCase();
-      final nameEn = (animal['name_english'] ?? '').toString().toLowerCase();
-      final query = _searchQuery.toLowerCase();
-
-      return nameVi.contains(query) || nameEn.contains(query);
-    }).toList();
+    // 2. Filter + sort
+    return _filterState.apply(list);
   }
 
   @override
@@ -72,7 +77,6 @@ class _BreedListScreenState extends State<BreedListScreen> {
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
-          // Giữ gradient xanh xám ở Light Mode, đổi thành nền Dark trơn ở Dark Mode
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -82,6 +86,7 @@ class _BreedListScreenState extends State<BreedListScreen> {
           ),
         ),
         child: SafeArea(
+          bottom: false,
           child: Column(
             children: [
               BreedListHeader(
@@ -91,9 +96,35 @@ class _BreedListScreenState extends State<BreedListScreen> {
               BreedListSearchBar(
                 category: widget.category,
                 searchQuery: _searchQuery,
-                onChanged: (value) => setState(() => _searchQuery = value),
+                onChanged: (v) => setState(() => _searchQuery = v),
                 onClear: () => setState(() => _searchQuery = ''),
               ),
+              const SizedBox(height: 8),
+
+              // ── Bộ lọc inline ──
+              BreedListFilterBar(
+                category: widget.category,
+                filterState: _filterState,
+                onChanged: (newState) =>
+                    setState(() => _filterState = newState),
+              ),
+              const SizedBox(height: 8),
+
+              // ── Kết quả đếm nhỏ (chỉ hiện khi đang filter/search) ──
+              if (_searchQuery.isNotEmpty || _filterState.hasActiveFilters)
+                Padding(
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Tìm thấy ${_filteredAnimals.length} loài',
+                      style: TextStyle(
+                          fontSize: 12,
+                          color: colorScheme.onSurfaceVariant),
+                    ),
+                  ),
+                ),
 
               if (_isLoading)
                 Expanded(
@@ -108,13 +139,12 @@ class _BreedListScreenState extends State<BreedListScreen> {
               else
                 Expanded(
                   child: RefreshIndicator(
-                    onRefresh: () async {
-                      await _loadAnimals();
-                    },
+                    onRefresh: _loadAnimals,
                     color: widget.category.gradient[0],
                     child: GridView.builder(
                       padding: const EdgeInsets.all(16),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate:
+                      const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
                         childAspectRatio: 0.68,
                         crossAxisSpacing: 16,
@@ -142,38 +172,6 @@ class _BreedListScreenState extends State<BreedListScreen> {
                   ),
                 ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Nút clear cache dự phòng (Nếu ông vẫn cần dùng thì gọi nó ở đâu đó, hiện tại tôi vẫn giữ code gốc)
-  Widget _buildClearCacheButton() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () async {
-            await DefaultCacheManager().emptyCache();
-            await _loadAnimals();
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: const Text('✅ Cache cleared & reloaded'), backgroundColor: widget.category.gradient[0]),
-              );
-            }
-          },
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Icon(Icons.refresh, size: 24, color: Theme.of(context).colorScheme.onSurface),
           ),
         ),
       ),

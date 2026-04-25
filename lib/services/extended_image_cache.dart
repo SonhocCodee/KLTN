@@ -1,10 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
-/// Cache service cho ảnh đã extend
-///
-/// Lưu mapping: originalImageUrl -> extendedImageUrl
-/// Mỗi ngày sẽ cache 1 ảnh mới (con vật mới)
 class ExtendedImageCache {
   static const String _cachePrefix = 'extended_image_';
   static const String _cacheDateKey = 'extended_image_date';

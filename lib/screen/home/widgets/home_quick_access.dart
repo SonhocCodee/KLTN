@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import '../../Breed_List/Breed list screen.dart';
 import '../animal_category_model.dart';
 
 class HomeQuickAccess extends StatelessWidget {
@@ -19,37 +20,55 @@ class HomeQuickAccess extends StatelessWidget {
         physics: const BouncingScrollPhysics(),
         itemCount: categoryData.length,
         itemBuilder: (context, index) {
-          final cat = categoryData[index].category;
+          final item = categoryData[index];
+          final cat = item.category;
+
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Column(
-              children: [
-                Container(
-                  width: 75,
-                  height: 75,
-                  decoration: BoxDecoration(
-                    color: colorScheme.surface,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: cat.gradient[0].withOpacity(0.2),
-                        blurRadius: 10,
-                        offset: const Offset(0, 5),
-                      )
-                    ],
+            child: InkWell(
+              onTap: () {
+                // Điều hướng đến trang danh sách loài tương ứng
+                // home_quick_access.dart — dòng ~33
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => BreedListScreen(
+                      category: cat,
+                      totalCount: item.count,
+                    ),
                   ),
-                  child: ClipOval(child: _getLottieForCategory(cat.id, context)),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  cat.nameVi,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface,
-                    fontSize: 14,
+                );
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: Column(
+                children: [
+                  Container(
+                    width: 75,
+                    height: 75,
+                    decoration: BoxDecoration(
+                      color: colorScheme.surface,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: cat.gradient[0].withOpacity(0.2),
+                          blurRadius: 10,
+                          offset: const Offset(0, 5),
+                        )
+                      ],
+                    ),
+                    child: ClipOval(child: _getLottieForCategory(cat.id, context)),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 8),
+                  Text(
+                    cat.nameVi,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         },
@@ -67,7 +86,6 @@ class HomeQuickAccess extends StatelessWidget {
     if (id.contains('bear')) fileName = 'bear_anim.json';
     if (id.contains('horse')) fileName = 'horse_anim.json';
     if (id.contains('buffalo')) fileName = 'buffalo_anim.json';
-
 
     return Lottie.asset(
       'assets/icons/$fileName',

@@ -320,34 +320,3 @@ class AnimalApiService {
       DateTime.now().toIso8601String().split('T')[0];
 }
 
-/*
-══════════════════════════════════════════════════════
-SUPABASE SQL — chạy 1 lần trong SQL Editor:
-══════════════════════════════════════════════════════
-
-CREATE TABLE IF NOT EXISTS daily_animal_cache (
-  id              BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  cache_date      DATE    NOT NULL,
-  animal_name     TEXT    NOT NULL,
-  scientific_name TEXT,
-  locations       JSONB,
-  characteristics JSONB,
-  image_url       TEXT,
-  ai_description  TEXT,
-  extended_image_url TEXT,
-  created_at      TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(cache_date, animal_name)
-);
-
-ALTER TABLE daily_animal_cache ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Public read" ON daily_animal_cache FOR SELECT USING (true);
-CREATE POLICY "App insert"  ON daily_animal_cache FOR INSERT WITH CHECK (true);
-
-══════════════════════════════════════════════════════
-GROQ SETUP (miễn phí, ~14,400 request/ngày free tier):
-1. Vào https://console.groq.com
-2. Đăng ký / đăng nhập
-3. API Keys → Create API Key
-4. Copy key → dán vào _groqKey ở trên
-══════════════════════════════════════════════════════
-*/

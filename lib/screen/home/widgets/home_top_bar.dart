@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
-import 'home_search_box.dart';
 
 class HomeTopBar extends StatelessWidget {
   final Widget searchBox;
+  final VoidCallback? onProfileTap; // Thêm callback
 
-  const HomeTopBar({super.key, required this.searchBox});
+  const HomeTopBar({
+    super.key,
+    required this.searchBox,
+    this.onProfileTap, // Thêm vào constructor
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -37,13 +41,21 @@ class HomeTopBar extends StatelessWidget {
                   const SizedBox(width: 10),
                   Text(
                     'AniQuest',
-                    style: TextStyle(fontSize: 22, color: colorScheme.onSurface),
+                    style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface
+                    ),
                   ),
                 ],
               ),
-              CircleAvatar(
-                backgroundColor: colorScheme.surfaceContainerHighest, // Dùng surfaceContainerHighest để nổi bật hơn nền 1 chút
-                child: Icon(Icons.person_outline, color: colorScheme.onSurfaceVariant),
+              // Bọc Avatar để nhấn được
+              GestureDetector(
+                onTap: onProfileTap,
+                child: CircleAvatar(
+                  backgroundColor: colorScheme.surfaceContainerHighest,
+                  child: Icon(Icons.person_outline, color: colorScheme.onSurfaceVariant),
+                ),
               ),
             ],
           ),

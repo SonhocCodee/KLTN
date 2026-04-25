@@ -87,13 +87,17 @@ class _IdentifyViewState extends State<IdentifyView> with SingleTickerProviderSt
       body: Stack(
         children: [
           SafeArea(
+            // CHỦ CHỐT: bottom: false để tránh vệt trắng và cho phép màu nền tràn xuống đáy
+            bottom: false,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 IdentifyHeader(service: service),
                 Expanded(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                    // CHỦ CHỐT: padding bottom 120 để nội dung kết quả luôn nằm trên Navbar
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
+                    physics: const BouncingScrollPhysics(),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [

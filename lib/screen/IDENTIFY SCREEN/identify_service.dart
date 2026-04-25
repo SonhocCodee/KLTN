@@ -26,7 +26,8 @@ class IdentifyService extends ChangeNotifier {
       'Look at this image carefully and identify:\n'
       '1. The animal type (cat, dog, tiger, buffalo, horse, etc.)\n'
       '2. The specific breed or subspecies\n\n'
-      'Reply with ONLY these 3 lines, no extra text, no markdown:\n'
+      'If the image does NOT contain any animal, reply with exactly: NOT_ANIMAL\n\n'
+      'Otherwise, reply with ONLY these 3 lines, no extra text, no markdown:\n'
       'BREED===[internationally recognized English breed/species name, e.g. British Shorthair]\n'
       'NAMEVI===[Vietnamese name, e.g. Mèo Anh lông ngắn]\n'
       'TYLE===[confidence integer 0-100]';
@@ -103,7 +104,7 @@ class IdentifyService extends ChangeNotifier {
     final File snap = selectedImage!;
 
     isAnalyzing = true;
-    clearResult(); // notifyListeners called here
+    clearResult();
 
     final online = await _hasNetwork();
     if (!online) {
@@ -113,13 +114,13 @@ class IdentifyService extends ChangeNotifier {
 
     debugPrint('🔄 Bước 1: Thử Gemini...');
     final geminiOk = await _identifyWithGemini(snap, onSuccess);
-    if (geminiOk) { debugPrint('✅ Gemini thành công'); return; }
+    if (geminiOk) { debugPrint('✅ Kết thúc xử lý Gemini'); return; }
 
-    debugPrint('🔄 Bước 2: Gemini thất bại → thử Groq Llama...');
+    debugPrint('🔄 Bước 2: Thử Groq Llama...');
     final groqOk = await _identifyWithGroq(snap, onSuccess);
-    if (groqOk) { debugPrint('✅ Groq thành công'); return; }
+    if (groqOk) { debugPrint('✅ Kết thúc xử lý Groq'); return; }
 
-    debugPrint('🔄 Bước 3: Groq thất bại → dùng Local model');
+    debugPrint('🔄 Bước 3: Dùng Local model');
     await _identifyWithLocalModel(imageFile: snap, fallback: true, onSuccess: onSuccess);
   }
 
@@ -146,6 +147,10 @@ class IdentifyService extends ChangeNotifier {
   }
 
   Map<String, String>? _parseResponse(String raw) {
+    if (raw.toUpperCase().contains('NOT_ANIMAL')) {
+      return {'status': 'NOT_ANIMAL'};
+    }
+
     String breed = '';
     String nameVi = '';
     String tiLe = '';
@@ -169,7 +174,7 @@ class IdentifyService extends ChangeNotifier {
     if (nameVi.isEmpty) nameVi = breed;
     if (tiLe.isEmpty) tiLe = '?';
 
-    return {'breed': breed, 'nameVi': nameVi, 'confidence': tiLe};
+    return {'breed': breed, 'nameVi': nameVi, 'confidence': tiLe, 'status': 'OK'};
   }
 
   // ── AI Identifications ────────────────────────────────────────────────────
@@ -254,7 +259,7 @@ class IdentifyService extends ChangeNotifier {
       final confidence = (scores[maxIdx] * 100).toStringAsFixed(1);
       final breed = _labels[maxIdx];
 
-      await _fetchAndSetResult({'breed': breed, 'nameVi': breed, 'confidence': confidence}, fallback ? 'local_fallback' : 'local', onSuccess);
+      await _fetchAndSetResult({'breed': breed, 'nameVi': breed, 'confidence': confidence, 'status': 'OK'}, fallback ? 'local_fallback' : 'local', onSuccess);
     } catch (e) {
       isAnalyzing = false;
       notifyListeners();
@@ -278,6 +283,13 @@ class IdentifyService extends ChangeNotifier {
   };
 
   Future<bool> _fetchAndSetResult(Map<String, String> parsed, String source, VoidCallback onSuccess) async {
+    // Nếu AI báo không phải động vật, dừng ngay lập tức và trả về true để startSearching không fallback tiếp
+    if (parsed['status'] == 'NOT_ANIMAL') {
+      isAnalyzing = false;
+      notifyListeners();
+      return true;
+    }
+
     final breed = parsed['breed']!;
     final nameVi = parsed['nameVi']!;
     Map<String, dynamic>? animal;

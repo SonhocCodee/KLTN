@@ -185,45 +185,11 @@ class _ExtendedAnimalImageState extends State<ExtendedAnimalImage> {
             child: Container(color: Colors.black.withOpacity(0.05)),
           ),
 
-        // Badge trạng thái (ẩn nếu dùng cache)
-        if (_usedService != null && _usedService != 'supabase_cache')
-          Positioned(
-            top: 60,
-            right: 16,
-            child: _buildBadge(),
-          ),
       ],
     );
   }
 
-  Widget _buildBadge() {
-    final (color, icon, label) = switch (_usedService) {
-      'clipdrop'      => (Colors.blue.shade700, Icons.crop_free, 'ClipDrop AI'),
-      'local_base64'  => (Colors.purple.shade700, Icons.memory, 'Cache local'),
-      'original'      => (Colors.orange.shade700, Icons.info_outline, 'Ảnh gốc'),
-      _               => (Colors.grey.shade700, Icons.image, 'Unknown'),
-    };
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.85),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: Colors.white),
-          const SizedBox(width: 5),
-          Text(label,
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600)),
-        ],
-      ),
-    );
-  }
 
   Widget _buildLoading() {
     return Container(

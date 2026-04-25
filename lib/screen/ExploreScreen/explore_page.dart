@@ -46,6 +46,7 @@ class _ExplorePageState extends State<ExplorePage> {
         return Scaffold(
           backgroundColor: colorScheme.surface, // Dùng surface thay vì xám cứng
           body: SafeArea(
+            bottom: false,
             child: CustomScrollView(
               physics: const BouncingScrollPhysics(),
               slivers: [
@@ -73,7 +74,7 @@ class _ExplorePageState extends State<ExplorePage> {
                   child: ExploreSectionLabel(text: 'Thống kê của bạn'),
                 ),
                 SliverToBoxAdapter(child: ExploreStats(service: service)),
-                const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                const SliverToBoxAdapter(child: SizedBox(height: 100)),
               ],
             ),
           ),
@@ -105,6 +106,9 @@ class _ExplorePageState extends State<ExplorePage> {
           child: const QuizPage(),
         ),
       ),
+
     );
+
   }
+
 }

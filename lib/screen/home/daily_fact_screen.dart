@@ -598,13 +598,7 @@ Ví dụ: {"description": "...", "fun_fact": "..."}''';
     }
 
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        mini: true,
-        onPressed: _forceRefresh,
-        backgroundColor: Colors.white.withOpacity(0.2),
-        elevation: 0,
-        child: const Icon(Icons.refresh, color: Colors.white, size: 20),
-      ),
+
       floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
       body: Stack(
         children: [

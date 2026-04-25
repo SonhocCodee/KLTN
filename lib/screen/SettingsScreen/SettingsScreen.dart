@@ -4,9 +4,11 @@ import 'package:provider/provider.dart';
 
 // ── THÊM 2 IMPORT NÀY ĐỂ XỬ LÝ ĐĂNG XUẤT ──
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:kltn_app/screen/welcome/welcome_screen.dart'; // Thay bằng AuthScreen nếu bạn muốn nhảy thẳng vào form login
+import 'package:kltn_app/screen/welcome/welcome_screen.dart';
+
 
 import '../language/Locale_provider.dart';
+import '../update/update_screen.dart';
 import 'widgets/settings_animated_header.dart';
 import 'widgets/settings_appearance_options.dart';
 import 'widgets/settings_content_options.dart';
@@ -150,6 +152,34 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
 
           const SizedBox(height: 32),
 
+          // ── NÚT KIỂM TRA CẬP NHẬT ──
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            child: OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: colorScheme.primary,
+                side: BorderSide(color: colorScheme.primary),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              icon: const Icon(Icons.system_update_alt_rounded),
+              label: Text(
+                t.tr('Kiểm tra cập nhật'),
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const UpdateScreen()),
+                );
+              },
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
           // ── NÚT ĐĂNG XUẤT ──
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -191,7 +221,7 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
               ),
             ),
           ),
-          const SizedBox(height: 80),
+          const SizedBox(height: 100),
         ],
       ),
     );
