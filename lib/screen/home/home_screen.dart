@@ -5,12 +5,14 @@ import 'package:kltn_app/screen/home/widgets/home_quick_access.dart';
 import 'package:kltn_app/screen/home/widgets/home_search_box.dart';
 import 'package:kltn_app/screen/home/widgets/home_top_bar.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:shorebird_code_push/shorebird_code_push.dart'; // Import package Shorebird
+import 'package:shorebird_code_push/shorebird_code_push.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // --- Import các file Service và Model ---
 import '../../services/animal_home_service.dart';
 import '../Animal_detail/Animal detail screen.dart';
 import '../profile/Profile page.dart';
+import '../update/update_screen.dart';
 import 'animal_category_model.dart';
 import 'models/animal_suggestion.dart';
 
@@ -67,9 +69,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final AnimalHomeService _service = AnimalHomeService();
   final AnimalSearchService _searchService = AnimalSearchService();
 
-  // Khởi tạo đối tượng Shorebird Code Push (API v2.0+)
-  final _updater = ShorebirdUpdater();
-
   List<AnimalCategoryData> _categoryData = [];
   bool _isLoading = true;
   bool _sortAZ = false; // false = mặc định, true = A-Z
@@ -108,82 +107,113 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  // --- Logic Cập nhật OTA Shorebird (API v2.0+) ---
-  // --- Logic Cập nhật OTA Shorebird (API v2.0+) ---
+  // --- Logic Cập nhật OTA ---
+  // Shorebird tự apply patch khi khởi động → chỉ cần detect xem patch number có tăng không
   Future<void> _checkForUpdate() async {
     try {
-      debugPrint('🔄 [Shorebird] Bắt đầu kiểm tra bản cập nhật...');
+      final updater = ShorebirdUpdater();
+      final prefs = await SharedPreferences.getInstance();
 
-      // Hàm checkForUpdate trả về trạng thái UpdateStatus
-      final status = await _updater.checkForUpdate();
+      // Lấy patch number hiện tại đang chạy
+      final currentPatch = await updater.readCurrentPatch();
+      final currentPatchNumber = currentPatch?.number ?? 0;
 
-      debugPrint('📊 [Shorebird] Trạng thái trả về: ${status.name}');
+      // Lấy patch number lần cuối đã hiện thông báo
+      final lastSeenPatch = prefs.getInt('last_seen_patch') ?? 0;
 
-      if (status == UpdateStatus.upToDate) {
-        debugPrint('✅ [Shorebird] App đang chạy bản mới nhất, không có Patch mới.');
+      if (currentPatchNumber > lastSeenPatch && currentPatchNumber > 0) {
+        // Patch mới vừa được apply tự động → hiện dialog "Đã cập nhật"
+        await prefs.setInt('last_seen_patch', currentPatchNumber);
+        if (mounted) _showJustUpdatedDialog();
       }
-      else if (status == UpdateStatus.outdated && mounted) {
-        debugPrint('⚠️ [Shorebird] Phát hiện bản vá mới (Outdated)! Hiển thị Popup...');
+      // Không có gì mới → im lặng, không làm phiền
+    } catch (e) {
+      debugPrint('❌ [Update] $e');
+    }
+  }
 
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (ctx) => AlertDialog(
-            title: const Text('Có bản cập nhật mới! 🎉'),
-            content: const Text('Ứng dụng vừa có phiên bản giao diện mới mượt mà hơn. Bạn có muốn tải về và áp dụng ngay không?'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  debugPrint('⏭️ [Shorebird] Người dùng chọn Bỏ qua cập nhật.');
-                  Navigator.pop(ctx);
-                },
-                child: const Text('Để sau'),
+  void _showJustUpdatedDialog() {
+    final latest = kChangelog.first;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Header ──
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withOpacity(0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.check_circle_rounded,
+                        color: Colors.green, size: 26),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Đã cập nhật thành công! ✨',
+                            style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                                color: colorScheme.onSurface)),
+                        Text('Phiên bản ${latest.version} • ${latest.date}',
+                            style: TextStyle(
+                                fontSize: 12,
+                                color: colorScheme.onSurfaceVariant)),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              FilledButton(
-                onPressed: () async {
-                  debugPrint('⬇️ [Shorebird] Người dùng đồng ý tải. Đang tiến hành tải Patch...');
-                  Navigator.pop(ctx);
 
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Đang tải bản cập nhật...'),
-                        duration: Duration(seconds: 3),
-                      ),
-                    );
-                  }
+              const SizedBox(height: 16),
+              Divider(color: colorScheme.outlineVariant),
+              const SizedBox(height: 10),
 
-                  // Gọi lệnh tải Patch về máy (API v2.0)
-                  await _updater.update();
+              Text('Có gì mới?',
+                  style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: colorScheme.primary)),
+              const SizedBox(height: 10),
 
-                  debugPrint('🚀 [Shorebird] Tải Patch thành công! Yêu cầu Restart app.');
+              // ── Danh sách thay đổi ──
+              ...latest.items.map((item) => _ChangelogItemInline(item: item)),
 
-                  if (mounted) {
-                    showDialog(
-                      context: context,
-                      barrierDismissible: false,
-                      builder: (innerCtx) => AlertDialog(
-                        title: const Text('Tải hoàn tất! ✅'),
-                        content: const Text('Vui lòng thoát hẳn (kill app) và mở lại ứng dụng để trải nghiệm phiên bản mới nhé.'),
-                        actions: [
-                          FilledButton(
-                            onPressed: () => Navigator.pop(innerCtx),
-                            child: const Text('Đã hiểu'),
-                          )
-                        ],
-                      ),
-                    );
-                  }
-                },
-                child: const Text('Cập nhật ngay'),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text('Tuyệt vời! 🎉',
+                      style: TextStyle(
+                          fontSize: 15, fontWeight: FontWeight.w600)),
+                ),
               ),
             ],
           ),
-        );
-      }
-    } catch (e) {
-      debugPrint('❌ [Shorebird] Lỗi Crash khi kiểm tra cập nhật: $e');
-    }
+        ),
+      ),
+    );
   }
 
   Future<void> _loadData() async {
@@ -480,6 +510,59 @@ class _FilterChip extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// HELPER: 1 dòng changelog dùng trong dialog home
+// ═══════════════════════════════════════════════════════
+class _ChangelogItemInline extends StatelessWidget {
+  final ChangelogItem item;
+  const _ChangelogItemInline({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    Color color;
+    IconData icon;
+    String tag;
+    switch (item.type) {
+      case ChangelogType.newFeature:
+        color = Colors.green; icon = Icons.add_circle_rounded; tag = 'Mới'; break;
+      case ChangelogType.fix:
+        color = Colors.red; icon = Icons.bug_report_rounded; tag = 'Fix'; break;
+      case ChangelogType.improve:
+        color = Colors.blue; icon = Icons.trending_up_rounded; tag = 'Cải thiện'; break;
+      case ChangelogType.remove:
+        color = Colors.grey; icon = Icons.remove_circle_rounded; tag = 'Xóa'; break;
+    }
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: color, size: 15),
+          const SizedBox(width: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(tag,
+                style: TextStyle(
+                    fontSize: 10, fontWeight: FontWeight.w700, color: color)),
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(item.text,
+                style: TextStyle(
+                    fontSize: 13,
+                    color: Theme.of(context).colorScheme.onSurface,
+                    height: 1.4)),
+          ),
+        ],
       ),
     );
   }

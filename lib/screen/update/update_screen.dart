@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -78,27 +79,23 @@ class _UpdateScreenState extends State<UpdateScreen> {
   String _errorMsg = '';
 
   Future<void> _checkAndUpdate() async {
-    setState(() {
-      _status = 'checking';
-      _errorMsg = '';
-    });
+    setState(() { _status = 'checking'; _errorMsg = ''; });
 
     try {
-      final updateStatus = await _updater.checkForUpdate();
+      final updateStatus = await _updater.checkForUpdate().timeout(
+        const Duration(seconds: 10),
+        onTimeout: () => UpdateStatus.upToDate,
+      );
 
-      if (updateStatus == UpdateStatus.upToDate) {
-        setState(() => _status = 'upToDate');
-        return;
-      }
-
+      if (!mounted) return;
       if (updateStatus == UpdateStatus.outdated) {
         setState(() => _status = 'available');
+      } else {
+        // upToDate, unavailable, hoặc timeout → đều là "mới nhất"
+        setState(() => _status = 'upToDate');
       }
     } catch (e) {
-      setState(() {
-        _status = 'error';
-        _errorMsg = e.toString();
-      });
+      if (mounted) setState(() { _status = 'upToDate'; }); // lỗi mạng → coi như mới nhất
     }
   }
 
@@ -106,19 +103,16 @@ class _UpdateScreenState extends State<UpdateScreen> {
     setState(() => _status = 'downloading');
     try {
       await _updater.update();
-      setState(() => _status = 'done');
+      if (mounted) setState(() => _status = 'done');
     } catch (e) {
-      setState(() {
+      if (mounted) setState(() {
         _status = 'error';
-        _errorMsg = e.toString();
+        _errorMsg = 'Tải thất bại. Vui lòng thử lại sau.';
       });
     }
   }
 
-  void _reset() => setState(() {
-    _status = 'idle';
-    _errorMsg = '';
-  });
+  void _reset() => setState(() { _status = 'idle'; _errorMsg = ''; });
 
   // ── BUILD ────────────────────────────────────────────────
   @override
@@ -300,7 +294,7 @@ class _UpdateStatusBanner extends StatelessWidget {
           ),
         );
 
-    // ── Tải xong ──
+    // ── Tải xong → nút khởi động lại ──
       case 'done':
         return _BannerCard(
           key: const ValueKey('done'),
@@ -308,30 +302,12 @@ class _UpdateStatusBanner extends StatelessWidget {
           iconColor: Colors.green,
           bgColor: Colors.green.withOpacity(0.1),
           title: 'Tải hoàn tất! ✅',
-          subtitle:
-          'Vui lòng thoát hẳn (kill app) và mở lại để áp dụng bản mới',
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.green.withOpacity(0.3)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.info_outline, color: Colors.green, size: 18),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Khởi động lại ứng dụng để hoàn tất cập nhật',
-                    style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.green.shade700,
-                        fontWeight: FontWeight.w500),
-                  ),
-                ),
-              ],
-            ),
+          subtitle: 'Khởi động lại ứng dụng để áp dụng bản mới',
+          child: _ActionButton(
+            label: 'Khởi động lại ngay',
+            icon: Icons.restart_alt_rounded,
+            color: Colors.green,
+            onTap: () => exit(0),
           ),
         );
 
