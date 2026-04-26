@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
-import '../identify_service.dart';
+import 'package:provider/provider.dart';
+
+import '../dentify_history_screen.dart';
+import '../service/Identify_service.dart';
+
 
 class IdentifyHeader extends StatelessWidget {
   final IdentifyService service;
@@ -42,32 +46,58 @@ class IdentifyHeader extends StatelessWidget {
               ],
             ),
           ),
-          if (service.aiSource.isNotEmpty) _buildAiBadge(service.aiSource, colorScheme),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAiBadge(String aiSource, ColorScheme colorScheme) {
-    final isGemini = aiSource == 'gemini';
-    final isGroq = aiSource == 'groq';
-    final Color color = isGemini ? const Color(0xFF4285F4) : isGroq ? const Color(0xFF7C3AED) : colorScheme.primary;
-    final String label = isGemini ? 'Gemini AI' : isGroq ? 'Groq AI' : aiSource == 'local_fallback' ? 'Local AI*' : 'Local AI';
-    final IconData icon = isGemini ? Icons.auto_awesome : isGroq ? Icons.bolt : Icons.memory;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3), width: 1.5),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: color),
-          const SizedBox(width: 6),
-          Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: color)),
+          // ── Nút lịch sử ──────────────────────────────────────────────
+          GestureDetector(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ChangeNotifierProvider.value(
+                  value: service,
+                  child: const IdentifyHistoryScreen(),
+                ),
+              ),
+            ),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: _accentOrange.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: _accentOrange.withOpacity(0.3), width: 1.5),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      const Icon(Icons.history_rounded, size: 20, color: _accentOrange),
+                      // Badge số lượng lịch sử
+                      if (service.historyItems.isNotEmpty)
+                        Positioned(
+                          top: -4,
+                          right: -6,
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
+                            decoration: const BoxDecoration(color: _accentOrange, shape: BoxShape.circle),
+                            child: Text(
+                              service.historyItems.length > 99 ? '99+' : '${service.historyItems.length}',
+                              style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(width: 6),
+                  const Text(
+                    'Lịch sử',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _accentOrange),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );

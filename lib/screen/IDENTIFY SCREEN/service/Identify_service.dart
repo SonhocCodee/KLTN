@@ -7,6 +7,42 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+// ── Model lịch sử tìm kiếm ────────────────────────────────────────────────
+class SearchHistoryItem {
+  final int id;
+  final DateTime createdAt;
+  final String nameVi;
+  final String nameEn;
+  final String? confidence;
+  final String? aiSource;
+  final String? animalId;
+  final String? animalImageUrl;
+
+  const SearchHistoryItem({
+    required this.id,
+    required this.createdAt,
+    required this.nameVi,
+    required this.nameEn,
+    this.confidence,
+    this.aiSource,
+    this.animalId,
+    this.animalImageUrl,
+  });
+
+  factory SearchHistoryItem.fromJson(Map<String, dynamic> json) {
+    return SearchHistoryItem(
+      id: (json['id'] as num).toInt(),
+      createdAt: DateTime.parse(json['created_at'] as String).toLocal(),
+      nameVi: json['name_vi'] as String? ?? '',
+      nameEn: json['name_en'] as String? ?? '',
+      confidence: json['confidence'] as String?,
+      aiSource: json['ai_source'] as String?,
+      animalId: json['animal_id'] as String?,
+      animalImageUrl: json['animal_image_url'] as String?,
+    );
+  }
+}
+
 class IdentifyService extends ChangeNotifier {
   // ── API Keys & Endpoints (Giữ nguyên 100%) ────────────────────────────────
   static const _geminiApiKey = 'AIzaSyCWcewCDAfJZASHrb5RyjTjEz2c901Wb_U';
@@ -43,6 +79,13 @@ class IdentifyService extends ChangeNotifier {
   String? resultConfidence;
   String? resultAnimalId;
   String? resultImageUrl;
+
+  // Trạng thái ảnh không hợp lệ (không phải động vật)
+  bool isNotAnimal = false;
+
+  // ── Lịch sử tìm kiếm ─────────────────────────────────────────────────────
+  List<SearchHistoryItem> historyItems = [];
+  bool isLoadingHistory = false;
 
   Interpreter? _interpreter;
   List<String> _labels = [];
@@ -95,11 +138,12 @@ class IdentifyService extends ChangeNotifier {
     resultAnimalId = null;
     resultImageUrl = null;
     aiSource = '';
+    isNotAnimal = false;
     notifyListeners();
   }
 
   // ── Search Flow ───────────────────────────────────────────────────────────
-  Future<void> startSearching(VoidCallback onSuccess) async {
+  Future<void> startSearching(VoidCallback onDone) async {
     if (selectedImage == null || isAnalyzing) return;
     final File snap = selectedImage!;
 
@@ -108,20 +152,20 @@ class IdentifyService extends ChangeNotifier {
 
     final online = await _hasNetwork();
     if (!online) {
-      await _identifyWithLocalModel(imageFile: snap, onSuccess: onSuccess);
+      await _identifyWithLocalModel(imageFile: snap, onDone: onDone);
       return;
     }
 
     debugPrint('🔄 Bước 1: Thử Gemini...');
-    final geminiOk = await _identifyWithGemini(snap, onSuccess);
-    if (geminiOk) { debugPrint('✅ Kết thúc xử lý Gemini'); return; }
+    final geminiResult = await _identifyWithGemini(snap, onDone);
+    if (geminiResult) { debugPrint('✅ Kết thúc xử lý Gemini'); return; }
 
     debugPrint('🔄 Bước 2: Thử Groq Llama...');
-    final groqOk = await _identifyWithGroq(snap, onSuccess);
-    if (groqOk) { debugPrint('✅ Kết thúc xử lý Groq'); return; }
+    final groqResult = await _identifyWithGroq(snap, onDone);
+    if (groqResult) { debugPrint('✅ Kết thúc xử lý Groq'); return; }
 
-    debugPrint('🔄 Bước 3: Dùng Local model');
-    await _identifyWithLocalModel(imageFile: snap, fallback: true, onSuccess: onSuccess);
+    debugPrint('🔄 Bước 3: Dùng Local model (API lỗi mạng)');
+    await _identifyWithLocalModel(imageFile: snap, fallback: true, onDone: onDone);
   }
 
   Future<bool> _hasNetwork() async {
@@ -178,7 +222,7 @@ class IdentifyService extends ChangeNotifier {
   }
 
   // ── AI Identifications ────────────────────────────────────────────────────
-  Future<bool> _identifyWithGemini(File f, VoidCallback onSuccess) async {
+  Future<bool> _identifyWithGemini(File f, VoidCallback onDone) async {
     try {
       final jpeg = await _prepareImage(f);
       final body = jsonEncode({
@@ -199,13 +243,13 @@ class IdentifyService extends ChangeNotifier {
       final result = _parseResponse(text);
       if (result == null) return false;
 
-      return await _fetchAndSetResult(result, 'gemini', onSuccess);
+      return await _fetchAndSetResult(result, 'gemini', onDone);
     } catch (e) {
       return false;
     }
   }
 
-  Future<bool> _identifyWithGroq(File f, VoidCallback onSuccess) async {
+  Future<bool> _identifyWithGroq(File f, VoidCallback onDone) async {
     try {
       final jpeg = await _prepareImage(f);
       final body = jsonEncode({
@@ -228,13 +272,13 @@ class IdentifyService extends ChangeNotifier {
       final result = _parseResponse(text);
       if (result == null) return false;
 
-      return await _fetchAndSetResult(result, 'groq', onSuccess);
+      return await _fetchAndSetResult(result, 'groq', onDone);
     } catch (e) {
       return false;
     }
   }
 
-  Future<void> _identifyWithLocalModel({required File imageFile, bool fallback = false, required VoidCallback onSuccess}) async {
+  Future<void> _identifyWithLocalModel({required File imageFile, bool fallback = false, required VoidCallback onDone}) async {
     if (_interpreter == null) {
       isAnalyzing = false;
       notifyListeners();
@@ -255,11 +299,22 @@ class IdentifyService extends ChangeNotifier {
       _interpreter!.run(input, output);
 
       final scores = List<double>.from(output[0]);
-      final maxIdx = scores.indexOf(scores.reduce((a, b) => a > b ? a : b));
-      final confidence = (scores[maxIdx] * 100).toStringAsFixed(1);
+      final maxScore = scores.reduce((a, b) => a > b ? a : b);
+
+      // Ngưỡng tối thiểu 40%: dưới mức này coi như ảnh không hợp lệ
+      if (maxScore < 0.40) {
+        debugPrint('⚠️ Local model confidence quá thấp (${(maxScore*100).toStringAsFixed(1)}%) → NOT_ANIMAL');
+        isNotAnimal = true;
+        isAnalyzing = false;
+        notifyListeners();
+        return;
+      }
+
+      final maxIdx = scores.indexOf(maxScore);
+      final confidence = (maxScore * 100).toStringAsFixed(1);
       final breed = _labels[maxIdx];
 
-      await _fetchAndSetResult({'breed': breed, 'nameVi': breed, 'confidence': confidence, 'status': 'OK'}, fallback ? 'local_fallback' : 'local', onSuccess);
+      await _fetchAndSetResult({'breed': breed, 'nameVi': breed, 'confidence': confidence, 'status': 'OK'}, fallback ? 'local_fallback' : 'local', onDone);
     } catch (e) {
       isAnalyzing = false;
       notifyListeners();
@@ -282,12 +337,14 @@ class IdentifyService extends ChangeNotifier {
     ],
   };
 
-  Future<bool> _fetchAndSetResult(Map<String, String> parsed, String source, VoidCallback onSuccess) async {
-    // Nếu AI báo không phải động vật, dừng ngay lập tức và trả về true để startSearching không fallback tiếp
+  Future<bool> _fetchAndSetResult(Map<String, String> parsed, String source, VoidCallback onDone) async {
     if (parsed['status'] == 'NOT_ANIMAL') {
+      // Ảnh không chứa động vật → báo không hợp lệ, KHÔNG fallback tiếp
+      isNotAnimal = true;
       isAnalyzing = false;
       notifyListeners();
-      return true;
+      onDone(); // trigger animation hiển thị card "Ảnh không hợp lệ"
+      return true; // trả true để startSearching dừng ngay
     }
 
     final breed = parsed['breed']!;
@@ -320,7 +377,16 @@ class IdentifyService extends ChangeNotifier {
       aiSource = source;
       isAnalyzing = false;
       notifyListeners();
-      onSuccess();
+      onDone();
+      // Lưu lịch sử sau khi set result
+      _saveHistory(
+        nameVi: resultNameVi!,
+        nameEn: resultNameEn!,
+        confidence: resultConfidence,
+        aiSource: aiSource,
+        animalId: resultAnimalId,
+        animalImageUrl: resultImageUrl,
+      );
       return true;
     }
 
@@ -328,10 +394,19 @@ class IdentifyService extends ChangeNotifier {
     resultNameEn = breed;
     resultConfidence = parsed['confidence'];
     resultAnimalId = null;
+    resultImageUrl = null;
     aiSource = source;
     isAnalyzing = false;
     notifyListeners();
-    onSuccess();
+    onDone();
+    _saveHistory(
+      nameVi: nameVi,
+      nameEn: breed,
+      confidence: parsed['confidence'],
+      aiSource: source,
+      animalId: null,
+      animalImageUrl: null,
+    );
     return true;
   }
 
@@ -375,5 +450,118 @@ class IdentifyService extends ChangeNotifier {
       }
     } catch (_) {}
     return null;
+  }
+
+  // ── Lịch sử tìm kiếm ─────────────────────────────────────────────────────
+
+  /// Lưu một kết quả vào bảng search_history trên Supabase
+  Future<void> _saveHistory({
+    required String nameVi,
+    required String nameEn,
+    String? confidence,
+    String? aiSource,
+    String? animalId,
+    String? animalImageUrl,
+  }) async {
+    try {
+      final url = '$_supabaseUrl/rest/v1/search_history';
+      final body = jsonEncode({
+        'name_vi': nameVi,
+        'name_en': nameEn,
+        'confidence': confidence,
+        'ai_source': aiSource,
+        'animal_id': animalId,
+        'animal_image_url': animalImageUrl,
+      });
+      final res = await http.post(
+        Uri.parse(url),
+        headers: {
+          'apikey': _supabaseKey,
+          'Authorization': 'Bearer $_supabaseKey',
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation',
+        },
+        body: body,
+      ).timeout(const Duration(seconds: 8));
+
+      if (res.statusCode == 201) {
+        // Thêm vào đầu danh sách local luôn (không cần fetch lại)
+        final inserted = jsonDecode(res.body) as List;
+        if (inserted.isNotEmpty) {
+          historyItems.insert(0, SearchHistoryItem.fromJson(inserted[0] as Map<String, dynamic>));
+          notifyListeners();
+        }
+        debugPrint('✅ Đã lưu lịch sử');
+      } else {
+        debugPrint('❌ Lưu lịch sử thất bại: ${res.statusCode} ${res.body}');
+      }
+    } catch (e) {
+      debugPrint('❌ _saveHistory: $e');
+    }
+  }
+
+  /// Load toàn bộ lịch sử từ Supabase (gọi khi mở màn hình lịch sử)
+  Future<void> loadHistory() async {
+    if (isLoadingHistory) return;
+    isLoadingHistory = true;
+    notifyListeners();
+
+    try {
+      final url = '$_supabaseUrl/rest/v1/search_history?select=*&order=created_at.desc&limit=100';
+      final res = await http.get(
+        Uri.parse(url),
+        headers: {'apikey': _supabaseKey, 'Authorization': 'Bearer $_supabaseKey'},
+      ).timeout(const Duration(seconds: 10));
+
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body) as List;
+        historyItems = data.map((e) => SearchHistoryItem.fromJson(e as Map<String, dynamic>)).toList();
+        debugPrint('✅ Load ${historyItems.length} lịch sử');
+      }
+    } catch (e) {
+      debugPrint('❌ loadHistory: $e');
+    } finally {
+      isLoadingHistory = false;
+      notifyListeners();
+    }
+  }
+
+  /// Xoá một item lịch sử theo id
+  Future<void> deleteHistoryItem(int id) async {
+    try {
+      final url = '$_supabaseUrl/rest/v1/search_history?id=eq.$id';
+      final res = await http.delete(
+        Uri.parse(url),
+        headers: {'apikey': _supabaseKey, 'Authorization': 'Bearer $_supabaseKey'},
+      ).timeout(const Duration(seconds: 8));
+
+      if (res.statusCode == 204 || res.statusCode == 200) {
+        historyItems.removeWhere((e) => e.id == id);
+        notifyListeners();
+        debugPrint('✅ Đã xoá lịch sử id=$id');
+      }
+    } catch (e) {
+      debugPrint('❌ deleteHistoryItem: $e');
+    }
+  }
+
+  /// Xoá toàn bộ lịch sử
+  Future<void> clearAllHistory() async {
+    try {
+      // Supabase yêu cầu filter khi DELETE, dùng gte để xoá tất cả
+      final url = '$_supabaseUrl/rest/v1/search_history?id=gte.0';
+      final res = await http.delete(
+        Uri.parse(url),
+        headers: {'apikey': _supabaseKey, 'Authorization': 'Bearer $_supabaseKey'},
+      ).timeout(const Duration(seconds: 10));
+
+      if (res.statusCode == 204 || res.statusCode == 200) {
+        historyItems.clear();
+        notifyListeners();
+        debugPrint('✅ Đã xoá toàn bộ lịch sử');
+      }
+    } catch (e) {
+      debugPrint('❌ clearAllHistory: $e');
+    }
   }
 }

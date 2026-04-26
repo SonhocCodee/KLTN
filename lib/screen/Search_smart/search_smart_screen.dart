@@ -21,6 +21,11 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
   bool _isLoading = false;
   bool _showResults = false;
 
+  // ── Search & Sort trên màn hình chọn loài ──
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  bool _sortAZ = false;
+
   final Map<String, dynamic> _filters = {};
   List<Map<String, dynamic>> _results = [];
   final List<int> _askedQuestionIndices = [];
@@ -40,7 +45,17 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
       _askedQuestionIndices.clear();
       _isLoading = false;
       _showResults = false;
+      // reset search/sort khi quay về màn hình chọn loài
+      _searchQuery = '';
+      _searchController.clear();
+      _sortAZ = false;
     });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _selectAnimalType(AnimalTypeConfig config) async {
@@ -360,39 +375,154 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
     return _buildQuestion(colorScheme);
   }
 
+  // ── Getter: lọc + sắp xếp danh sách loài ──
+  List<AnimalTypeConfig> get _displayedAnimalTypes {
+    var list = allAnimalTypes.where((c) {
+      if (_searchQuery.isEmpty) return true;
+      final q = _searchQuery.toLowerCase();
+      return c.nameVi.toLowerCase().contains(q) ||
+          c.nameEn.toLowerCase().contains(q);
+    }).toList();
+
+    if (_sortAZ) {
+      list = List.from(list)
+        ..sort((a, b) => a.nameVi.compareTo(b.nameVi));
+    }
+    return list;
+  }
+
   // 1. Chọn Loài
   Widget _buildTypeSelection(ColorScheme colorScheme) {
+    final displayed = _displayedAnimalTypes;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // ── Tiêu đề ──
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 4),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'Tìm động vật',
-                style: TextStyle(fontSize: 34, fontWeight: FontWeight.w700, color: colorScheme.onSurface, letterSpacing: -0.5),
+                style: TextStyle(
+                    fontSize: 34,
+                    fontWeight: FontWeight.w700,
+                    color: colorScheme.onSurface,
+                    letterSpacing: -0.5),
               ).animate().fadeIn(duration: 350.ms),
               const SizedBox(height: 4),
               Text(
                 'Chọn loài bạn muốn khám phá',
-                style: TextStyle(fontSize: 16, color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.w400),
+                style: TextStyle(
+                    fontSize: 16,
+                    color: colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w400),
               ).animate().fadeIn(delay: 100.ms),
             ],
           ),
         ),
-        const SizedBox(height: 16),
+
+        // ── Search bar ──
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: TextField(
+              controller: _searchController,
+              onChanged: (v) => setState(() => _searchQuery = v),
+              style: TextStyle(fontSize: 16, color: colorScheme.onSurface),
+              decoration: InputDecoration(
+                hintText: 'Tìm loài... (chó, mèo, hổ...)',
+                hintStyle:
+                TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 15),
+                prefixIcon: Icon(CupertinoIcons.search,
+                    color: colorScheme.onSurfaceVariant, size: 20),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? GestureDetector(
+                  onTap: () =>
+                      setState(() { _searchQuery = ''; _searchController.clear(); }),
+                  child: Icon(CupertinoIcons.xmark_circle_fill,
+                      color: colorScheme.onSurfaceVariant, size: 18),
+                )
+                    : null,
+                border: InputBorder.none,
+                contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              ),
+            ),
+          ),
+        ).animate().fadeIn(delay: 150.ms),
+
+        const SizedBox(height: 10),
+
+        // ── Sort chips ──
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              Text(
+                displayed.isEmpty
+                    ? 'Không tìm thấy loài nào'
+                    : '${displayed.length} loài',
+                style: TextStyle(
+                    fontSize: 13, color: colorScheme.onSurfaceVariant),
+              ),
+              const Spacer(),
+              _SortChip(
+                label: 'Mặc định',
+                selected: !_sortAZ,
+                onTap: () => setState(() => _sortAZ = false),
+              ),
+              const SizedBox(width: 8),
+              _SortChip(
+                label: 'A - Z',
+                icon: CupertinoIcons.sort_down,
+                selected: _sortAZ,
+                onTap: () => setState(() => _sortAZ = true),
+              ),
+            ],
+          ),
+        ).animate().fadeIn(delay: 200.ms),
+
+        const SizedBox(height: 10),
+
+        // ── Grid loài ──
         Expanded(
-          child: GridView.builder(
-            // CHỦ CHỐT: Padding đáy lớn để nội dung không bị che
+          child: displayed.isEmpty
+              ? Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('🔍', style: TextStyle(fontSize: 48)),
+                const SizedBox(height: 12),
+                Text('Không tìm thấy loài nào',
+                    style: TextStyle(
+                        fontSize: 17,
+                        color: colorScheme.onSurfaceVariant)),
+              ],
+            ),
+          )
+              : GridView.builder(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
             physics: const BouncingScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 1.05,
+            gridDelegate:
+            const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 1.05,
             ),
-            itemCount: allAnimalTypes.length,
-            itemBuilder: (context, i) => SmartTypeCard(config: allAnimalTypes[i], index: i, onTap: () => _selectAnimalType(allAnimalTypes[i])),
+            itemCount: displayed.length,
+            itemBuilder: (context, i) => SmartTypeCard(
+              config: displayed[i],
+              index: i,
+              onTap: () => _selectAnimalType(displayed[i]),
+            ),
           ),
         ),
       ],
@@ -561,6 +691,60 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
           ),
         ),
       ],
+    );
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// WIDGET: Sort chip
+// ════════════════════════════════════════════════════════════
+class _SortChip extends StatelessWidget {
+  final String label;
+  final IconData? icon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _SortChip({
+    required this.label,
+    this.icon,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: selected ? colorScheme.primary : colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: selected ? colorScheme.primary : colorScheme.outlineVariant,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(icon, size: 13,
+                  color: selected ? colorScheme.onPrimary : colorScheme.onSurfaceVariant),
+              const SizedBox(width: 4),
+            ],
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: selected ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

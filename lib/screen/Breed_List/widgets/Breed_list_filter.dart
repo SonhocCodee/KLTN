@@ -8,26 +8,26 @@ enum SortField { nameAZ, nameZA, weightAsc, weightDesc, lifespanAsc, lifespanDes
 
 class AnimalFilterState {
   final SortField sortField;
-  final String? sizeCategory;   // tiny/small/medium/large/very_large/gigantic
-  final String? dietType;        // carnivore/herbivore/omnivore/...
-  final String? conservationStatus; // LC/NT/VU/EN/CR/EW/EX
+  final String? relativeSize;      // tiny/small/medium/large/very_large/gigantic
+  final String? dietType;          // carnivore/herbivore/omnivore/...
+  final String? conservationStatus; // Least Concern / Vulnerable / Endangered / ...
 
   const AnimalFilterState({
     this.sortField = SortField.nameAZ,
-    this.sizeCategory,
+    this.relativeSize,
     this.dietType,
     this.conservationStatus,
   });
 
   AnimalFilterState copyWith({
     SortField? sortField,
-    Object? sizeCategory = _sentinel,
+    Object? relativeSize = _sentinel,
     Object? dietType = _sentinel,
     Object? conservationStatus = _sentinel,
   }) {
     return AnimalFilterState(
       sortField: sortField ?? this.sortField,
-      sizeCategory: sizeCategory == _sentinel ? this.sizeCategory : sizeCategory as String?,
+      relativeSize: relativeSize == _sentinel ? this.relativeSize : relativeSize as String?,
       dietType: dietType == _sentinel ? this.dietType : dietType as String?,
       conservationStatus: conservationStatus == _sentinel
           ? this.conservationStatus
@@ -38,26 +38,32 @@ class AnimalFilterState {
   static const _sentinel = Object();
 
   bool get hasActiveFilters =>
-      sizeCategory != null || dietType != null || conservationStatus != null;
+      relativeSize != null || dietType != null || conservationStatus != null;
 
   int get activeFilterCount =>
-      [sizeCategory, dietType, conservationStatus].where((e) => e != null).length;
+      [relativeSize, dietType, conservationStatus].where((e) => e != null).length;
 
   /// Áp dụng sort + filter lên danh sách
   List<Map<String, dynamic>> apply(List<Map<String, dynamic>> animals) {
     var list = [...animals];
 
-    // Filter
-    if (sizeCategory != null) {
-      list = list.where((a) => a['size_category'] == sizeCategory).toList();
+    // Filter theo relative_size
+    if (relativeSize != null) {
+      list = list.where((a) => a['relative_size'] == relativeSize).toList();
     }
+    // Filter theo diet_type
     if (dietType != null) {
-      list = list.where((a) => a['diet_type'] == dietType).toList();
+      list = list.where((a) {
+        final v = (a['diet_type'] ?? '').toString().toLowerCase();
+        return v == dietType!.toLowerCase();
+      }).toList();
     }
+    // Filter theo conservation_status — so sánh không phân biệt hoa thường
     if (conservationStatus != null) {
-      list = list
-          .where((a) => a['conservation_status'] == conservationStatus)
-          .toList();
+      list = list.where((a) {
+        final v = (a['conservation_status'] ?? '').toString().toLowerCase();
+        return v.contains(conservationStatus!.toLowerCase());
+      }).toList();
     }
 
     // Sort
@@ -126,7 +132,7 @@ class BreedListFilterBar extends StatelessWidget {
 
 
 
-          // ── Conservation chip
+          // ── Conservation chip — dùng text khớp với DB
           _FilterChip2(
             label: 'Bảo tồn',
             icon: Icons.eco,
@@ -134,12 +140,9 @@ class BreedListFilterBar extends StatelessWidget {
             accent: _accent,
             colorScheme: colorScheme,
             options: const [
-              ('LC', '🟢 Ít lo ngại'),
-              ('NT', '🔵 Sắp bị đe dọa'),
-              ('VU', '🟡 Dễ bị tổn thương'),
-              ('EN', '🟠 Nguy cấp'),
-              ('CR', '🔴 Cực kỳ nguy cấp'),
-              ('EW', '⚫ Tuyệt chủng ngoài tự nhiên'),
+              ('Least Concern',              '🟢 Ít lo ngại'),
+              ('Vulnerable',                 '🔴 Cực kỳ nguy cấp'),
+              ('Extinct in the Wild',        '⚫ Tuyệt chủng ngoài TN'),
             ],
             onSelected: (v) =>
                 onChanged(filterState.copyWith(conservationStatus: v)),

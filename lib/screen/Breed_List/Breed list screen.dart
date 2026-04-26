@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kltn_app/screen/Breed_List/widgets/Breed_list_filter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/animal_home_service.dart';
 import '../Animal_detail/Animal detail screen.dart';
 import '../home/animal_category_model.dart';
@@ -41,14 +42,32 @@ class _BreedListScreenState extends State<BreedListScreen> {
   Future<void> _loadAnimals() async {
     setState(() => _isLoading = true);
     try {
-      final animals = await _service.getAnimalsByType(widget.category.id);
+      // Select đủ các cột cần cho filter + sort + hiển thị
+      final data = await Supabase.instance.client
+          .from('animals')
+          .select('''
+            id, name_vietnamese, name_english, scientific_name,
+            image_url, animal_type,
+            relative_size, diet_type, conservation_status,
+            weight_avg_kg, lifespan_avg_years,
+            is_endangered, domestication_status, temperament
+          ''')
+          .eq('animal_type', widget.category.id)
+          .order('name_vietnamese');
+
       setState(() {
-        _animals = animals;
+        _animals = List<Map<String, dynamic>>.from(data as List);
         _isLoading = false;
       });
     } catch (e) {
       debugPrint('❌ Error loading animals: $e');
-      setState(() => _isLoading = false);
+      // fallback về service cũ nếu lỗi
+      try {
+        final animals = await _service.getAnimalsByType(widget.category.id);
+        setState(() { _animals = animals; _isLoading = false; });
+      } catch (_) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 

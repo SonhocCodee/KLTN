@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../identify_service.dart';
+import '../service/Identify_service.dart';
 
 class IdentifyResultSection extends StatelessWidget {
   final IdentifyService service;
@@ -20,8 +20,52 @@ class IdentifyResultSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+
+    // ── Ảnh không hợp lệ ─────────────────────────────────────────────────
+    if (service.isNotAnimal) {
+      return FadeTransition(
+        opacity: fadeAnim,
+        child: SlideTransition(
+          position: slideAnim,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+            decoration: BoxDecoration(
+              color: Colors.redAccent.withOpacity(0.06),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: Colors.redAccent.withOpacity(0.35), width: 2),
+            ),
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: Colors.redAccent.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.hide_image_rounded, color: Colors.redAccent, size: 40),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Ảnh không hợp lệ',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.redAccent),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Không tìm thấy động vật trong ảnh này.\nHãy thử lại với ảnh chứa mèo, chó hoặc các loài động vật khác.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 14, color: colorScheme.onSurfaceVariant, height: 1.5),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    // ── Không có kết quả ─────────────────────────────────────────────────
     if (service.resultNameVi == null) return const SizedBox.shrink();
 
+    // ── Kết quả bình thường ───────────────────────────────────────────────
     final canNavigate = service.resultAnimalId != null;
 
     return FadeTransition(

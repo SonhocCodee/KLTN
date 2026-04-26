@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:kltn_app/screen/IDENTIFY%20SCREEN/service/Identify_service.dart';
 import 'package:provider/provider.dart';
 
-// Import file service và các widgets con
 import '../Animal_detail/Animal detail screen.dart';
-import 'identify_service.dart';
 import 'widgets/identify_header.dart';
 import 'widgets/identify_image_frame.dart';
 import 'widgets/identify_action_buttons.dart';
@@ -55,6 +54,11 @@ class _IdentifyViewState extends State<IdentifyView> with SingleTickerProviderSt
     super.dispose();
   }
 
+  /// Callback sau khi phân tích xong (cả thành công lẫn NOT_ANIMAL đều cần animate)
+  void _onSearchDone() {
+    _cardAnimCtrl.forward(from: 0);
+  }
+
   void _openDetail(String? resultAnimalId) {
     if (resultAnimalId == null) return;
     Navigator.push(
@@ -87,7 +91,6 @@ class _IdentifyViewState extends State<IdentifyView> with SingleTickerProviderSt
       body: Stack(
         children: [
           SafeArea(
-            // CHỦ CHỐT: bottom: false để tránh vệt trắng và cho phép màu nền tràn xuống đáy
             bottom: false,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -95,7 +98,6 @@ class _IdentifyViewState extends State<IdentifyView> with SingleTickerProviderSt
                 IdentifyHeader(service: service),
                 Expanded(
                   child: SingleChildScrollView(
-                    // CHỦ CHỐT: padding bottom 120 để nội dung kết quả luôn nằm trên Navbar
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
                     physics: const BouncingScrollPhysics(),
                     child: Column(
@@ -111,7 +113,8 @@ class _IdentifyViewState extends State<IdentifyView> with SingleTickerProviderSt
                         const SizedBox(height: 24),
                         IdentifyActionButtons(
                           service: service,
-                          onSearch: () => service.startSearching(() => _cardAnimCtrl.forward()),
+                          // Truyền _onSearchDone để animate cả khi NOT_ANIMAL
+                          onSearch: () => service.startSearching(_onSearchDone),
                         ),
                         const SizedBox(height: 24),
                         IdentifyResultSection(
