@@ -13,6 +13,9 @@ import 'widgets/settings_appearance_options.dart';
 import 'widgets/settings_content_options.dart';
 import 'widgets/settings_notification_options.dart';
 
+// ── IMPORT THÊM 2 THƯ VIỆN NÀY ──
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shorebird_code_push/shorebird_code_push.dart';
 
 class AnimalSettingsScreen extends StatefulWidget {
   const AnimalSettingsScreen({super.key});
@@ -27,6 +30,9 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
   String selectedUnit     = 'metric';
   bool   dailyAnimalNotif = true;
   bool   streakNotif      = true;
+
+  // ── BIẾN LƯU TRỮ PHIÊN BẢN ──
+  String _appVersionText  = 'Đang tải...';
 
   late AnimationController _animController;
   late Animation<double>   _scaleAnimation;
@@ -49,8 +55,60 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
       CurvedAnimation(parent: _animController, curve: Curves.easeInOut),
     );
 
-    // ── Load trạng thái thông báo từ SharedPreferences ──
     _loadNotifState();
+
+    // ── GỌI HÀM LẤY PHIÊN BẢN ──
+    _fetchAppVersion();
+  }
+
+  // ── HÀM LẤY VERSION TỪ NATIVE VÀ SHOREBIRD ──
+  // ── HÀM LẤY VERSION VÀ KIỂM TRA UPDATE SERVER ──
+  Future<void> _fetchAppVersion() async {
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      final baseVersion = '${packageInfo.version}+${packageInfo.buildNumber}';
+
+      final updater = ShorebirdUpdater();
+
+      // 1. Đọc số Patch ĐANG CHẠY trên máy
+      final currentPatch = await updater.readCurrentPatch();
+
+      // 2. Hỏi Server xem có bản Patch nào mới hơn chưa?
+      final status = await updater.checkForUpdate();
+
+      if (mounted) {
+        setState(() {
+          if (status == UpdateStatus.outdated) {
+            // Nếu Server có bản mới -> Hiện dòng báo update
+            _appVersionText = '$baseVersion (Có bản cập nhật mới! cạp nhật đi ! )';
+          } else if (currentPatch != null) {
+            // Đã cập nhật xong và đang chạy patch mới
+            _appVersionText = '$baseVersion (Patch ${currentPatch.number})';
+          } else {
+            // Chưa có patch nào
+            _appVersionText = baseVersion;
+          }
+        });
+      }
+
+      // 3. TỰ ĐỘNG TẢI BẢN VÁ (Nếu có)
+      if (status == UpdateStatus.outdated) {
+        await updater.update(); // Tải bản vá về máy
+
+        // (Tùy chọn) Báo người dùng khởi động lại app để áp dụng
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(context.read<LocaleProvider>().tr('Đã tải xong bản cập nhật! Vui lòng mở lại app để áp dụng.')),
+              duration: const Duration(seconds: 5),
+            ),
+          );
+        }
+      }
+
+    } catch (e) {
+      if (mounted) setState(() => _appVersionText = '1.0.0');
+    }
   }
 
   Future<void> _loadNotifState() async {
@@ -71,6 +129,7 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
   }
 
   Future<void> _handleLogout(BuildContext context, LocaleProvider t) async {
+    // ... (Giữ nguyên code hàm đăng xuất của bạn)
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -113,6 +172,7 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
 
     return Scaffold(
       appBar: AppBar(
+        // ... (Giữ nguyên AppBar)
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Text(
@@ -129,6 +189,7 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
         children: [
+          // ... (Giữ nguyên các section cài đặt khác)
           SettingsAnimatedHeader(
             scaleAnimation: _scaleAnimation,
             accentOrange: accentOrange,
@@ -152,7 +213,6 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
           SettingsNotificationOptions(
             dailyAnimalNotif: dailyAnimalNotif,
             streakNotif: streakNotif,
-            // ── Callback cập nhật state cha khi widget con thay đổi ──
             onDailyChanged: (val) => setState(() => dailyAnimalNotif = val),
             onStreakChanged: (val) => setState(() => streakNotif = val),
             primaryGreen: primaryGreen,
@@ -164,7 +224,6 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
 
           const SizedBox(height: 32),
 
-          // ── NÚT KIỂM TRA CẬP NHẬT ──
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16),
             child: OutlinedButton.icon(
@@ -192,7 +251,6 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
 
           const SizedBox(height: 12),
 
-          // ── NÚT ĐĂNG XUẤT ──
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16),
             child: OutlinedButton.icon(
@@ -214,9 +272,11 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
           ),
 
           const SizedBox(height: 32),
+
+          // ── HIỂN THỊ PHIÊN BẢN ĐỘNG Ở ĐÂY ──
           Center(
             child: Text(
-              t.tr('Phiên bản 1.0.0\nĐộng Vật Bách Khoa Toàn Thư'),
+              t.tr('Phiên bản $_appVersionText\nĐộng Vật Bách Khoa Toàn Thư'),
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: colorScheme.onSurfaceVariant,

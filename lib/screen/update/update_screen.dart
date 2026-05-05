@@ -35,8 +35,28 @@ enum ChangelogType { newFeature, fix, improve, remove }
 // ════════════════════════════════════════════════════════════
 const List<ChangelogEntry> kChangelog = [
   ChangelogEntry(
+    version: '1.0.0+3.1',
+    date: '05/05/2026',
+    title: 'Bản cập nhật mới nhất',
+    items: [
+      ChangelogItem(type: ChangelogType.fix, text: 'Sửa lỗi trắng icon'),
+    ],
+  ),
+  ChangelogEntry(
+    version: '1.0.0+3',
+    date: '05/05/2026',
+    title: 'Bản cập nhật mới nhất',
+    items: [
+      ChangelogItem(type: ChangelogType.newFeature, text: 'Update chức năng thông báo'),
+
+      ChangelogItem(type: ChangelogType.newFeature, text: 'Cập nhật Tính năng yêu thích'),
+      ChangelogItem(type: ChangelogType.improve, text: 'Cải thiện tốc độ tải danh sách loài'),
+      ChangelogItem(type: ChangelogType.fix, text: 'Sửa lỗi tồn đọng'),
+    ],
+  ),
+  ChangelogEntry(
     version: '1.0.0+2',
-    date: '25/04/2026',
+    date: '05/05/2026',
     title: 'Bản cập nhật mới nhất',
     items: [
       ChangelogItem(type: ChangelogType.newFeature, text: 'Thêm trang profile, thông tin các góp ý, báo cáo của bạn sẽ hiển thị ở đó'),

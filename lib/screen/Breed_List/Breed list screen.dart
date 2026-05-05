@@ -64,12 +64,11 @@ class _BreedListScreenState extends State<BreedListScreen> {
           .eq('animal_type', widget.category.id)
           .order('name_vietnamese');
 
+      if (!mounted) return;
       setState(() {
         _animals = List<Map<String, dynamic>>.from(data as List);
         _isLoading = false;
       });
-      // Reload favorites để badge tim luôn đồng bộ
-      _loadFavorites();
     } catch (e) {
       debugPrint('❌ Error loading animals: $e');
       // fallback về service cũ nếu lỗi
@@ -199,7 +198,7 @@ class _BreedListScreenState extends State<BreedListScreen> {
                               ),
                             );
                             // Reload favorites khi quay lại để badge đồng bộ
-                            _loadFavorites();
+                            await _loadFavorites();
                           },
                         );
                       },

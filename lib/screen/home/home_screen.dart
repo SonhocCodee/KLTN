@@ -308,7 +308,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   String _getShortDesc(String id) {
-    if (id.contains('dog')) return 'Người bạn trung thành và đáng yêu nhất của bé.';
+    if (id.contains('dog ')) return 'Người bạn trung thành và đáng yêu nhất của bé.';
     if (id.contains('cat')) return 'Những người bạn nhỏ thích cuộn tròn và làm nũng.';
     if (id.contains('bird')) return 'Những nhạc sĩ của bầu trời với tiếng hót líu lo.';
     if (id.contains('insect')) return 'Thế giới tí hon đầy những điều kỳ diệu.';

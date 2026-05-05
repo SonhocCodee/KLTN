@@ -96,6 +96,19 @@ class BreedListAnimalCard extends StatelessWidget {
                           ),
                         ),
                       ),
+                      if (isFavorite)
+                        Positioned(
+                          top: 8,
+                          left: 8,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.35),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.favorite, color: Colors.red, size: 16),
+                          ),
+                        ),
                       if (isEndangered)
                         Positioned(
                           top: 8,
@@ -170,11 +183,6 @@ class BreedListAnimalCard extends StatelessWidget {
                           ),
                         ),
                       ],
-                      if (isFavorite)
-                        Positioned(
-                          top: 8, right: 8,
-                          child: Icon(Icons.favorite, color: Colors.red, size: 18),
-                        ),
                     ],
                   ),
                 ),
