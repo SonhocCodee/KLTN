@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/animal_home_service.dart';
 import '../Animal_detail/Animal detail screen.dart';
 import '../home/animal_category_model.dart';
+import '../profile/favorite_service.dart';
 
 // Import các widgets đã tách
 import 'widgets/breed_list_header.dart';
@@ -27,8 +28,10 @@ class BreedListScreen extends StatefulWidget {
 
 class _BreedListScreenState extends State<BreedListScreen> {
   final AnimalHomeService _service = AnimalHomeService();
+  final FavoriteService _favoriteService = FavoriteService();
 
   List<Map<String, dynamic>> _animals = [];
+  Set<String> _favoriteIds = {};
   bool _isLoading = true;
   String _searchQuery = '';
   AnimalFilterState _filterState = const AnimalFilterState();
@@ -37,6 +40,12 @@ class _BreedListScreenState extends State<BreedListScreen> {
   void initState() {
     super.initState();
     _loadAnimals();
+    _loadFavorites();
+  }
+
+  Future<void> _loadFavorites() async {
+    final ids = await _favoriteService.getFavoriteIds();
+    if (mounted) setState(() => _favoriteIds = ids);
   }
 
   Future<void> _loadAnimals() async {
@@ -59,6 +68,8 @@ class _BreedListScreenState extends State<BreedListScreen> {
         _animals = List<Map<String, dynamic>>.from(data as List);
         _isLoading = false;
       });
+      // Reload favorites để badge tim luôn đồng bộ
+      _loadFavorites();
     } catch (e) {
       debugPrint('❌ Error loading animals: $e');
       // fallback về service cũ nếu lỗi
@@ -85,7 +96,7 @@ class _BreedListScreenState extends State<BreedListScreen> {
     }
 
     // 2. Filter + sort
-    return _filterState.apply(list);
+    return _filterState.apply(list, favoriteIds: _favoriteIds);
   }
 
   @override
@@ -124,6 +135,7 @@ class _BreedListScreenState extends State<BreedListScreen> {
               BreedListFilterBar(
                 category: widget.category,
                 filterState: _filterState,
+                favoriteIds: _favoriteIds,
                 onChanged: (newState) =>
                     setState(() => _filterState = newState),
               ),
@@ -174,8 +186,10 @@ class _BreedListScreenState extends State<BreedListScreen> {
                         return BreedListAnimalCard(
                           animal: _filteredAnimals[index],
                           category: widget.category,
-                          onTap: () {
-                            Navigator.push(
+                          isFavorite: _favoriteIds
+                              .contains(_filteredAnimals[index]['id'].toString()),
+                          onTap: () async {
+                            await Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => AnimalDetailScreen(
@@ -184,6 +198,8 @@ class _BreedListScreenState extends State<BreedListScreen> {
                                 ),
                               ),
                             );
+                            // Reload favorites khi quay lại để badge đồng bộ
+                            _loadFavorites();
                           },
                         );
                       },

@@ -6,12 +6,15 @@ class BreedListAnimalCard extends StatelessWidget {
   final Map<String, dynamic> animal;
   final AnimalCategory category;
   final VoidCallback onTap;
+  final bool isFavorite;
+
 
   const BreedListAnimalCard({
     super.key,
     required this.animal,
     required this.category,
     required this.onTap,
+    required this.isFavorite,
   });
 
   @override
@@ -167,6 +170,11 @@ class BreedListAnimalCard extends StatelessWidget {
                           ),
                         ),
                       ],
+                      if (isFavorite)
+                        Positioned(
+                          top: 8, right: 8,
+                          child: Icon(Icons.favorite, color: Colors.red, size: 18),
+                        ),
                     ],
                   ),
                 ),

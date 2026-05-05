@@ -8,15 +8,17 @@ enum SortField { nameAZ, nameZA, weightAsc, weightDesc, lifespanAsc, lifespanDes
 
 class AnimalFilterState {
   final SortField sortField;
-  final String? relativeSize;      // tiny/small/medium/large/very_large/gigantic
-  final String? dietType;          // carnivore/herbivore/omnivore/...
-  final String? conservationStatus; // Least Concern / Vulnerable / Endangered / ...
+  final String? relativeSize;
+  final String? dietType;
+  final String? conservationStatus;
+  final bool showOnlyFavorites;
 
   const AnimalFilterState({
     this.sortField = SortField.nameAZ,
     this.relativeSize,
     this.dietType,
     this.conservationStatus,
+    this.showOnlyFavorites = false,
   });
 
   AnimalFilterState copyWith({
@@ -24,6 +26,7 @@ class AnimalFilterState {
     Object? relativeSize = _sentinel,
     Object? dietType = _sentinel,
     Object? conservationStatus = _sentinel,
+    bool? showOnlyFavorites,
   }) {
     return AnimalFilterState(
       sortField: sortField ?? this.sortField,
@@ -32,20 +35,31 @@ class AnimalFilterState {
       conservationStatus: conservationStatus == _sentinel
           ? this.conservationStatus
           : conservationStatus as String?,
+      showOnlyFavorites: showOnlyFavorites ?? this.showOnlyFavorites,
     );
   }
 
   static const _sentinel = Object();
 
   bool get hasActiveFilters =>
-      relativeSize != null || dietType != null || conservationStatus != null;
+      relativeSize != null || dietType != null || conservationStatus != null || showOnlyFavorites;
 
   int get activeFilterCount =>
-      [relativeSize, dietType, conservationStatus].where((e) => e != null).length;
+      [relativeSize, dietType, conservationStatus].where((e) => e != null).length +
+          (showOnlyFavorites ? 1 : 0);
 
   /// Áp dụng sort + filter lên danh sách
-  List<Map<String, dynamic>> apply(List<Map<String, dynamic>> animals) {
+  /// [favoriteIds] cần truyền vào khi showOnlyFavorites = true
+  List<Map<String, dynamic>> apply(
+      List<Map<String, dynamic>> animals, {
+        Set<String> favoriteIds = const {},
+      }) {
     var list = [...animals];
+
+    // Filter yêu thích
+    if (showOnlyFavorites) {
+      list = list.where((a) => favoriteIds.contains(a['id'].toString())).toList();
+    }
 
     // Filter theo relative_size
     if (relativeSize != null) {
@@ -58,7 +72,7 @@ class AnimalFilterState {
         return v == dietType!.toLowerCase();
       }).toList();
     }
-    // Filter theo conservation_status — so sánh không phân biệt hoa thường
+    // Filter theo conservation_status
     if (conservationStatus != null) {
       list = list.where((a) {
         final v = (a['conservation_status'] ?? '').toString().toLowerCase();
@@ -78,11 +92,9 @@ class AnimalFilterState {
         case SortField.weightDesc:
           return _num(b['weight_avg_kg']).compareTo(_num(a['weight_avg_kg']));
         case SortField.lifespanAsc:
-          return _num(a['lifespan_avg_years'])
-              .compareTo(_num(b['lifespan_avg_years']));
+          return _num(a['lifespan_avg_years']).compareTo(_num(b['lifespan_avg_years']));
         case SortField.lifespanDesc:
-          return _num(b['lifespan_avg_years'])
-              .compareTo(_num(a['lifespan_avg_years']));
+          return _num(b['lifespan_avg_years']).compareTo(_num(a['lifespan_avg_years']));
       }
     });
 
@@ -100,12 +112,14 @@ class BreedListFilterBar extends StatelessWidget {
   final AnimalFilterState filterState;
   final ValueChanged<AnimalFilterState> onChanged;
   final AnimalCategory category;
+  final Set<String> favoriteIds; // truyền vào để biết có bao nhiêu yêu thích
 
   const BreedListFilterBar({
     super.key,
     required this.filterState,
     required this.onChanged,
     required this.category,
+    this.favoriteIds = const {},
   });
 
   Color get _accent => category.gradient[0];
@@ -129,10 +143,22 @@ class BreedListFilterBar extends StatelessWidget {
           ),
           const SizedBox(width: 8),
 
+          // ── Chip yêu thích
+          if (favoriteIds.isNotEmpty) ...[
+            _FavoriteFilterChip(
+              isActive: filterState.showOnlyFavorites,
+              accent: _accent,
+              colorScheme: colorScheme,
+              onTap: () => onChanged(
+                filterState.copyWith(
+                  showOnlyFavorites: !filterState.showOnlyFavorites,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+          ],
 
-
-
-          // ── Conservation chip — dùng text khớp với DB
+          // ── Conservation chip
           _FilterChip2(
             label: 'Bảo tồn',
             icon: Icons.eco,
@@ -140,9 +166,9 @@ class BreedListFilterBar extends StatelessWidget {
             accent: _accent,
             colorScheme: colorScheme,
             options: const [
-              ('Least Concern',              '🟢 Ít lo ngại'),
-              ('Vulnerable',                 '🔴 Cực kỳ nguy cấp'),
-              ('Extinct in the Wild',        '⚫ Tuyệt chủng ngoài TN'),
+              ('Least Concern',       '🟢 Ít lo ngại'),
+              ('Vulnerable',          '🔴 Cực kỳ nguy cấp'),
+              ('Extinct in the Wild', '⚫ Tuyệt chủng ngoài TN'),
             ],
             onSelected: (v) =>
                 onChanged(filterState.copyWith(conservationStatus: v)),
@@ -161,6 +187,69 @@ class BreedListFilterBar extends StatelessWidget {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// Chip lọc yêu thích — style giống _FilterChip2
+// ─────────────────────────────────────────────
+class _FavoriteFilterChip extends StatelessWidget {
+  final bool isActive;
+  final Color accent;
+  final ColorScheme colorScheme;
+  final VoidCallback onTap;
+
+  const _FavoriteFilterChip({
+    required this.isActive,
+    required this.accent,
+    required this.colorScheme,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: isActive
+              ? accent.withOpacity(0.15)
+              : colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isActive ? accent.withOpacity(0.5) : colorScheme.outlineVariant,
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isActive ? Icons.favorite : Icons.favorite_border,
+              size: 13,
+              color: isActive ? accent : colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 5),
+            Text(
+              'Yêu thích',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+                color: isActive ? accent : colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(width: 3),
+            Icon(
+              isActive ? Icons.close : Icons.arrow_drop_down,
+              size: 15,
+              color: isActive ? accent : colorScheme.onSurfaceVariant,
+            ),
+          ],
+        ),
       ),
     );
   }

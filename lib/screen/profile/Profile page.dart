@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import '../../services/animal_home_service.dart';
+import 'favorite_service.dart'; // để load chi tiết loài
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -11,9 +13,16 @@ class ProfilePage extends StatefulWidget {
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
+// Khai báo RouteObserver global — đăng ký trong MaterialApp:
+// navigatorObservers: [profileRouteObserver]
+final RouteObserver<ModalRoute<void>> profileRouteObserver =
+RouteObserver<ModalRoute<void>>();
+
 class _ProfilePageState extends State<ProfilePage>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, RouteAware {
   final _supabase = Supabase.instance.client;
+  final _favoriteService = FavoriteService();
+  final _animalService = AnimalHomeService();
   late TabController _tabController;
 
   // User data
@@ -33,7 +42,10 @@ class _ProfilePageState extends State<ProfilePage>
   List<Map<String, dynamic>> _allReports = [];
   bool _isLoadingReports = true;
 
-  // Phân loại nguồn
+  // Favorites
+  List<Map<String, dynamic>> _favoriteAnimals = [];
+  bool _isLoadingFavorites = true;
+
   static const _srcQuiz = 'quiz';
   static const _srcAnimal = 'animal';
   static const _srcFeedback = 'feedback';
@@ -47,28 +59,46 @@ class _ProfilePageState extends State<ProfilePage>
     _tabController = TabController(length: 4, vsync: this);
     _loadProfile();
     _loadReports();
+    _loadFavorites();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Đăng ký RouteAware để nhận sự kiện quay lại trang này
+    final route = ModalRoute.of(context);
+    if (route != null) {
+      profileRouteObserver.subscribe(this, route);
+    }
   }
 
   @override
   void dispose() {
+    profileRouteObserver.unsubscribe(this);
     _tabController.dispose();
     _nameController.dispose();
     super.dispose();
   }
+
+  /// Gọi khi user bấm back từ màn hình khác quay về Profile
+  @override
+  void didPopNext() {
+    _loadFavorites();
+  }
+
+  // ── Load profile ──────────────────────────────────────────────────────────
 
   Future<void> _loadProfile() async {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) return;
 
     try {
-      // Load user_profiles (primary key là 'id' = user_id)
       final profileRes = await _supabase
           .from('user_profiles')
           .select('display_name, avatar_url')
           .eq('id', userId)
           .maybeSingle();
 
-      // Load user_stats
       final statsRes = await _supabase
           .from('user_stats')
           .select('streak_days, total_facts, total_species, last_played')
@@ -99,12 +129,60 @@ class _ProfilePageState extends State<ProfilePage>
     }
   }
 
+  // ── Load favorites ────────────────────────────────────────────────────────
+
+  Future<void> _loadFavorites() async {
+    setState(() => _isLoadingFavorites = true);
+    try {
+      // Lấy danh sách animal_id yêu thích
+      final favRows = await _favoriteService.getFavorites();
+
+      // Load chi tiết từng con song song (giới hạn 20 để tránh quá tải)
+      final limited = favRows.take(20).toList();
+      final details = await Future.wait(
+        limited.map((row) => _animalService.getAnimalById(row['animal_id'])),
+      );
+
+      final merged = <Map<String, dynamic>>[];
+      for (int i = 0; i < limited.length; i++) {
+        if (details[i] != null) {
+          merged.add({
+            ...details[i]!,
+            '_animal_id': limited[i]['animal_id'],
+            '_fav_created_at': limited[i]['created_at'],
+          });
+        }
+      }
+
+      if (mounted) {
+        setState(() {
+          _favoriteAnimals = merged;
+          _isLoadingFavorites = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingFavorites = false);
+        _showSnack('Lỗi tải loài yêu thích: $e');
+      }
+    }
+  }
+
+  Future<void> _removeFavorite(String animalId) async {
+    await _favoriteService.removeFavorite(animalId);
+    setState(() {
+      _favoriteAnimals
+          .removeWhere((a) => a['_animal_id'] == animalId);
+    });
+  }
+
+  // ── Load reports ──────────────────────────────────────────────────────────
+
   Future<void> _loadReports() async {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) return;
 
     try {
-      // Fetch song song 3 bảng
       final results = await Future.wait([
         _supabase
             .from('quiz_reports')
@@ -113,7 +191,8 @@ class _ProfilePageState extends State<ProfilePage>
             .order('created_at', ascending: false),
         _supabase
             .from('animal_reports')
-            .select('id, note, status, admin_note, created_at, suggested_name_vietnamese')
+            .select(
+            'id, note, status, admin_note, created_at, suggested_name_vietnamese')
             .eq('reporter_user_id', userId)
             .order('created_at', ascending: false),
         _supabase
@@ -145,14 +224,15 @@ class _ProfilePageState extends State<ProfilePage>
         '_subtitle': r['description'] ?? '',
       }).toList();
 
-      // Gộp và sort theo created_at mới nhất
       final all = [
         ...quizReports,
         ...animalReports,
         ...feedbackReports,
       ]..sort((a, b) {
-        final aTime = DateTime.tryParse(a['created_at'] ?? '') ?? DateTime(0);
-        final bTime = DateTime.tryParse(b['created_at'] ?? '') ?? DateTime(0);
+        final aTime =
+            DateTime.tryParse(a['created_at'] ?? '') ?? DateTime(0);
+        final bTime =
+            DateTime.tryParse(b['created_at'] ?? '') ?? DateTime(0);
         return bTime.compareTo(aTime);
       });
 
@@ -170,18 +250,61 @@ class _ProfilePageState extends State<ProfilePage>
     }
   }
 
-  String _feedbackTypeLabel(String type) {
-    switch (type) {
-      case 'bug':
-        return 'Báo lỗi ứng dụng';
-      case 'feature':
-        return 'Đề xuất tính năng';
-      case 'content':
-        return 'Góp ý nội dung';
-      default:
-        return type.isNotEmpty ? type : 'Phản hồi';
+  // ── Avatar upload (đã fix) ────────────────────────────────────────────────
+
+  Future<void> _pickAndUploadAvatar() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 512,
+      maxHeight: 512,
+      imageQuality: 85,
+    );
+    if (picked == null) return;
+
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) return;
+
+    setState(() => _isUploadingAvatar = true);
+    try {
+      final file = File(picked.path);
+      final ext = picked.path.split('.').last.toLowerCase();
+      // Dùng tên cố định per-user để overwrite (upsert: true)
+      final filePath = 'avatars/$userId.$ext';
+
+      await _supabase.storage.from('user-avatars').upload(
+        filePath,
+        file,
+        fileOptions: const FileOptions(upsert: true),
+      );
+
+      // FIX: lấy public URL sạch để lưu DB
+      final publicUrl =
+      _supabase.storage.from('user-avatars').getPublicUrl(filePath);
+
+      // Lưu URL sạch vào DB (không kèm cache-buster)
+      await _supabase.from('user_profiles').upsert({
+        'id': userId,
+        'avatar_url': publicUrl,
+        'updated_at': DateTime.now().toIso8601String(),
+      });
+
+      // Hiển thị với cache-buster để Flutter reload ảnh ngay
+      final displayUrl =
+          '$publicUrl?t=${DateTime.now().millisecondsSinceEpoch}';
+
+      if (mounted) {
+        setState(() => _avatarUrl = displayUrl);
+        _showSnack('Đã cập nhật ảnh đại diện!');
+      }
+    } catch (e) {
+      if (mounted) _showSnack('Lỗi tải ảnh: $e');
+    } finally {
+      if (mounted) setState(() => _isUploadingAvatar = false);
     }
   }
+
+  // ── Save display name ─────────────────────────────────────────────────────
 
   Future<void> _saveDisplayName() async {
     final userId = _supabase.auth.currentUser?.id;
@@ -211,52 +334,6 @@ class _ProfilePageState extends State<ProfilePage>
     }
   }
 
-  Future<void> _pickAndUploadAvatar() async {
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 512,
-      maxHeight: 512,
-      imageQuality: 85,
-    );
-    if (picked == null) return;
-
-    final userId = _supabase.auth.currentUser?.id;
-    if (userId == null) return;
-
-    setState(() => _isUploadingAvatar = true);
-    try {
-      final file = File(picked.path);
-      final ext = picked.path.split('.').last;
-      final filePath = 'avatars/$userId.$ext';
-
-      await _supabase.storage.from('user-avatars').upload(
-        filePath,
-        file,
-        fileOptions: const FileOptions(upsert: true),
-      );
-
-      final publicUrl =
-      _supabase.storage.from('user-avatars').getPublicUrl(filePath);
-
-      // Thêm cache-buster để force reload ảnh mới
-      final urlWithCache = '$publicUrl?t=${DateTime.now().millisecondsSinceEpoch}';
-
-      await _supabase.from('user_profiles').upsert({
-        'id': userId,
-        'avatar_url': publicUrl,
-        'updated_at': DateTime.now().toIso8601String(),
-      });
-
-      setState(() => _avatarUrl = urlWithCache);
-      _showSnack('Đã cập nhật ảnh đại diện!');
-    } catch (e) {
-      _showSnack('Lỗi tải ảnh: $e');
-    } finally {
-      if (mounted) setState(() => _isUploadingAvatar = false);
-    }
-  }
-
   void _showSnack(String msg) {
     if (!mounted) return;
     ScaffoldMessenger.of(context)
@@ -270,6 +347,8 @@ class _ProfilePageState extends State<ProfilePage>
   List<Map<String, dynamic>> get _rejectedReports =>
       _allReports.where((r) => r['status'] == 'rejected').toList();
 
+  // ── Build ─────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -282,18 +361,17 @@ class _ProfilePageState extends State<ProfilePage>
         slivers: [
           _buildSliverAppBar(colorScheme),
           SliverToBoxAdapter(
-            child: _buildStatsSection(colorScheme),
-          ),
+              child: _buildStatsSection(colorScheme)),
           SliverToBoxAdapter(
-            child: _buildFavoritesPlaceholder(colorScheme),
-          ),
+              child: _buildFavoritesSection(colorScheme)),
           SliverToBoxAdapter(
-            child: _buildReportsSection(colorScheme),
-          ),
+              child: _buildReportsSection(colorScheme)),
         ],
       ),
     );
   }
+
+  // ── AppBar ────────────────────────────────────────────────────────────────
 
   Widget _buildSliverAppBar(ColorScheme colorScheme) {
     return SliverAppBar(
@@ -317,7 +395,6 @@ class _ProfilePageState extends State<ProfilePage>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const SizedBox(height: 20),
-                // Avatar
                 Stack(
                   alignment: Alignment.bottomRight,
                   children: [
@@ -329,9 +406,7 @@ class _ProfilePageState extends State<ProfilePage>
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: colorScheme.primary,
-                            width: 3,
-                          ),
+                              color: colorScheme.primary, width: 3),
                           color: colorScheme.surfaceContainerHighest,
                         ),
                         child: ClipOval(
@@ -343,6 +418,8 @@ class _ProfilePageState extends State<ProfilePage>
                               ? Image.network(
                             _avatarUrl!,
                             fit: BoxFit.cover,
+                            // evict cache cũ khi URL thay đổi
+                            key: ValueKey(_avatarUrl),
                             errorBuilder: (_, __, ___) =>
                                 _defaultAvatar(colorScheme),
                           )
@@ -364,10 +441,10 @@ class _ProfilePageState extends State<ProfilePage>
                   ],
                 ),
                 const SizedBox(height: 12),
-                // Tên hiển thị
                 _isEditingName
                     ? Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 48),
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 48),
                   child: Row(
                     children: [
                       Expanded(
@@ -385,7 +462,8 @@ class _ProfilePageState extends State<ProfilePage>
                             const EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 4),
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius:
+                              BorderRadius.circular(8),
                             ),
                           ),
                         ),
@@ -454,9 +532,8 @@ class _ProfilePageState extends State<ProfilePage>
   }
 
   Widget _defaultAvatar(ColorScheme colorScheme) {
-    final initials = _displayName.isNotEmpty
-        ? _displayName[0].toUpperCase()
-        : '?';
+    final initials =
+    _displayName.isNotEmpty ? _displayName[0].toUpperCase() : '?';
     return Container(
       color: colorScheme.primaryContainer,
       child: Center(
@@ -470,6 +547,8 @@ class _ProfilePageState extends State<ProfilePage>
       ),
     );
   }
+
+  // ── Stats ─────────────────────────────────────────────────────────────────
 
   Widget _buildStatsSection(ColorScheme colorScheme) {
     final lastPlayedStr = _lastPlayed != null
@@ -492,48 +571,40 @@ class _ProfilePageState extends State<ProfilePage>
           Row(
             children: [
               Expanded(
-                child: _statCard(
-                  icon: Icons.local_fire_department,
-                  iconColor: Colors.orange,
-                  label: 'Chuỗi ngày',
-                  value: '$_streakDays ngày',
-                  colorScheme: colorScheme,
-                ),
-              ),
+                  child: _statCard(
+                      icon: Icons.local_fire_department,
+                      iconColor: Colors.orange,
+                      label: 'Chuỗi ngày',
+                      value: '$_streakDays ngày',
+                      colorScheme: colorScheme)),
               const SizedBox(width: 10),
               Expanded(
-                child: _statCard(
-                  icon: Icons.lightbulb_outline,
-                  iconColor: Colors.amber,
-                  label: 'Fact khám phá',
-                  value: '$_totalFacts',
-                  colorScheme: colorScheme,
-                ),
-              ),
+                  child: _statCard(
+                      icon: Icons.lightbulb_outline,
+                      iconColor: Colors.amber,
+                      label: 'Fact khám phá',
+                      value: '$_totalFacts',
+                      colorScheme: colorScheme)),
             ],
           ),
           const SizedBox(height: 10),
           Row(
             children: [
               Expanded(
-                child: _statCard(
-                  icon: Icons.pets,
-                  iconColor: colorScheme.primary,
-                  label: 'Loài đã biết',
-                  value: '$_totalSpecies',
-                  colorScheme: colorScheme,
-                ),
-              ),
+                  child: _statCard(
+                      icon: Icons.pets,
+                      iconColor: colorScheme.primary,
+                      label: 'Loài đã biết',
+                      value: '$_totalSpecies',
+                      colorScheme: colorScheme)),
               const SizedBox(width: 10),
               Expanded(
-                child: _statCard(
-                  icon: Icons.calendar_today_outlined,
-                  iconColor: Colors.teal,
-                  label: 'Chơi gần nhất',
-                  value: lastPlayedStr,
-                  colorScheme: colorScheme,
-                ),
-              ),
+                  child: _statCard(
+                      icon: Icons.calendar_today_outlined,
+                      iconColor: Colors.teal,
+                      label: 'Chơi gần nhất',
+                      value: lastPlayedStr,
+                      colorScheme: colorScheme)),
             ],
           ),
         ],
@@ -586,45 +657,189 @@ class _ProfilePageState extends State<ProfilePage>
     );
   }
 
-  Widget _buildFavoritesPlaceholder(ColorScheme colorScheme) {
+  // ── Favorites ─────────────────────────────────────────────────────────────
+
+  Widget _buildFavoritesSection(ColorScheme colorScheme) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Loài yêu thích',
-              style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onSurface)),
-          const SizedBox(height: 10),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 24),
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                  color: colorScheme.outlineVariant, width: 1),
-            ),
-            child: Column(
-              children: [
-                Icon(Icons.favorite_border,
-                    size: 36, color: colorScheme.outlineVariant),
-                const SizedBox(height: 8),
-                Text(
-                  'Tính năng đang phát triển',
-                  style: TextStyle(
-                      color: colorScheme.onSurfaceVariant,
-                      fontSize: 13),
+          Row(
+            children: [
+              Icon(Icons.favorite, size: 18, color: Colors.red.shade400),
+              const SizedBox(width: 6),
+              Text(
+                'Loài yêu thích',
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface),
+              ),
+              if (!_isLoadingFavorites && _favoriteAnimals.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(left: 6),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 7, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      '${_favoriteAnimals.length}',
+                      style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.red.shade400,
+                          fontWeight: FontWeight.w600),
+                    ),
+                  ),
                 ),
-              ],
-            ),
+            ],
           ),
+          const SizedBox(height: 10),
+          if (_isLoadingFavorites)
+            const Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24),
+                  child: CircularProgressIndicator(),
+                ))
+          else if (_favoriteAnimals.isEmpty)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 28),
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                    color: colorScheme.outlineVariant, width: 1),
+              ),
+              child: Column(
+                children: [
+                  Icon(Icons.favorite_border,
+                      size: 36, color: colorScheme.outlineVariant),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Chưa có loài yêu thích nào',
+                    style: TextStyle(
+                        color: colorScheme.onSurfaceVariant,
+                        fontSize: 13),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Nhấn ❤️ trên trang chi tiết loài để thêm',
+                    style: TextStyle(
+                        color: colorScheme.outlineVariant, fontSize: 12),
+                  ),
+                ],
+              ),
+            )
+          else
+            SizedBox(
+              height: 160,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: _favoriteAnimals.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 10),
+                itemBuilder: (context, index) {
+                  final a = _favoriteAnimals[index];
+                  return _favoriteAnimalCard(a, colorScheme);
+                },
+              ),
+            ),
         ],
       ),
     );
   }
+
+  Widget _favoriteAnimalCard(
+      Map<String, dynamic> animal, ColorScheme colorScheme) {
+    final imageUrl = animal['image_url'] as String? ?? '';
+    final name = animal['name_vietnamese'] as String? ??
+        animal['name'] as String? ??
+        'Không rõ';
+    final animalId = animal['_animal_id'] as String;
+
+    return GestureDetector(
+      onTap: () {
+        // Navigate tới detail screen — điều chỉnh route name / arguments theo app của bạn
+        // Ví dụ:
+        // Navigator.pushNamed(context, '/animal-detail',
+        //     arguments: {'animalId': animalId, 'category': ...});
+      },
+      child: Container(
+        width: 120,
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(14)),
+                  child: imageUrl.isNotEmpty
+                      ? Image.network(
+                    imageUrl,
+                    height: 96,
+                    width: 120,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) =>
+                        _imagePlaceholder(colorScheme),
+                  )
+                      : _imagePlaceholder(colorScheme),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
+                  child: Text(
+                    name,
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurface),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            // Nút xoá khỏi yêu thích
+            Positioned(
+              top: 4,
+              right: 4,
+              child: GestureDetector(
+                onTap: () => _removeFavorite(animalId),
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.45),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.close,
+                      size: 12, color: Colors.white),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _imagePlaceholder(ColorScheme colorScheme) {
+    return Container(
+      height: 96,
+      width: 120,
+      color: colorScheme.primaryContainer,
+      child: Icon(Icons.pets,
+          size: 32, color: colorScheme.onPrimaryContainer.withOpacity(0.4)),
+    );
+  }
+
+  // ── Reports ───────────────────────────────────────────────────────────────
 
   Widget _buildReportsSection(ColorScheme colorScheme) {
     return Padding(
@@ -695,10 +910,8 @@ class _ProfilePageState extends State<ProfilePage>
       physics: const ClampingScrollPhysics(),
       itemCount: reports.length,
       separatorBuilder: (_, __) => const SizedBox(height: 8),
-      itemBuilder: (context, index) {
-        final r = reports[index];
-        return _reportCard(r, colorScheme);
-      },
+      itemBuilder: (context, index) =>
+          _reportCard(reports[index], colorScheme),
     );
   }
 
@@ -733,7 +946,6 @@ class _ProfilePageState extends State<ProfilePage>
         statusLabel = 'Chờ duyệt';
     }
 
-    // Badge nguồn
     String sourceLabel;
     Color sourceColor;
     IconData sourceIcon;
@@ -774,7 +986,6 @@ class _ProfilePageState extends State<ProfilePage>
               children: [
                 Row(
                   children: [
-                    // Badge nguồn
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 7, vertical: 3),
@@ -807,7 +1018,6 @@ class _ProfilePageState extends State<ProfilePage>
                       ),
                     ),
                     const SizedBox(width: 6),
-                    // Badge trạng thái
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 9, vertical: 3),
@@ -823,7 +1033,6 @@ class _ProfilePageState extends State<ProfilePage>
                     ),
                   ],
                 ),
-                // Ghi chú của user
                 if (subtitle.isNotEmpty) ...[
                   const SizedBox(height: 6),
                   Text(subtitle,
@@ -833,7 +1042,6 @@ class _ProfilePageState extends State<ProfilePage>
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis),
                 ],
-                // Lý do từ chối từ admin
                 if (status == 'rejected' && adminNote.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   Container(
@@ -876,7 +1084,8 @@ class _ProfilePageState extends State<ProfilePage>
                 const SizedBox(height: 6),
                 Text(createdAt,
                     style: TextStyle(
-                        fontSize: 12, color: colorScheme.outlineVariant)),
+                        fontSize: 12,
+                        color: colorScheme.outlineVariant)),
               ],
             ),
           ),
@@ -897,6 +1106,19 @@ class _ProfilePageState extends State<ProfilePage>
         return 'Trùng lặp';
       default:
         return type.isNotEmpty ? type : 'Báo cáo khác';
+    }
+  }
+
+  String _feedbackTypeLabel(String type) {
+    switch (type) {
+      case 'bug':
+        return 'Báo lỗi ứng dụng';
+      case 'feature':
+        return 'Đề xuất tính năng';
+      case 'content':
+        return 'Góp ý nội dung';
+      default:
+        return type.isNotEmpty ? type : 'Phản hồi';
     }
   }
 }

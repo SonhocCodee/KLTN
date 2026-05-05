@@ -230,9 +230,9 @@ class _SmartNavBarState extends State<SmartNavBar>
   String _getIconPath(int index) {
     const icons = [
       'assets/icons/home_navbar.png',
-      'assets/icons/search2.png',
-      'assets/icons/camera_navbar.png',
       'assets/icons/compass_navbar.png',
+      'assets/icons/camera_navbar.png',
+      'assets/icons/search2.png',
       'assets/icons/Setting_navbar.png',
     ];
     return icons[index];
