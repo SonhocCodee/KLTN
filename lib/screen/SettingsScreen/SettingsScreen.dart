@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:kltn_app/screen/SettingsScreen/provider/Notification_service.dart';
 import 'package:kltn_app/screen/SettingsScreen/widgets/ettings_info_options.dart';
 import 'package:provider/provider.dart';
 
-// ── THÊM 2 IMPORT NÀY ĐỂ XỬ LÝ ĐĂNG XUẤT ──
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:kltn_app/screen/welcome/welcome_screen.dart';
-
 
 import '../language/Locale_provider.dart';
 import '../update/update_screen.dart';
@@ -13,6 +12,7 @@ import 'widgets/settings_animated_header.dart';
 import 'widgets/settings_appearance_options.dart';
 import 'widgets/settings_content_options.dart';
 import 'widgets/settings_notification_options.dart';
+
 
 class AnimalSettingsScreen extends StatefulWidget {
   const AnimalSettingsScreen({super.key});
@@ -24,7 +24,7 @@ class AnimalSettingsScreen extends StatefulWidget {
 class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
     with SingleTickerProviderStateMixin {
 
-  String selectedUnit     = 'metric'; // 'metric' | 'imperial'
+  String selectedUnit     = 'metric';
   bool   dailyAnimalNotif = true;
   bool   streakNotif      = true;
 
@@ -34,9 +34,12 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
   final Color primaryGreen = const Color(0xFF2E7D32);
   final Color accentOrange = const Color(0xFFEF6C00);
 
+  final _notifService = NotificationService();
+
   @override
   void initState() {
     super.initState();
+
     _animController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
@@ -45,6 +48,20 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
     _scaleAnimation = Tween<double>(begin: 0.9, end: 1.1).animate(
       CurvedAnimation(parent: _animController, curve: Curves.easeInOut),
     );
+
+    // ── Load trạng thái thông báo từ SharedPreferences ──
+    _loadNotifState();
+  }
+
+  Future<void> _loadNotifState() async {
+    final daily  = await _notifService.isDailyEnabled();
+    final streak = await _notifService.isStreakEnabled();
+    if (mounted) {
+      setState(() {
+        dailyAnimalNotif = daily;
+        streakNotif      = streak;
+      });
+    }
   }
 
   @override
@@ -53,9 +70,7 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
     super.dispose();
   }
 
-  // ── HÀM XỬ LÝ ĐĂNG XUẤT ──
   Future<void> _handleLogout(BuildContext context, LocaleProvider t) async {
-    // Hiện hộp thoại xác nhận
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -80,16 +95,12 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
       ),
     );
 
-    // Nếu người dùng chọn "Đăng xuất"
     if (confirm == true) {
-      // 1. Đăng xuất khỏi Supabase
       await Supabase.instance.client.auth.signOut();
-
-      // 2. Chuyển về WelcomeScreen và xoá toàn bộ stack lịch sử
       if (context.mounted) {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const WelcomeScreen()),
-              (route) => false, // Xoá hết các trang cũ
+              (route) => false,
         );
       }
     }
@@ -141,6 +152,7 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
           SettingsNotificationOptions(
             dailyAnimalNotif: dailyAnimalNotif,
             streakNotif: streakNotif,
+            // ── Callback cập nhật state cha khi widget con thay đổi ──
             onDailyChanged: (val) => setState(() => dailyAnimalNotif = val),
             onStreakChanged: (val) => setState(() => streakNotif = val),
             primaryGreen: primaryGreen,
@@ -185,16 +197,8 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
             margin: const EdgeInsets.symmetric(horizontal: 16),
             child: OutlinedButton.icon(
               style: OutlinedButton.styleFrom(
-                // Màu chữ: Sáng mờ cho Dark, Xám đậm cho Light
-                foregroundColor: colorScheme.brightness == Brightness.dark
-                    ? Colors.red
-                    : Colors.red,
-                // Màu viền: Bo viền nhạt để tạo khối
-                side: BorderSide(
-                  color: colorScheme.brightness == Brightness.dark
-                      ? Colors.red
-                      : Colors.red,
-                ),
+                foregroundColor: Colors.red,
+                side: const BorderSide(color: Colors.red),
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
