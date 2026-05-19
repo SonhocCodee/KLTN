@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../language/Locale_provider.dart';
+
 class AnimalDetailUtils {
   static String translateValue(String key, String value) {
     final translations = {
@@ -34,21 +36,23 @@ class AnimalDetailUtils {
     return translations[value.toLowerCase()] ?? value;
   }
 
-  static String generateDescription(Map<String, dynamic> animal) {
-    final nameVi = animal['name_vietnamese'] ?? '';
-    final habitat = translateValue('habitat', animal['primary_habitat'] ?? '');
-    final dietType = translateValue('diet', animal['diet_type'] ?? '');
-    final temperament = translateValue('temperament', animal['temperament'] ?? '');
-    final conservationStatus = translateValue('conservation', animal['conservation_status'] ?? '');
+  // Đã thêm tham số LocaleProvider t
+  static String generateDescription(Map<String, dynamic> animal, LocaleProvider t) {
+    final nameVi = t.tr(animal['name_vietnamese'] ?? '');
+    final habitat = t.tr(translateValue('habitat', animal['primary_habitat'] ?? ''));
+    final dietType = t.tr(translateValue('diet', animal['diet_type'] ?? ''));
+    final temperament = t.tr(translateValue('temperament', animal['temperament'] ?? ''));
+    final conservationStatus = t.tr(translateValue('conservation', animal['conservation_status'] ?? ''));
+
     List<String> parts = [];
     if (nameVi.isNotEmpty) {
-      parts.add('$nameVi là một loài động vật');
-      if (habitat.isNotEmpty) parts.add('sống chủ yếu ở môi trường $habitat');
-      if (dietType.isNotEmpty) parts.add('với chế độ ăn $dietType');
-      if (temperament.isNotEmpty) parts.add('và có tính cách $temperament');
-      if (conservationStatus.isNotEmpty) parts.add('Tình trạng bảo tồn hiện tại: $conservationStatus');
+      parts.add('$nameVi ${t.tr('là một loài động vật')}');
+      if (habitat.isNotEmpty) parts.add('${t.tr('sống chủ yếu ở môi trường')} $habitat');
+      if (dietType.isNotEmpty) parts.add('${t.tr('với chế độ ăn')} $dietType');
+      if (temperament.isNotEmpty) parts.add('${t.tr('và có tính cách')} $temperament');
+      if (conservationStatus.isNotEmpty) parts.add('${t.tr('Tình trạng bảo tồn hiện tại:')} $conservationStatus');
     }
-    return parts.isNotEmpty ? parts.join('. ') + '.' : '';
+    return parts.isNotEmpty ? '${parts.join('. ')}.' : '';
   }
 
   static Widget buildSectionTitle(String title, String emoji, ColorScheme colorScheme) {

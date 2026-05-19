@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:provider/provider.dart';
 import 'dart:io';
+
+import '../../language/Locale_provider.dart'; // Đảm bảo import Locale_provider
 
 class IdentifyImageFrame extends StatelessWidget {
   final File? selectedImage;
@@ -12,6 +15,7 @@ class IdentifyImageFrame extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>();
 
     return AspectRatio(
       aspectRatio: 4 / 3.5,
@@ -60,9 +64,9 @@ class IdentifyImageFrame extends StatelessWidget {
               child: const Icon(Icons.center_focus_strong_rounded, color: _accentOrange, size: 50),
             ),
             const SizedBox(height: 16),
-            Text('Chưa có dấu chân nào', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
+            Text(t.tr('Chưa có dấu chân nào'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
             const SizedBox(height: 8),
-            Text('Chọn một bức ảnh để bắt đầu', style: TextStyle(fontSize: 14, color: colorScheme.onSurfaceVariant)),
+            Text(t.tr('Chọn một bức ảnh để bắt đầu'), style: TextStyle(fontSize: 14, color: colorScheme.onSurfaceVariant)),
           ],
         ),
       ),

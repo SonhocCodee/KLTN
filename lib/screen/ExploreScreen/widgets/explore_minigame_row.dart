@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../language/Locale_provider.dart';
 import '../explore_service.dart';
+
 
 class ExploreMinigameRow extends StatelessWidget {
   final ExploreService service;
   final VoidCallback onQuizTap;
 
-  const ExploreMinigameRow({super.key, required this.service, required this.onQuizTap});
+  const ExploreMinigameRow({
+    super.key,
+    required this.service,
+    required this.onQuizTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -23,8 +31,10 @@ class ExploreMinigameRow extends StatelessWidget {
     );
   }
 
-  Widget _buildQuizCard(BuildContext context, ExploreService service, VoidCallback onQuizTap) {
+  Widget _buildQuizCard(
+      BuildContext context, ExploreService service, VoidCallback onQuizTap) {
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>();
     final locked = !service.isQuizUnlocked;
 
     return GestureDetector(
@@ -34,7 +44,9 @@ class ExploreMinigameRow extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: locked ? colorScheme.surface : colorScheme.surfaceContainerHighest,
+              color: locked
+                  ? colorScheme.surface
+                  : colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: colorScheme.outlineVariant,
@@ -44,29 +56,35 @@ class ExploreMinigameRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  width: 40, height: 40,
+                  width: 40,
+                  height: 40,
                   decoration: BoxDecoration(
                     color: locked
                         ? colorScheme.surfaceContainerHighest
                         : colorScheme.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Center(child: Text('🧠', style: TextStyle(fontSize: 20))),
+                  child: const Center(
+                      child: Text('🧠', style: TextStyle(fontSize: 20))),
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  'Đố vui',
+                  t.tr('Đố vui'),
                   style: TextStyle(
-                    color: locked ? colorScheme.onSurfaceVariant : colorScheme.onSurface,
-                    fontSize: 14, fontWeight: FontWeight.w700,
+                    color: locked
+                        ? colorScheme.onSurfaceVariant
+                        : colorScheme.onSurface,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Quiz từ facts hôm nay',
+                  t.tr('Quiz từ facts hôm nay'),
                   style: TextStyle(
                     color: colorScheme.onSurfaceVariant,
-                    fontSize: 11, height: 1.4,
+                    fontSize: 11,
+                    height: 1.4,
                   ),
                 ),
               ],
@@ -83,7 +101,8 @@ class ExploreMinigameRow extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      width: 32, height: 32,
+                      width: 32,
+                      height: 32,
                       decoration: BoxDecoration(
                         color: colorScheme.surfaceContainerHighest,
                         border: Border.all(color: colorScheme.outlineVariant),
@@ -95,10 +114,13 @@ class ExploreMinigameRow extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Đọc đủ\n10 facts',
+                      t.tr('Đọc đủ\n10 facts'),
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 10, color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.w600, height: 1.3,
+                        fontSize: 10,
+                        color: colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w600,
+                        height: 1.3,
                       ),
                     ),
                   ],
@@ -112,18 +134,22 @@ class ExploreMinigameRow extends StatelessWidget {
 
   Widget _buildGuessCard(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>();
 
     return GestureDetector(
       onTap: () {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Đoán ảnh — sắp ra mắt!')),
+          SnackBar(content: Text(t.tr('Đoán ảnh — sắp ra mắt!'))),
         );
       },
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [colorScheme.surfaceContainerHighest, colorScheme.surfaceContainer],
+            colors: [
+              colorScheme.surfaceContainerHighest,
+              colorScheme.surfaceContainer
+            ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -134,22 +160,32 @@ class ExploreMinigameRow extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              width: 40, height: 40,
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
                 color: colorScheme.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Center(child: Text('🔍', style: TextStyle(fontSize: 20))),
+              child: const Center(
+                  child: Text('🔍', style: TextStyle(fontSize: 20))),
             ),
             const SizedBox(height: 10),
             Text(
-              'Đoán ảnh',
-              style: TextStyle(color: colorScheme.onSurface, fontSize: 14, fontWeight: FontWeight.w700),
+              t.tr('Đoán ảnh'),
+              style: TextStyle(
+                color: colorScheme.onSurface,
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+              ),
             ),
             const SizedBox(height: 4),
             Text(
-              'Nhận diện qua hình',
-              style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 11, height: 1.4),
+              t.tr('Nhận diện qua hình'),
+              style: TextStyle(
+                color: colorScheme.onSurfaceVariant,
+                fontSize: 11,
+                height: 1.4,
+              ),
             ),
           ],
         ),
@@ -159,6 +195,7 @@ class ExploreMinigameRow extends StatelessWidget {
 
   Widget _buildSoonCard(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>();
 
     return Opacity(
       opacity: 0.5,
@@ -175,24 +212,32 @@ class ExploreMinigameRow extends StatelessWidget {
             Stack(
               children: [
                 Container(
-                  width: 40, height: 40,
+                  width: 40,
+                  height: 40,
                   decoration: BoxDecoration(
                     color: colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Center(child: Text('🎯', style: TextStyle(fontSize: 20))),
+                  child: const Center(
+                      child: Text('🎯', style: TextStyle(fontSize: 20))),
                 ),
                 Positioned(
-                  top: -4, right: -4,
+                  top: -4,
+                  right: -4,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
                       color: colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      'Sắp ra',
-                      style: TextStyle(fontSize: 8, color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.w600),
+                      t.tr('Sắp ra'),
+                      style: TextStyle(
+                        fontSize: 8,
+                        color: colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
@@ -200,13 +245,21 @@ class ExploreMinigameRow extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Text(
-              'Phân loại',
-              style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 14, fontWeight: FontWeight.w700),
+              t.tr('Phân loại'),
+              style: TextStyle(
+                color: colorScheme.onSurfaceVariant,
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+              ),
             ),
             const SizedBox(height: 4),
             Text(
-              'Loại nào đúng?',
-              style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 11, height: 1.4),
+              t.tr('Loại nào đúng?'),
+              style: TextStyle(
+                color: colorScheme.onSurfaceVariant,
+                fontSize: 11,
+                height: 1.4,
+              ),
             ),
           ],
         ),

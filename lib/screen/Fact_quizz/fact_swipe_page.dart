@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:kltn_app/screen/Fact_quizz/widgets/fact_completion_sheet.dart';
 import 'package:provider/provider.dart';
 
-
 import '../ExploreScreen/explore_service.dart';
-
-// Import các widget con
 import '../quizz_page/quiz_page.dart';
 import 'widgets/fact_swipe_top_bar.dart';
 import 'widgets/fact_swipe_card.dart';
@@ -25,25 +22,28 @@ class _FactSwipePageState extends State<FactSwipePage>
   late AnimationController _fadeCtrl;
   late Animation<double> _fadeAnim;
 
-  // Màu sắc nhẹ nhàng, tươi sáng phù hợp chủ đề tự nhiên
   final List<Color> _accentColors = [
-    const Color(0xFFE8F5E9), // Xanh lá nhạt
-    const Color(0xFFE3F2FD), // Xanh dương nhạt
-    const Color(0xFFFFF3E0), // Cam nhạt
-    const Color(0xFFF3E5F5), // Tím nhạt
-    const Color(0xFFE0F2F1), // Teal nhạt
-    const Color(0xFFFFFDE7), // Vàng nhạt
-    const Color(0xFFEFEBE9), // Nâu nhạt
-    const Color(0xFFF1F8E9), // Lime nhạt
-    const Color(0xFFE8EAF6), // Indigo nhạt
-    const Color(0xFFFCE4EC), // Hồng nhạt
+    const Color(0xFFE8F5E9),
+    const Color(0xFFE3F2FD),
+    const Color(0xFFFFF3E0),
+    const Color(0xFFF3E5F5),
+    const Color(0xFFE0F2F1),
+    const Color(0xFFFFFDE7),
+    const Color(0xFFEFEBE9),
+    const Color(0xFFF1F8E9),
+    const Color(0xFFE8EAF6),
+    const Color(0xFFFCE4EC),
   ];
 
   @override
   void initState() {
     super.initState();
     final service = context.read<ExploreService>();
-    _currentIndex = (service.readCount).clamp(0, 9);
+
+    // FIX: Bắt đầu từ fact chưa đọc, không phải readCount
+    // readCount là số fact đã đọc → ta muốn tiếp tục từ đó
+    // Nhưng KHÔNG gọi markFactRead ở đây — chỉ gọi khi user thực sự xem card
+    _currentIndex = service.readCount.clamp(0, 9);
     _pageController = PageController(initialPage: _currentIndex);
 
     _fadeCtrl = AnimationController(
@@ -53,7 +53,10 @@ class _FactSwipePageState extends State<FactSwipePage>
     _fadeAnim = CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOut);
     _fadeCtrl.forward();
 
+    // FIX: Dùng addPostFrameCallback để đánh dấu card hiện tại SAU khi render
+    // Chỉ đánh dấu nếu đây là card chưa từng đọc (service tự check)
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // markFactRead tự bỏ qua nếu index đã có trong set
       context.read<ExploreService>().markFactRead(_currentIndex);
     });
   }
@@ -67,6 +70,7 @@ class _FactSwipePageState extends State<FactSwipePage>
 
   void _onPageChanged(int index) {
     setState(() => _currentIndex = index);
+    // FIX: markFactRead dùng Set nên gọi nhiều lần cùng index không sao
     context.read<ExploreService>().markFactRead(index);
   }
 
@@ -82,7 +86,6 @@ class _FactSwipePageState extends State<FactSwipePage>
       if (service.quizQuestions.isEmpty) {
         await Future.delayed(const Duration(milliseconds: 400));
       }
-
       if (mounted) _showCompletionSheet();
     }
   }
@@ -95,8 +98,8 @@ class _FactSwipePageState extends State<FactSwipePage>
       builder: (_) => FactCompletionSheet(
         onQuiz: () {
           final service = context.read<ExploreService>();
-          Navigator.pop(context);  // đóng bottom sheet
-          Navigator.pop(context);  // đóng FactSwipePage
+          Navigator.pop(context);
+          Navigator.pop(context);
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (_) => ChangeNotifierProvider.value(
@@ -107,8 +110,8 @@ class _FactSwipePageState extends State<FactSwipePage>
           );
         },
         onBack: () {
-          Navigator.pop(context);  // đóng bottom sheet
-          Navigator.pop(context);  // đóng FactSwipePage
+          Navigator.pop(context);
+          Navigator.pop(context);
         },
       ),
     );
@@ -116,14 +119,16 @@ class _FactSwipePageState extends State<FactSwipePage>
 
   @override
   Widget build(BuildContext context) {
-    final service = context.watch<ExploreService>();
-    final animals = service.dailyAnimals;
+    final service    = context.watch<ExploreService>();
+    final animals    = service.dailyAnimals;
     final colorScheme = Theme.of(context).colorScheme;
 
     if (animals.isEmpty) {
       return Scaffold(
         backgroundColor: colorScheme.surface,
-        body: Center(child: CircularProgressIndicator(color: colorScheme.primary)),
+        body: Center(
+          child: CircularProgressIndicator(color: colorScheme.primary),
+        ),
       );
     }
 

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../language/Locale_provider.dart';
 import '../../home/animal_category_model.dart';
 
 // ─────────────────────────────────────────────
@@ -112,7 +114,7 @@ class BreedListFilterBar extends StatelessWidget {
   final AnimalFilterState filterState;
   final ValueChanged<AnimalFilterState> onChanged;
   final AnimalCategory category;
-  final Set<String> favoriteIds; // truyền vào để biết có bao nhiêu yêu thích
+  final Set<String> favoriteIds;
 
   const BreedListFilterBar({
     super.key,
@@ -127,6 +129,7 @@ class BreedListFilterBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>();
 
     return SizedBox(
       height: 40,
@@ -193,7 +196,7 @@ class BreedListFilterBar extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────
-// Chip lọc yêu thích — style giống _FilterChip2
+// Chip lọc yêu thích
 // ─────────────────────────────────────────────
 class _FavoriteFilterChip extends StatelessWidget {
   final bool isActive;
@@ -210,6 +213,7 @@ class _FavoriteFilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.watch<LocaleProvider>();
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -235,7 +239,7 @@ class _FavoriteFilterChip extends StatelessWidget {
             ),
             const SizedBox(width: 5),
             Text(
-              'Yêu thích',
+              t.tr('Yêu thích'),
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
@@ -256,7 +260,7 @@ class _FavoriteFilterChip extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────
-// Sort chip — tap để cycle qua các sort option
+// Sort chip
 // ─────────────────────────────────────────────
 class _SortChip extends StatelessWidget {
   final AnimalFilterState filterState;
@@ -283,9 +287,10 @@ class _SortChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final current = _options.firstWhere((o) => o.$1 == filterState.sortField);
+    final t = context.watch<LocaleProvider>();
 
     return GestureDetector(
-      onTap: () => _showSortMenu(context),
+      onTap: () => _showSortMenu(context, t),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
         decoration: BoxDecoration(
@@ -299,7 +304,7 @@ class _SortChip extends StatelessWidget {
             Icon(current.$3, size: 14, color: accent),
             const SizedBox(width: 5),
             Text(
-              current.$2,
+              t.tr(current.$2),
               style: TextStyle(
                   fontSize: 12,
                   color: accent,
@@ -313,7 +318,7 @@ class _SortChip extends StatelessWidget {
     );
   }
 
-  void _showSortMenu(BuildContext context) {
+  void _showSortMenu(BuildContext context, LocaleProvider t) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -336,7 +341,7 @@ class _SortChip extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Text('Sắp xếp theo',
+            Text(t.tr('Sắp xếp theo'),
                 style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 15,
@@ -349,7 +354,7 @@ class _SortChip extends StatelessWidget {
                 leading: Icon(opt.$3,
                     color: selected ? accent : colorScheme.onSurfaceVariant,
                     size: 20),
-                title: Text(opt.$2,
+                title: Text(t.tr(opt.$2),
                     style: TextStyle(
                         color: selected ? accent : colorScheme.onSurface,
                         fontWeight: selected
@@ -380,7 +385,7 @@ class _FilterChip2 extends StatelessWidget {
   final String? selectedValue;
   final Color accent;
   final ColorScheme colorScheme;
-  final List<(String, String)> options; // (value, label)
+  final List<(String, String)> options;
   final ValueChanged<String?> onSelected;
 
   const _FilterChip2({
@@ -405,8 +410,9 @@ class _FilterChip2 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.watch<LocaleProvider>();
     return GestureDetector(
-      onTap: () => _showOptions(context),
+      onTap: () => _showOptions(context, t),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -430,7 +436,7 @@ class _FilterChip2 extends StatelessWidget {
                 color: _isActive ? accent : colorScheme.onSurfaceVariant),
             const SizedBox(width: 5),
             Text(
-              _displayLabel,
+              t.tr(_displayLabel),
               style: TextStyle(
                 fontSize: 12,
                 color: _isActive ? accent : colorScheme.onSurfaceVariant,
@@ -450,8 +456,7 @@ class _FilterChip2 extends StatelessWidget {
     );
   }
 
-  void _showOptions(BuildContext context) {
-    // Nếu đang active → tap để clear
+  void _showOptions(BuildContext context, LocaleProvider t) {
     if (_isActive) {
       onSelected(null);
       return;
@@ -483,7 +488,7 @@ class _FilterChip2 extends StatelessWidget {
               children: [
                 Icon(icon, size: 18, color: accent),
                 const SizedBox(width: 8),
-                Text(label,
+                Text(t.tr(label),
                     style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
@@ -493,7 +498,7 @@ class _FilterChip2 extends StatelessWidget {
             const SizedBox(height: 12),
             ...options.map((opt) => ListTile(
               dense: true,
-              title: Text(opt.$2,
+              title: Text(t.tr(opt.$2),
                   style: TextStyle(
                       fontSize: 13, color: colorScheme.onSurface)),
               trailing: selectedValue == opt.$1
@@ -529,6 +534,7 @@ class _ResetChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.watch<LocaleProvider>();
     return GestureDetector(
       onTap: onReset,
       child: Container(
@@ -545,7 +551,7 @@ class _ResetChip extends StatelessWidget {
             Icon(Icons.filter_alt_off,
                 size: 13, color: colorScheme.error),
             const SizedBox(width: 4),
-            Text('Xoá ($count)',
+            Text('${t.tr('Xoá')} ($count)',
                 style: TextStyle(
                     fontSize: 12,
                     color: colorScheme.error,

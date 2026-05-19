@@ -202,8 +202,9 @@ class _FeedbackFormState extends State<_FeedbackForm> {
   }
 
   Future<void> _pickMedia({required bool isVideo}) async {
+    final t = context.read<LocaleProvider>();
     if (_mediaFiles.length >= _maxFiles) {
-      _showSnack('Tối đa $_maxFiles file mỗi lần gửi');
+      _showSnack(t.tr('Tối đa 5 file mỗi lần gửi'));
       return;
     }
     try {
@@ -215,13 +216,14 @@ class _FeedbackFormState extends State<_FeedbackForm> {
       }
       if (file != null) setState(() => _mediaFiles.add(file!));
     } catch (_) {
-      _showSnack('Không thể chọn file. Kiểm tra quyền truy cập.');
+      _showSnack(t.tr('Không thể chọn file. Kiểm tra quyền truy cập.'));
     }
   }
 
   void _removeFile(int index) => setState(() => _mediaFiles.removeAt(index));
 
   Future<void> _submit() async {
+    final t = context.read<LocaleProvider>();
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isSubmitting = true);
 
@@ -246,7 +248,7 @@ class _FeedbackFormState extends State<_FeedbackForm> {
       setState(() { _isSubmitting = false; _submitted = true; });
     } catch (e) {
       setState(() => _isSubmitting = false);
-      _showSnack('Gửi thất bại: $e');
+      _showSnack('${t.tr('Gửi thất bại:')} $e');
     }
   }
 
@@ -262,8 +264,9 @@ class _FeedbackFormState extends State<_FeedbackForm> {
     final cs      = Theme.of(context).colorScheme;
     final isDark  = Theme.of(context).brightness == Brightness.dark;
     final isLoggedIn = AuthService.isLoggedIn;
+    final t       = context.watch<LocaleProvider>();
 
-    if (_submitted) return _buildSuccess(cs);
+    if (_submitted) return _buildSuccess(cs, t);
 
     final cardBg     = isDark ? Colors.grey[850] : cs.surface;
     final borderCol  = isDark ? Colors.white12 : cs.outlineVariant.withOpacity(0.5);
@@ -282,7 +285,7 @@ class _FeedbackFormState extends State<_FeedbackForm> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── Loại phản hồi ─────────────────────────────────
-            Text('Loại phản hồi', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: cs.onSurfaceVariant)),
+            Text(t.tr('Loại phản hồi'), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: cs.onSurfaceVariant)),
             const SizedBox(height: 10),
             _TypeSelector(
               selected: _type,
@@ -294,9 +297,9 @@ class _FeedbackFormState extends State<_FeedbackForm> {
 
             // ── Thông tin người dùng ──────────────────────────
             if (!isLoggedIn) ...[
-              Text('Thông tin của bạn (tùy chọn)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: cs.onSurfaceVariant)),
+              Text(t.tr('Thông tin của bạn (tùy chọn)'), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: cs.onSurfaceVariant)),
               const SizedBox(height: 10),
-              _buildField(_nameCtrl,  'Họ tên', Icons.person_outline_rounded, cs),
+              _buildField(_nameCtrl,  t.tr('Họ tên'), Icons.person_outline_rounded, cs),
               const SizedBox(height: 10),
               _buildField(_emailCtrl, 'Email', Icons.email_outlined, cs, type: TextInputType.emailAddress),
               const SizedBox(height: 20),
@@ -307,7 +310,7 @@ class _FeedbackFormState extends State<_FeedbackForm> {
             ],
 
             // ── Mô tả ─────────────────────────────────────────
-            Text('Mô tả chi tiết *', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: cs.onSurfaceVariant)),
+            Text(t.tr('Mô tả chi tiết *'), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: cs.onSurfaceVariant)),
             const SizedBox(height: 10),
             TextFormField(
               controller: _descCtrl,
@@ -316,20 +319,20 @@ class _FeedbackFormState extends State<_FeedbackForm> {
               decoration: _inputDeco(
                 cs: cs,
                 hint: _type == 'bug'
-                    ? 'Mô tả lỗi bạn gặp phải, các bước tái hiện lỗi...'
+                    ? t.tr('Mô tả lỗi bạn gặp phải, các bước tái hiện lỗi...')
                     : _type == 'suggestion'
-                    ? 'Tính năng bạn muốn thêm, cải tiến mong muốn...'
-                    : 'Nội dung góp ý của bạn...',
+                    ? t.tr('Tính năng bạn muốn thêm, cải tiến mong muốn...')
+                    : t.tr('Nội dung góp ý của bạn...'),
               ),
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'Vui lòng mô tả vấn đề' : null,
+              validator: (v) => (v == null || v.trim().isEmpty) ? t.tr('Vui lòng mô tả vấn đề') : null,
             ),
 
             const SizedBox(height: 20),
 
             // ── Upload media ──────────────────────────────────
-            Text('Đính kèm ảnh / video (tùy chọn)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: cs.onSurfaceVariant)),
+            Text(t.tr('Đính kèm ảnh / video (tùy chọn)'), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: cs.onSurfaceVariant)),
             const SizedBox(height: 4),
-            Text('Tối đa $_maxFiles file · Ảnh hoặc video ≤ 2 phút', style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant.withOpacity(0.6))),
+            Text(t.tr('Tối đa 5 file · Ảnh hoặc video ≤ 2 phút'), style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant.withOpacity(0.6))),
             const SizedBox(height: 10),
 
             // Grid preview media đã chọn
@@ -344,14 +347,14 @@ class _FeedbackFormState extends State<_FeedbackForm> {
                 children: [
                   _MediaPickerBtn(
                     icon: Icons.image_outlined,
-                    label: 'Chọn ảnh',
+                    label: t.tr('Chọn ảnh'),
                     color: Colors.blue,
                     onTap: () => _pickMedia(isVideo: false),
                   ),
                   const SizedBox(width: 10),
                   _MediaPickerBtn(
                     icon: Icons.videocam_outlined,
-                    label: 'Chọn video',
+                    label: t.tr('Chọn video'),
                     color: Colors.purple,
                     onTap: () => _pickMedia(isVideo: true),
                   ),
@@ -368,7 +371,7 @@ class _FeedbackFormState extends State<_FeedbackForm> {
                 icon: _isSubmitting
                     ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                     : const Icon(Icons.send_rounded),
-                label: Text(_isSubmitting ? 'Đang gửi...' : 'Gửi phản hồi'),
+                label: Text(_isSubmitting ? t.tr('Đang gửi...') : t.tr('Gửi phản hồi')),
                 style: FilledButton.styleFrom(
                   backgroundColor: widget.primaryGreen,
                   minimumSize: const Size.fromHeight(50),
@@ -382,7 +385,7 @@ class _FeedbackFormState extends State<_FeedbackForm> {
     );
   }
 
-  Widget _buildSuccess(ColorScheme cs) {
+  Widget _buildSuccess(ColorScheme cs, LocaleProvider t) {
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
@@ -398,17 +401,17 @@ class _FeedbackFormState extends State<_FeedbackForm> {
             child: const Center(child: Text('✅', style: TextStyle(fontSize: 32))),
           ),
           const SizedBox(height: 16),
-          Text('Đã gửi thành công!', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: cs.onSurface)),
+          Text(t.tr('Đã gửi thành công!'), style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: cs.onSurface)),
           const SizedBox(height: 8),
           Text(
-            'Cảm ơn bạn đã góp ý. Chúng tôi sẽ xem xét và phản hồi sớm nhất có thể.',
+            t.tr('Cảm ơn bạn đã góp ý. Chúng tôi sẽ xem xét và phản hồi sớm nhất có thể.'),
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant, height: 1.6),
           ),
           const SizedBox(height: 20),
           OutlinedButton(
             onPressed: () => setState(() { _submitted = false; _descCtrl.clear(); _mediaFiles.clear(); }),
-            child: const Text('Gửi thêm phản hồi'),
+            child: Text(t.tr('Gửi thêm phản hồi')),
           ),
         ],
       ),
@@ -449,9 +452,10 @@ class _LoggedInUserInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs   = Theme.of(context).colorScheme;
+    final t    = context.watch<LocaleProvider>();
     final user = AuthService.currentUser;
     final meta = user?.userMetadata;
-    final name  = (meta?['full_name'] as String?) ?? 'Người dùng';
+    final name  = (meta?['full_name'] as String?) ?? t.tr('Người dùng');
     final email = user?.email ?? '';
     final avatar = meta?['avatar_url'] as String?;
 
@@ -498,18 +502,20 @@ class _TypeSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final t  = context.watch<LocaleProvider>();
+
     final types = [
-      ('bug',        '🐛', 'Báo lỗi'),
-      ('suggestion', '💡', 'Góp ý'),
-      ('other',      '💬', 'Khác'),
+      ('bug',        '🐛', t.tr('Báo lỗi')),
+      ('suggestion', '💡', t.tr('Góp ý')),
+      ('other',      '💬', t.tr('Khác')),
     ];
 
     return Row(
-      children: types.map((t) {
-        final isSelected = selected == t.$1;
+      children: types.map((typeObj) {
+        final isSelected = selected == typeObj.$1;
         return Expanded(
           child: GestureDetector(
-            onTap: () => onChanged(t.$1),
+            onTap: () => onChanged(typeObj.$1),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               margin: const EdgeInsets.only(right: 8),
@@ -521,9 +527,9 @@ class _TypeSelector extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  Text(t.$2, style: const TextStyle(fontSize: 20)),
+                  Text(typeObj.$2, style: const TextStyle(fontSize: 20)),
                   const SizedBox(height: 4),
-                  Text(t.$3, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: isSelected ? primaryGreen : cs.onSurfaceVariant)),
+                  Text(typeObj.$3, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: isSelected ? primaryGreen : cs.onSurfaceVariant)),
                 ],
               ),
             ),
@@ -599,7 +605,6 @@ class _MediaPickerBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     return Expanded(
       child: GestureDetector(
         onTap: onTap,

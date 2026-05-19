@@ -3,6 +3,8 @@ import 'package:kltn_app/screen/IDENTIFY%20SCREEN/service/Identify_service.dart'
 import 'package:provider/provider.dart';
 
 import '../Animal_detail/Animal detail screen.dart';
+
+import '../language/Locale_provider.dart';
 import 'widgets/identify_header.dart';
 import 'widgets/identify_image_frame.dart';
 import 'widgets/identify_action_buttons.dart';
@@ -59,25 +61,25 @@ class _IdentifyViewState extends State<IdentifyView> with SingleTickerProviderSt
     _cardAnimCtrl.forward(from: 0);
   }
 
-  void _openDetail(String? resultAnimalId) {
+  void _openDetail(String? resultAnimalId, LocaleProvider t) {
     if (resultAnimalId == null) return;
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => AnimalDetailScreen(
           animalId: resultAnimalId,
-          category: _buildCatCategory(),
+          category: _buildCatCategory(t),
         ),
       ),
     );
   }
 
-  AnimalCategory _buildCatCategory() {
+  AnimalCategory _buildCatCategory(LocaleProvider t) {
     return AnimalCategory.getById('cat') ??
         AnimalCategory(
-          id: 'cat', nameVi: 'Mèo', nameEn: 'Cat',
+          id: 'cat', nameVi: t.tr('Mèo'), nameEn: 'Cat',
           icon: Icons.pets, gradient: [const Color(0xFFEC4899), const Color(0xFFDB2777)],
-          imageAssetPath: 'assets/animals/cat.jpg', totalExpected: 73,
+          imageAssetPath: 'assets/animals/cat.jpg', totalExpected: 73, animalType: 'cat',
         );
   }
 
@@ -85,6 +87,7 @@ class _IdentifyViewState extends State<IdentifyView> with SingleTickerProviderSt
   Widget build(BuildContext context) {
     final service = context.watch<IdentifyService>();
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>();
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -121,7 +124,7 @@ class _IdentifyViewState extends State<IdentifyView> with SingleTickerProviderSt
                           service: service,
                           fadeAnim: _cardFadeAnim,
                           slideAnim: _cardSlideAnim,
-                          onOpenDetail: () => _openDetail(service.resultAnimalId),
+                          onOpenDetail: () => _openDetail(service.resultAnimalId, t),
                         ),
                       ],
                     ),

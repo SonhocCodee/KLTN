@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../home/animal_category_model.dart';
+import '../../language/Locale_provider.dart';
 
 class AnimalDetailTitle extends StatelessWidget {
   final Map<String, dynamic> animal;
@@ -10,7 +12,9 @@ class AnimalDetailTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final nameVi = animal['name_vietnamese'] ?? 'Chưa có tên';
+    final t = context.watch<LocaleProvider>();
+
+    final nameVi = animal['name_vietnamese'] ?? t.tr('Chưa có tên');
     final nameEn = animal['name_english'] ?? '';
     final scientificName = animal['scientific_name'] ?? '';
 
@@ -26,12 +30,12 @@ class AnimalDetailTitle extends StatelessWidget {
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
-              category.nameVi.toUpperCase(),
+              t.tr(category.nameVi).toUpperCase(),
               style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: category.gradient[0], letterSpacing: 1.2),
             ),
           ),
           const SizedBox(height: 12),
-          Text(nameVi, style: TextStyle(fontSize: 34, fontWeight: FontWeight.w800, color: colorScheme.onSurface, height: 1.1, letterSpacing: -0.5)),
+          Text(t.tr(nameVi), style: TextStyle(fontSize: 34, fontWeight: FontWeight.w800, color: colorScheme.onSurface, height: 1.1, letterSpacing: -0.5)),
           if (nameEn.isNotEmpty) ...[
             const SizedBox(height: 6),
             Text(nameEn, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: category.gradient[0], letterSpacing: 0.1)),

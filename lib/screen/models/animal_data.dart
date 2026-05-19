@@ -1,3 +1,5 @@
+import '../language/Locale_provider.dart'; // Chú ý: Đảm bảo đường dẫn này đúng với project của bạn
+
 class AnimalData {
   final String name;
   final String taxonomy;
@@ -58,34 +60,35 @@ class AnimalData {
     };
   }
 
-  AnimalFact toAnimalFact() {
+  // Bổ sung tham số LocaleProvider t vào hàm này
+  AnimalFact toAnimalFact(LocaleProvider t) {
     final facts = <String>[];
 
     if (characteristics['top_speed'] != null) {
-      facts.add('Tốc độ: ${characteristics['top_speed']}');
+      facts.add('${t.tr('Tốc độ:')} ${characteristics['top_speed']}');
     }
     if (characteristics['weight'] != null) {
-      facts.add('Cân nặng: ${characteristics['weight']}');
+      facts.add('${t.tr('Cân nặng:')} ${characteristics['weight']}');
     }
     if (characteristics['height'] != null) {
-      facts.add('Chiều cao: ${characteristics['height']}');
+      facts.add('${t.tr('Chiều cao:')} ${characteristics['height']}');
     }
     if (characteristics['lifespan'] != null) {
-      facts.add('Tuổi thọ: ${characteristics['lifespan']}');
+      facts.add('${t.tr('Tuổi thọ:')} ${characteristics['lifespan']}');
     }
     if (characteristics['diet'] != null) {
-      facts.add('Chế độ ăn: ${characteristics['diet']}');
+      facts.add('${t.tr('Chế độ ăn:')} ${characteristics['diet']}');
     }
 
     final imageUrl = remoteImageUrl ??
         'https://upload.wikimedia.org/wikipedia/commons/7/73/Lion_waiting_in_Namibia.jpg';
 
     return AnimalFact(
-      name: _getVietnameseName(name),
+      name: t.tr(_getVietnameseName(name)), // Bọc t.tr để dịch ngược tên con vật ra tiếng Anh
       englishName: name,
       scientificName: taxonomy,
-      description: aiDescription ?? _generateDescription(), // ← Ưu tiên Groq desc
-      facts: facts.isEmpty ? ['Đang cập nhật thông tin...'] : facts,
+      description: aiDescription ?? _generateDescription(t), // Truyền t vào desc
+      facts: facts.isEmpty ? [t.tr('Đang cập nhật thông tin...')] : facts,
       imageUrl: imageUrl,
       category: characteristics['diet'] ?? 'Unknown',
     );
@@ -157,28 +160,27 @@ class AnimalData {
     return nameMap[englishName.toLowerCase()] ?? englishName;
   }
 
-  // Chỉ dùng khi Groq thất bại — đã bỏ câu generic
-  String _generateDescription() {
+  // Truyền tham số t vào đây
+  String _generateDescription(LocaleProvider t) {
     final parts = <String>[];
 
     if (characteristics['habitat'] != null) {
-      parts.add('Môi trường sống: ${characteristics['habitat']}');
+      parts.add('${t.tr('Môi trường sống:')} ${characteristics['habitat']}');
     } else if (locations.isNotEmpty) {
-      // Locations đã được Việt hóa bởi _localizeLocations() trong api service
-      parts.add('Phân bố tại ${locations.take(2).join(', ')}');
+      parts.add('${t.tr('Phân bố tại')} ${locations.take(2).join(', ')}');
     }
 
     if (characteristics['diet'] != null) {
-      parts.add('chế độ ăn ${characteristics['diet']}');
+      parts.add('${t.tr('chế độ ăn')} ${characteristics['diet']}');
     }
 
     if (characteristics['top_speed'] != null) {
-      parts.add('tốc độ tối đa ${characteristics['top_speed']}');
+      parts.add('${t.tr('tốc độ tối đa')} ${characteristics['top_speed']}');
     }
 
     return parts.isEmpty
-        ? 'Đang cập nhật mô tả cho loài này.'
-        : parts.join('. ') + '.';
+        ? t.tr('Đang cập nhật mô tả cho loài này.')
+        : '${parts.join('. ')}.';
   }
 }
 

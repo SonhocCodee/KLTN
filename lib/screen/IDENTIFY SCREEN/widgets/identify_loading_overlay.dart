@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../language/Locale_provider.dart'; // Đảm bảo import Locale_provider
 import '../service/Identify_service.dart';
 
 class IdentifyLoadingOverlay extends StatelessWidget {
@@ -10,6 +13,8 @@ class IdentifyLoadingOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>();
+
     if (!service.isAnalyzing) return const SizedBox.shrink();
 
     return Container(
@@ -33,10 +38,10 @@ class IdentifyLoadingOverlay extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 24),
-              Text('Đang đánh hơi...', style: TextStyle(color: colorScheme.onSurface, fontSize: 18, fontWeight: FontWeight.bold)),
+              Text(t.tr('Đang đánh hơi...'), style: TextStyle(color: colorScheme.onSurface, fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               Text(
-                service.aiSource == 'groq' ? '⚡ Groq Llama 4 đang dò tìm' : ' Đang nhận diện',
+                service.aiSource == 'groq' ? t.tr('⚡ Groq Llama 4 đang dò tìm') : t.tr(' Đang nhận diện'),
                 style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 14),
               ),
             ],

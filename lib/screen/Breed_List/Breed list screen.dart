@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:kltn_app/screen/Breed_List/widgets/Breed_list_filter.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/animal_home_service.dart';
 import '../Animal_detail/Animal detail screen.dart';
 import '../home/animal_category_model.dart';
+import '../language/Locale_provider.dart';
 import '../profile/favorite_service.dart';
 
 // Import các widgets đã tách
@@ -70,7 +72,6 @@ class _BreedListScreenState extends State<BreedListScreen> {
         _isLoading = false;
       });
     } catch (e) {
-      debugPrint('❌ Error loading animals: $e');
       // fallback về service cũ nếu lỗi
       try {
         final animals = await _service.getAnimalsByType(widget.category.id);
@@ -102,6 +103,7 @@ class _BreedListScreenState extends State<BreedListScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final t = context.watch<LocaleProvider>();
 
     return Scaffold(
       body: Container(
@@ -148,7 +150,7 @@ class _BreedListScreenState extends State<BreedListScreen> {
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'Tìm thấy ${_filteredAnimals.length} loài',
+                      '${t.tr('Tìm thấy')} ${_filteredAnimals.length} ${t.tr('loài')}',
                       style: TextStyle(
                           fontSize: 12,
                           color: colorScheme.onSurfaceVariant),

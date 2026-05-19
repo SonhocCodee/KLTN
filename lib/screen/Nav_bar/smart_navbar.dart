@@ -2,6 +2,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
+import '../language/Locale_provider.dart'; // Đảm bảo đường dẫn này đúng
 
 class SmartNavBar extends StatefulWidget {
   final int currentIndex;
@@ -74,6 +76,7 @@ class _SmartNavBarState extends State<SmartNavBar>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final t = context.watch<LocaleProvider>();
 
     // MÀU CHUNG CHO CẢ 2 MODE
     final inactiveColor = isDark ? Colors.white70 : Colors.black87;
@@ -84,14 +87,14 @@ class _SmartNavBarState extends State<SmartNavBar>
       child: ClipRRect(
         borderRadius: BorderRadius.circular(30.r),
         child: isDark
-            ? _buildDarkMode(activeColor, inactiveColor) // DARK: CODE CŨ BẠN THÍCH
-            : _buildLightMode(activeColor, inactiveColor), // LIGHT: CODE MỚI ĐẸP
+            ? _buildDarkMode(activeColor, inactiveColor, t) // DARK: CODE CŨ BẠN THÍCH
+            : _buildLightMode(activeColor, inactiveColor, t), // LIGHT: CODE MỚI ĐẸP
       ),
     );
   }
 
   // DARK MODE: DÙNG CODE CŨ BẠN THÍCH (BLUR + MỜ NHẸ)
-  Widget _buildDarkMode(Color activeColor, Color inactiveColor) {
+  Widget _buildDarkMode(Color activeColor, Color inactiveColor, LocaleProvider t) {
     return BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 9, sigmaY: 9),
       child: AnimatedContainer(
@@ -102,37 +105,37 @@ class _SmartNavBarState extends State<SmartNavBar>
           borderRadius: BorderRadius.circular(30.r),
           border: Border.all(color: Colors.white.withOpacity(0.2)),
         ),
-        child: _buildContent(activeColor, inactiveColor),
+        child: _buildContent(activeColor, inactiveColor, t),
       ),
     );
   }
 
   // LIGHT MODE: DÙNG CODE MỚI ĐẸP (NỀN TRẮNG MỜ + BÓNG ĐỔ)
-  Widget _buildLightMode(Color activeColor, Color inactiveColor) {
-    return BackdropFilter(  // ← THÊM DÒNG NÀY
-      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),  // ← THÊM DÒNG NÀY
+  Widget _buildLightMode(Color activeColor, Color inactiveColor, LocaleProvider t) {
+    return BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         height: 65.h,
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.3),  // ← GIẢM TỪ 0.75 XUỐNG 0.3
+          color: Colors.white.withOpacity(0.3),
           borderRadius: BorderRadius.circular(30.r),
           border: Border.all(color: Colors.black.withOpacity(0.1), width: 1.0),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),  // ← GIẢM TỪ 0.1 XUỐNG 0.05
-              blurRadius: 8,  // ← GIẢM TỪ 12 XUỐNG 8
-              offset: const Offset(0, 2),  // ← GIẢM TỪ 4 XUỐNG 2
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
-        child: _buildContent(activeColor, inactiveColor),
+        child: _buildContent(activeColor, inactiveColor, t),
       ),
-    );  // ← THÊM DÒNG NÀY
+    );
   }
 
   // NỘI DUNG CHUNG CHO CẢ 2 MODE
-  Widget _buildContent(Color activeColor, Color inactiveColor) {
+  Widget _buildContent(Color activeColor, Color inactiveColor, LocaleProvider t) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final itemWidth = constraints.maxWidth / 5;
@@ -176,6 +179,7 @@ class _SmartNavBarState extends State<SmartNavBar>
                     index,
                     activeColor,
                     inactiveColor,
+                    t,
                   ),
                 );
               }),
@@ -192,6 +196,7 @@ class _SmartNavBarState extends State<SmartNavBar>
       int index,
       Color active,
       Color inactive,
+      LocaleProvider t,
       ) {
     final isActive = index == widget.currentIndex;
     return GestureDetector(
@@ -211,7 +216,7 @@ class _SmartNavBarState extends State<SmartNavBar>
             ),
             SizedBox(height: 2.h),
             Text(
-              label,
+              t.tr(label), // <-- Đã thêm gọi t.tr() để dịch
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,

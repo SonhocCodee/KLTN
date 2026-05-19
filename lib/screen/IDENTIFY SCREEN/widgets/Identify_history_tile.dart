@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../language/Locale_provider.dart'; // Đảm bảo import Locale_provider
 import '../../Animal_detail/Animal detail screen.dart';
 import '../../home/animal_category_model.dart';
 import '../service/Identify_service.dart';
@@ -29,26 +32,26 @@ class IdentifyHistoryTile extends StatelessWidget {
     }
   }
 
-  String _formatDate(DateTime dt) {
+  String _formatDate(DateTime dt, LocaleProvider t) {
     final now = DateTime.now();
     final diff = now.difference(dt);
-    if (diff.inMinutes < 1) return 'Vừa xong';
-    if (diff.inMinutes < 60) return '${diff.inMinutes} phút trước';
-    if (diff.inHours < 24) return '${diff.inHours} giờ trước';
-    if (diff.inDays == 1) return 'Hôm qua';
-    if (diff.inDays < 7) return '${diff.inDays} ngày trước';
+    if (diff.inMinutes < 1) return t.tr('Vừa xong');
+    if (diff.inMinutes < 60) return '${diff.inMinutes} ${t.tr('phút trước')}';
+    if (diff.inHours < 24) return '${diff.inHours} ${t.tr('giờ trước')}';
+    if (diff.inDays == 1) return t.tr('Hôm qua');
+    if (diff.inDays < 7) return '${diff.inDays} ${t.tr('ngày trước')}';
     return '${dt.day}/${dt.month}/${dt.year}';
   }
 
-  void _openDetail(BuildContext context) {
+  void _openDetail(BuildContext context, LocaleProvider t) {
     if (item.animalId == null) return;
     final category = AnimalCategory.getById('cat') ??
         AnimalCategory(
-          id: 'cat', nameVi: 'Mèo', nameEn: 'Cat',
+          id: 'cat', nameVi: t.tr('Mèo'), nameEn: 'Cat',
           icon: Icons.pets,
           gradient: [const Color(0xFFEC4899), const Color(0xFFDB2777)],
           imageAssetPath: 'assets/animals/cat.jpg',
-          totalExpected: 73,
+          totalExpected: 73, animalType: 'cat',
         );
     Navigator.push(
       context,
@@ -64,6 +67,7 @@ class IdentifyHistoryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>();
     final ai = _aiStyle(item.aiSource, colorScheme);
     final canNavigate = item.animalId != null;
 
@@ -77,18 +81,18 @@ class IdentifyHistoryTile extends StatelessWidget {
           color: Colors.redAccent.withOpacity(0.15),
           borderRadius: BorderRadius.circular(20),
         ),
-        child: const Column(
+        child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.delete_rounded, color: Colors.redAccent, size: 28),
-            SizedBox(height: 4),
-            Text('Xoá', style: TextStyle(color: Colors.redAccent, fontSize: 12, fontWeight: FontWeight.bold)),
+            const Icon(Icons.delete_rounded, color: Colors.redAccent, size: 28),
+            const SizedBox(height: 4),
+            Text(t.tr('Xoá'), style: const TextStyle(color: Colors.redAccent, fontSize: 12, fontWeight: FontWeight.bold)),
           ],
         ),
       ),
       onDismissed: (_) => onDelete(),
       child: GestureDetector(
-        onTap: canNavigate ? () => _openDetail(context) : null,
+        onTap: canNavigate ? () => _openDetail(context, t) : null,
         child: Container(
           decoration: BoxDecoration(
             color: colorScheme.surfaceContainerHighest,
@@ -195,7 +199,7 @@ class IdentifyHistoryTile extends StatelessWidget {
                           // Thời gian
                           Expanded(
                             child: Text(
-                              _formatDate(item.createdAt),
+                              _formatDate(item.createdAt, t),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
@@ -206,9 +210,9 @@ class IdentifyHistoryTile extends StatelessWidget {
                       // Cảnh báo không có trong DB
                       if (!canNavigate) ...[
                         const SizedBox(height: 6),
-                        const Text(
-                          'Chưa có trong từ điển',
-                          style: TextStyle(fontSize: 11, color: Colors.redAccent, fontWeight: FontWeight.w600),
+                        Text(
+                          t.tr('Chưa có trong từ điển'),
+                          style: const TextStyle(fontSize: 11, color: Colors.redAccent, fontWeight: FontWeight.w600),
                         ),
                       ],
                     ],

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../language/Locale_provider.dart';
 import '../explore_service.dart';
 
 class ExploreStats extends StatelessWidget {
@@ -9,22 +12,39 @@ class ExploreStats extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Row(
         children: [
-          _statCard(context, '${service.totalFactsRead}', 'Facts đã đọc', colorScheme.primary),
+          _statCard(
+            context,
+            '${service.totalFactsRead}',
+            t.tr('Facts đã đọc'),
+            colorScheme.primary,
+          ),
           const SizedBox(width: 10),
-          _statCard(context, '${service.quizCorrectPct}%', 'Quiz đúng', const Color(0xFF22C55E)),
+          _statCard(
+            context,
+            '${service.quizCorrectPct}%',
+            t.tr('Quiz đúng'),
+            const Color(0xFF22C55E),
+          ),
           const SizedBox(width: 10),
-          _statCard(context, '${service.totalSpecies}', 'Loài khám phá', const Color(0xFFF97316)),
+          _statCard(
+            context,
+            '${service.totalSpecies}',
+            t.tr('Loài khám phá'),
+            const Color(0xFFF97316),
+          ),
         ],
       ),
     );
   }
 
-  Widget _statCard(BuildContext context, String value, String label, Color color) {
+  Widget _statCard(
+      BuildContext context, String value, String label, Color color) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Expanded(
@@ -39,12 +59,19 @@ class ExploreStats extends StatelessWidget {
           children: [
             Text(
               value,
-              style: TextStyle(color: color, fontSize: 22, fontWeight: FontWeight.w700),
+              style: TextStyle(
+                color: color,
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+              ),
             ),
             const SizedBox(height: 2),
             Text(
               label,
-              style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 11),
+              style: TextStyle(
+                color: colorScheme.onSurfaceVariant,
+                fontSize: 11,
+              ),
               textAlign: TextAlign.center,
             ),
           ],

@@ -4,7 +4,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import '../../services/animal_home_service.dart';
+import '../Animal_detail/Animal detail screen.dart';
 import 'favorite_service.dart'; // để load chi tiết loài
+import '../home/animal_category_model.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -762,10 +764,29 @@ class _ProfilePageState extends State<ProfilePage>
 
     return GestureDetector(
       onTap: () {
-        // Navigate tới detail screen — điều chỉnh route name / arguments theo app của bạn
-        // Ví dụ:
-        // Navigator.pushNamed(context, '/animal-detail',
-        //     arguments: {'animalId': animalId, 'category': ...});
+        // Lấy category từ data animal, fallback về category mặc định nếu không tìm thấy
+        final categoryId = animal['category_id'] as String? ?? '';
+        final category = AnimalCategory.getById(categoryId) ??
+            AnimalCategory(
+              id: categoryId,
+              nameVi: 'Động vật',
+              nameEn: 'Animal',
+              icon: Icons.pets,
+              gradient: const [Color(0xFF4CAF50), Color(0xFF2E7D32)],
+              imageAssetPath: '',
+              totalExpected: 0,
+              animalType: categoryId,
+            );
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => AnimalDetailScreen(
+              animalId: animalId,
+              category: category,
+            ),
+          ),
+        );
       },
       child: Container(
         width: 120,

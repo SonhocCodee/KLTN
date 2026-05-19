@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import '../language/Locale_provider.dart';
+
 import '../Fact_quizz/fact_swipe_page.dart';
 import '../quizz_page/quiz_page.dart';
 import 'explore_service.dart';
@@ -30,21 +33,21 @@ class _ExplorePageState extends State<ExplorePage> {
 
   @override
   Widget build(BuildContext context) {
-    // 1. Gọi colorScheme ở màn hình tổng
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>();
 
     return Consumer<ExploreService>(
       builder: (context, service, _) {
         if (service.isLoading) {
           return Scaffold(
-            backgroundColor: colorScheme.surface, // Dùng surface thay vì xám cứng
+            backgroundColor: colorScheme.surface,
             body: Center(
               child: CircularProgressIndicator(color: colorScheme.primary),
             ),
           );
         }
         return Scaffold(
-          backgroundColor: colorScheme.surface, // Dùng surface thay vì xám cứng
+          backgroundColor: colorScheme.surface,
           body: SafeArea(
             bottom: false,
             child: CustomScrollView(
@@ -52,8 +55,9 @@ class _ExplorePageState extends State<ExplorePage> {
               slivers: [
                 const SliverToBoxAdapter(child: ExploreHeader()),
                 SliverToBoxAdapter(child: ExploreStreakBar(service: service)),
-                const SliverToBoxAdapter(
-                  child: ExploreSectionLabel(text: 'Hành trình hôm nay'),
+                SliverToBoxAdapter(
+                  child: ExploreSectionLabel(
+                      text: t.tr('Hành trình hôm nay')),
                 ),
                 SliverToBoxAdapter(
                   child: ExploreHeroCard(
@@ -61,7 +65,9 @@ class _ExplorePageState extends State<ExplorePage> {
                     onTap: () => _goToFacts(service),
                   ),
                 ),
-                const SliverToBoxAdapter(child: ExploreSectionLabel(text: 'Minigame')),
+                SliverToBoxAdapter(
+                  child: ExploreSectionLabel(text: t.tr('Minigame')),
+                ),
                 SliverToBoxAdapter(
                   child: ExploreMinigameRow(
                     service: service,
@@ -70,8 +76,9 @@ class _ExplorePageState extends State<ExplorePage> {
                 ),
                 if (!service.isQuizUnlocked)
                   SliverToBoxAdapter(child: ExploreUnlockHint(service: service)),
-                const SliverToBoxAdapter(
-                  child: ExploreSectionLabel(text: 'Thống kê của bạn'),
+                SliverToBoxAdapter(
+                  child: ExploreSectionLabel(
+                      text: t.tr('Thống kê của bạn')),
                 ),
                 SliverToBoxAdapter(child: ExploreStats(service: service)),
                 const SliverToBoxAdapter(child: SizedBox(height: 100)),
@@ -106,9 +113,6 @@ class _ExplorePageState extends State<ExplorePage> {
           child: const QuizPage(),
         ),
       ),
-
     );
-
   }
-
 }

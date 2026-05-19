@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../language/Locale_provider.dart';
 import 'animal_detail_utils.dart';
 
 class AnimalDetailTaxonomy extends StatelessWidget {
@@ -9,20 +11,22 @@ class AnimalDetailTaxonomy extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>();
+
     final items = <Map<String, String>>[];
-    if (animal['kingdom'] != null) items.add({'icon': '🌐', 'label': 'Giới', 'value': animal['kingdom']});
-    if (animal['phylum'] != null) items.add({'icon': '🔗', 'label': 'Ngành', 'value': animal['phylum']});
-    if (animal['class'] != null) items.add({'icon': '📦', 'label': 'Lớp', 'value': animal['class']});
-    if (animal['order_name'] != null) items.add({'icon': '📂', 'label': 'Bộ', 'value': animal['order_name']});
-    if (animal['family'] != null) items.add({'icon': '🏷️', 'label': 'Họ', 'value': animal['family']});
-    if (animal['genus'] != null) items.add({'icon': '🔍', 'label': 'Chi', 'value': animal['genus']});
+    if (animal['kingdom'] != null) items.add({'icon': '🌐', 'label': t.tr('Giới'), 'value': animal['kingdom']});
+    if (animal['phylum'] != null) items.add({'icon': '🔗', 'label': t.tr('Ngành'), 'value': animal['phylum']});
+    if (animal['class'] != null) items.add({'icon': '📦', 'label': t.tr('Lớp'), 'value': animal['class']});
+    if (animal['order_name'] != null) items.add({'icon': '📂', 'label': t.tr('Bộ'), 'value': animal['order_name']});
+    if (animal['family'] != null) items.add({'icon': '🏷️', 'label': t.tr('Họ'), 'value': animal['family']});
+    if (animal['genus'] != null) items.add({'icon': '🔍', 'label': t.tr('Chi'), 'value': animal['genus']});
 
     if (items.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AnimalDetailUtils.buildSectionTitle('Phân loại khoa học', '🔭', colorScheme),
+        AnimalDetailUtils.buildSectionTitle(t.tr('Phân loại khoa học'), '🔭', colorScheme),
         const SizedBox(height: 14),
         Container(
           decoration: BoxDecoration(color: colorScheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(14), border: Border.all(color: colorScheme.outlineVariant)),
@@ -33,7 +37,7 @@ class AnimalDetailTaxonomy extends StatelessWidget {
         const SizedBox(height: 8),
         Padding(
           padding: const EdgeInsets.only(left: 4),
-          child: Text('Nguồn: Hệ thống phân loại sinh vật học hiện đại', style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant.withOpacity(0.7), fontStyle: FontStyle.italic)),
+          child: Text(t.tr('Nguồn: Hệ thống phân loại sinh vật học hiện đại'), style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant.withOpacity(0.7), fontStyle: FontStyle.italic)),
         ),
       ],
     );

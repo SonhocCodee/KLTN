@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../language/Locale_provider.dart';
 import 'animal_detail_utils.dart';
 
 class AnimalDetailPhysical extends StatelessWidget {
@@ -9,28 +11,33 @@ class AnimalDetailPhysical extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final colors = (animal['primary_colors'] as List? ?? []).map((c) => AnimalDetailUtils.translateValue('color', c.toString())).join(', ');
-    final patterns = (animal['patterns'] as List? ?? []).map((p) => AnimalDetailUtils.translateValue('pattern', p.toString())).join(', ');
-    final furType = AnimalDetailUtils.translateValue('fur', animal['fur_type'] ?? '');
+    final t = context.watch<LocaleProvider>();
+
+    final colors = (animal['primary_colors'] as List? ?? []).map((c) => t.tr(AnimalDetailUtils.translateValue('color', c.toString()))).join(', ');
+    final patterns = (animal['patterns'] as List? ?? []).map((p) => t.tr(AnimalDetailUtils.translateValue('pattern', p.toString()))).join(', ');
+    final furType = t.tr(AnimalDetailUtils.translateValue('fur', animal['fur_type'] ?? ''));
 
     final rows = <Map<String, String>>[];
-    if (colors.isNotEmpty) rows.add({'icon': '🎨', 'label': 'Màu sắc', 'value': colors});
-    if (patterns.isNotEmpty) rows.add({'icon': '🦓', 'label': 'Hoa văn', 'value': patterns});
-    if (furType.isNotEmpty) rows.add({'icon': '🧥', 'label': 'Lông / da', 'value': furType});
+    if (colors.isNotEmpty) rows.add({'icon': '🎨', 'label': t.tr('Màu sắc'), 'value': colors});
+    if (patterns.isNotEmpty) rows.add({'icon': '🦓', 'label': t.tr('Hoa văn'), 'value': patterns});
+    if (furType.isNotEmpty) rows.add({'icon': '🧥', 'label': t.tr('Lông / da'), 'value': furType});
 
     final featureList = <String>[];
-    if (animal['has_claws'] == true) featureList.add('Móng vuốt sắc');
-    if (animal['has_sharp_teeth'] == true) featureList.add('Nanh/răng sắc');
-    if (animal['has_tail'] == true) featureList.add('Có đuôi');
-    if (animal['has_horns'] == true) featureList.add('Có sừng');
-    if (featureList.isNotEmpty) rows.add({'icon': '🦴', 'label': 'Đặc điểm cơ thể', 'value': featureList.join(' · ')});
+    if (animal['has_claws'] == true) featureList.add(t.tr('Móng vuốt sắc'));
+    if (animal['has_sharp_teeth'] == true) featureList.add(t.tr('Nanh/răng sắc'));
+    if (animal['has_tail'] == true) featureList.add(t.tr('Có đuôi'));
+    if (animal['has_horns'] == true) featureList.add(t.tr('Có sừng'));
+
+    if (featureList.isNotEmpty) {
+      rows.add({'icon': '🦴', 'label': t.tr('Đặc điểm cơ thể'), 'value': featureList.join(' · ')});
+    }
 
     if (rows.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AnimalDetailUtils.buildSectionTitle('Ngoại hình', '👁️', colorScheme),
+        AnimalDetailUtils.buildSectionTitle(t.tr('Ngoại hình'), '👁️', colorScheme),
         const SizedBox(height: 14),
         Container(
           decoration: BoxDecoration(color: colorScheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(14), border: Border.all(color: colorScheme.outlineVariant)),

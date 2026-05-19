@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../language/Locale_provider.dart';
 import '../../home/animal_category_model.dart';
 
 class BreedListSearchBar extends StatelessWidget {
@@ -18,6 +20,7 @@ class BreedListSearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -37,7 +40,7 @@ class BreedListSearchBar extends StatelessWidget {
           onChanged: onChanged,
           style: TextStyle(color: colorScheme.onSurface),
           decoration: InputDecoration(
-            hintText: 'Tìm kiếm ${category.nameVi.toLowerCase()}...',
+            hintText: '${t.tr('Tìm kiếm')} ${t.tr(category.nameVi).toLowerCase()}...',
             hintStyle: TextStyle(
               color: colorScheme.onSurfaceVariant,
               fontSize: 14,

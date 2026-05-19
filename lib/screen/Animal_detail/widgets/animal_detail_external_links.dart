@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../language/Locale_provider.dart'; // Đảm bảo đường dẫn đúng
 
 class AnimalExternalLinks extends StatelessWidget {
   final Map<String, dynamic> animal;
@@ -18,6 +20,7 @@ class AnimalExternalLinks extends StatelessWidget {
     // Ưu tiên dùng tên tiếng Anh để search ra nhiều kết quả chuẩn xác hơn
     final String searchName = animal['name_english'] ?? animal['name_vietnamese'] ?? '';
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
@@ -30,7 +33,7 @@ class AnimalExternalLinks extends StatelessWidget {
                 _launchUrl(url);
               },
               icon: const Icon(Icons.image_search, size: 20),
-              label: const Text('Hình ảnh'),
+              label: Text(t.tr('Hình ảnh')),
               style: FilledButton.styleFrom(
                 backgroundColor: colorScheme.secondaryContainer.withOpacity(0.5),
               ),
@@ -44,7 +47,7 @@ class AnimalExternalLinks extends StatelessWidget {
                 _launchUrl(url);
               },
               icon: const Icon(Icons.travel_explore, size: 20),
-              label: const Text('Wiki'),
+              label: Text(t.tr('Wiki')),
               style: FilledButton.styleFrom(
                 backgroundColor: colorScheme.secondaryContainer.withOpacity(0.5),
               ),

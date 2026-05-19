@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:provider/provider.dart';
+import '../../language/Locale_provider.dart';
 import '../../home/animal_category_model.dart';
 
 class BreedListAnimalCard extends StatelessWidget {
@@ -7,7 +9,6 @@ class BreedListAnimalCard extends StatelessWidget {
   final AnimalCategory category;
   final VoidCallback onTap;
   final bool isFavorite;
-
 
   const BreedListAnimalCard({
     super.key,
@@ -20,6 +21,7 @@ class BreedListAnimalCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>();
 
     final nameVi = animal['name_vietnamese'] ?? 'Chưa có tên';
     final nameEn = animal['name_english'] ?? '';
@@ -119,13 +121,13 @@ class BreedListAnimalCard extends StatelessWidget {
                               color: Colors.red.withOpacity(0.9),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Row(
+                            child: Row(
                               children: [
-                                Icon(Icons.warning_amber, color: Colors.white, size: 12),
-                                SizedBox(width: 4),
+                                const Icon(Icons.warning_amber, color: Colors.white, size: 12),
+                                const SizedBox(width: 4),
                                 Text(
-                                  'Nguy cấp',
-                                  style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                  t.tr('Nguy cấp'),
+                                  style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                                 ),
                               ],
                             ),
@@ -143,7 +145,7 @@ class BreedListAnimalCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        nameVi,
+                        t.tr(nameVi), // Dịch tên tiếng Việt nếu có trong từ điển
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w800,
@@ -172,7 +174,7 @@ class BreedListAnimalCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
-                            conservationStatus,
+                            t.tr(conservationStatus), // Dịch trạng thái bảo tồn
                             style: TextStyle(
                               fontSize: 9,
                               fontWeight: FontWeight.bold,

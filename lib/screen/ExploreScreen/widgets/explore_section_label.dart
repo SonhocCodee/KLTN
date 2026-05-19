@@ -14,8 +14,10 @@ class ExploreSectionLabel extends StatelessWidget {
       child: Text(
         text.toUpperCase(),
         style: TextStyle(
-          fontSize: 12, fontWeight: FontWeight.w600,
-          color: colorScheme.onSurfaceVariant, letterSpacing: 1.0,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: colorScheme.onSurfaceVariant,
+          letterSpacing: 1.0,
         ),
       ),
     );

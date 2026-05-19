@@ -7,10 +7,11 @@ import 'package:kltn_app/screen/home/widgets/home_top_bar.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shorebird_code_push/shorebird_code_push.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 
-// --- Import các file Service và Model ---
 import '../../services/animal_home_service.dart';
 import '../Animal_detail/Animal detail screen.dart';
+import '../language/Locale_provider.dart';
 import '../profile/Profile page.dart';
 import '../update/update_screen.dart';
 import 'animal_category_model.dart';
@@ -108,31 +109,27 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // --- Logic Cập nhật OTA ---
-  // Shorebird tự apply patch khi khởi động → chỉ cần detect xem patch number có tăng không
   Future<void> _checkForUpdate() async {
     try {
       final updater = ShorebirdUpdater();
       final prefs = await SharedPreferences.getInstance();
 
-      // Lấy patch number hiện tại đang chạy
       final currentPatch = await updater.readCurrentPatch();
       final currentPatchNumber = currentPatch?.number ?? 0;
-
-      // Lấy patch number lần cuối đã hiện thông báo
       final lastSeenPatch = prefs.getInt('last_seen_patch') ?? 0;
 
       if (currentPatchNumber > lastSeenPatch && currentPatchNumber > 0) {
-        // Patch mới vừa được apply tự động → hiện dialog "Đã cập nhật"
         await prefs.setInt('last_seen_patch', currentPatchNumber);
-        if (mounted) _showJustUpdatedDialog();
+        if (mounted) {
+          final t = context.read<LocaleProvider>();
+          _showJustUpdatedDialog(t);
+        }
       }
-      // Không có gì mới → im lặng, không làm phiền
     } catch (e) {
-      debugPrint('❌ [Update] $e');
     }
   }
 
-  void _showJustUpdatedDialog() {
+  void _showJustUpdatedDialog(LocaleProvider t) {
     final latest = kChangelog.first;
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -165,12 +162,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Đã cập nhật thành công! ✨',
+                        Text(t.tr('Đã cập nhật thành công! ✨'),
                             style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w800,
                                 color: colorScheme.onSurface)),
-                        Text('Phiên bản ${latest.version} • ${latest.date}',
+                        Text('${t.tr('Phiên bản')} ${latest.version} • ${latest.date}',
                             style: TextStyle(
                                 fontSize: 12,
                                 color: colorScheme.onSurfaceVariant)),
@@ -184,7 +181,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Divider(color: colorScheme.outlineVariant),
               const SizedBox(height: 10),
 
-              Text('Có gì mới?',
+              Text(t.tr('Có gì mới?'),
                   style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -204,8 +201,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: const Text('Tuyệt vời! 🎉',
-                      style: TextStyle(
+                  child: Text(t.tr('Tuyệt vời! 🎉'),
+                      style: const TextStyle(
                           fontSize: 15, fontWeight: FontWeight.w600)),
                 ),
               ),
@@ -307,17 +304,18 @@ class _HomeScreenState extends State<HomeScreen> {
     return sorted;
   }
 
-  String _getShortDesc(String id) {
-    if (id.contains('dog ')) return 'Người bạn trung thành và đáng yêu nhất của bé.';
-    if (id.contains('cat')) return 'Những người bạn nhỏ thích cuộn tròn và làm nũng.';
-    if (id.contains('bird')) return 'Những nhạc sĩ của bầu trời với tiếng hót líu lo.';
-    if (id.contains('insect')) return 'Thế giới tí hon đầy những điều kỳ diệu.';
-    return 'Cùng khám phá những điều thú vị về bạn này nhé!';
+  String _getShortDesc(String id, LocaleProvider t) {
+    if (id.contains('dog ')) return t.tr('Người bạn trung thành và đáng yêu nhất của bé.');
+    if (id.contains('cat')) return t.tr('Những người bạn nhỏ thích cuộn tròn và làm nũng.');
+    if (id.contains('bird')) return t.tr('Những nhạc sĩ của bầu trời với tiếng hót líu lo.');
+    if (id.contains('insect')) return t.tr('Thế giới tí hon đầy những điều kỳ diệu.');
+    return t.tr('Cùng khám phá những điều thú vị về bạn này nhé!');
   }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>();
 
     return GestureDetector(
       onTap: () {
@@ -350,12 +348,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   // --- TOP BAR & SEARCH BOX ---
                   SliverToBoxAdapter(
                     child: HomeTopBar(
-                      // 1. Thêm sự kiện nhấn vào Profile ở đây
                       onProfileTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const ProfilePage(), // Hoặc ProfilePage của Sơn
+                            builder: (context) => const ProfilePage(),
                           ),
                         );
                       },
@@ -374,7 +371,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   // --- LỜI CHÀO ---
                   SliverToBoxAdapter(
-                    child: _buildWelcomeText(colorScheme),
+                    child: _buildWelcomeText(colorScheme, t),
                   ),
 
                   // --- QUICK ACCESS (Vòng tròn Lottie) ---
@@ -389,7 +386,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Row(
                         children: [
                           Text(
-                            'Danh sách loài',
+                            t.tr('Danh sách loài'),
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
@@ -399,7 +396,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           const Spacer(),
                           // Chip: Mặc định
                           _FilterChip(
-                            label: 'Mặc định',
+                            label: t.tr('Mặc định'),
                             selected: !_sortAZ,
                             onTap: () => setState(() => _sortAZ = false),
                           ),
@@ -423,7 +420,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       delegate: SliverChildBuilderDelegate(
                             (context, index) => HomeAnimalSection(
                           data: _displayedCategoryData[index],
-                          getShortDesc: _getShortDesc,
+                          getShortDesc: (id) => _getShortDesc(id, t),
                         ),
                         childCount: _displayedCategoryData.length,
                       ),
@@ -438,18 +435,18 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildWelcomeText(ColorScheme colorScheme) {
+  Widget _buildWelcomeText(ColorScheme colorScheme, LocaleProvider t) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Chào Bạn! 👋',
+          Text(t.tr('Xin chào'),
               style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.w900,
                   color: colorScheme.onSurface)),
-          Text('Hôm nay bạn muốn xem loài nào?',
+          Text(t.tr('Hôm nay bạn muốn xem loài nào?'),
               style: TextStyle(
                   fontSize: 16,
                   color: colorScheme.onSurfaceVariant,
@@ -524,18 +521,19 @@ class _ChangelogItemInline extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.watch<LocaleProvider>();
     Color color;
     IconData icon;
     String tag;
     switch (item.type) {
       case ChangelogType.newFeature:
-        color = Colors.green; icon = Icons.add_circle_rounded; tag = 'Mới'; break;
+        color = Colors.green; icon = Icons.add_circle_rounded; tag = t.tr('Mới'); break;
       case ChangelogType.fix:
-        color = Colors.red; icon = Icons.bug_report_rounded; tag = 'Fix'; break;
+        color = Colors.red; icon = Icons.bug_report_rounded; tag = t.tr('Fix'); break;
       case ChangelogType.improve:
-        color = Colors.blue; icon = Icons.trending_up_rounded; tag = 'Cải thiện'; break;
+        color = Colors.blue; icon = Icons.trending_up_rounded; tag = t.tr('Cải thiện'); break;
       case ChangelogType.remove:
-        color = Colors.grey; icon = Icons.remove_circle_rounded; tag = 'Xóa'; break;
+        color = Colors.grey; icon = Icons.remove_circle_rounded; tag = t.tr('Xóa'); break;
     }
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -556,7 +554,7 @@ class _ChangelogItemInline extends StatelessWidget {
           ),
           const SizedBox(width: 6),
           Expanded(
-            child: Text(item.text,
+            child: Text(t.tr(item.text),
                 style: TextStyle(
                     fontSize: 13,
                     color: Theme.of(context).colorScheme.onSurface,

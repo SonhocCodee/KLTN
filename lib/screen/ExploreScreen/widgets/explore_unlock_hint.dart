@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../language/Locale_provider.dart';
 import '../explore_service.dart';
+
 
 class ExploreUnlockHint extends StatelessWidget {
   final ExploreService service;
@@ -9,6 +13,7 @@ class ExploreUnlockHint extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>();
 
     return Container(
       margin: const EdgeInsets.fromLTRB(24, 12, 24, 0),
@@ -24,11 +29,12 @@ class ExploreUnlockHint extends StatelessWidget {
             spacing: 5,
             children: List.generate(10, (i) {
               return Container(
-                width: 8, height: 8,
+                width: 8,
+                height: 8,
                 decoration: BoxDecoration(
                   color: i < service.readCount
                       ? colorScheme.primary
-                      : colorScheme.outlineVariant, // Chấm xám khi chưa đọc
+                      : colorScheme.outlineVariant,
                   shape: BoxShape.circle,
                 ),
               );
@@ -38,16 +44,20 @@ class ExploreUnlockHint extends StatelessWidget {
           Expanded(
             child: RichText(
               text: TextSpan(
-                style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: colorScheme.onSurfaceVariant,
+                ),
                 children: [
-                  const TextSpan(text: 'Đọc thêm '),
+                  TextSpan(text: t.tr('Đọc thêm ')),
                   TextSpan(
-                    text: '${service.remainingFacts} facts nữa ',
+                    text: '${service.remainingFacts}${t.tr(' facts nữa ')}',
                     style: TextStyle(
-                      color: colorScheme.primary, fontWeight: FontWeight.w600,
+                      color: colorScheme.primary,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const TextSpan(text: 'để mở khoá Đố vui!'),
+                  TextSpan(text: t.tr('để mở khoá Đố vui!')),
                 ],
               ),
             ),

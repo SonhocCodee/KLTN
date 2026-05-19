@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../language/Locale_provider.dart';
 
 class BreedListEmptyState extends StatelessWidget {
   final String searchQuery;
@@ -8,6 +10,7 @@ class BreedListEmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>();
 
     return Expanded(
       child: Center(
@@ -22,8 +25,8 @@ class BreedListEmptyState extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               searchQuery.isEmpty
-                  ? 'Chưa có dữ liệu'
-                  : 'Không tìm thấy kết quả',
+                  ? t.tr('Chưa có dữ liệu')
+                  : t.tr('Không tìm thấy kết quả'),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,

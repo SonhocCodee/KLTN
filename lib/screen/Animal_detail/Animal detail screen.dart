@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:kltn_app/screen/Animal_detail/service/groq_translation_service.dart';
+import 'package:provider/provider.dart';
 import 'package:kltn_app/screen/Animal_detail/widgets/animal_detail_external_links.dart';
 import 'package:kltn_app/screen/Animal_detail/widgets/animal_detail_header.dart';
 import '../../services/animal_home_service.dart';
 import '../home/animal_category_model.dart';
 
+import '../language/Locale_provider.dart';
 import '../profile/favorite_service.dart';
 import 'widgets/animal_detail_utils.dart';
 import 'widgets/animal_detail_title.dart';
@@ -14,6 +17,9 @@ import 'widgets/animal_detail_physical.dart';
 import 'widgets/animal_detail_habitat.dart';
 import 'widgets/animal_detail_conservation.dart';
 import 'widgets/animal_detail_taxonomy.dart';
+
+import 'widgets/animal_detail_sound.dart';
+import 'widgets/animal_distribution_map.dart';
 
 class AnimalDetailScreen extends StatefulWidget {
   final String animalId;
@@ -31,8 +37,10 @@ class AnimalDetailScreen extends StatefulWidget {
 
 class _AnimalDetailScreenState extends State<AnimalDetailScreen>
     with TickerProviderStateMixin {
+
   final AnimalHomeService _service = AnimalHomeService();
   final FavoriteService _favoriteService = FavoriteService();
+  final GroqTranslationService _translator = GroqTranslationService(); // 👈 thêm
   final ScrollController _scrollController = ScrollController();
 
   Map<String, dynamic>? _animal;
@@ -84,13 +92,35 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen>
         _isFavorite = isFav;
         _isLoading = false;
       });
+
       if (animal != null) {
         _fadeController.forward();
         _slideController.forward();
+
+        // ── Trigger dịch ngầm nếu đang xem tiếng Anh ─────────────────────
+        _maybeTranslate(animal);
       }
     } catch (e) {
       setState(() => _isLoading = false);
     }
+  }
+
+  /// Dịch ngầm (không block UI). Nếu dịch thành công → setState để
+  /// AnimalDetailDescription hiển thị bản dịch mới ngay.
+  void _maybeTranslate(Map<String, dynamic> animal) {
+    final isEnglish = context.read<LocaleProvider>().isEnglish;
+    if (!isEnglish) return; // Đang tiếng Việt → không cần dịch
+
+    final missingFunFact =
+        (animal['fun_fact_english'] as String? ?? '').trim().isEmpty;
+    final missingDesc =
+        (animal['description_english'] as String? ?? '').trim().isEmpty;
+    if (!missingFunFact && !missingDesc) return; // Đã có đủ bản dịch
+
+    // Fire-and-forget: dịch ngầm, cập nhật UI khi xong
+    _translator.translateAndSave(animal).then((translated) {
+      if (translated && mounted) setState(() {});
+    });
   }
 
   Future<void> _toggleFavorite() async {
@@ -102,12 +132,14 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen>
       if (!mounted) return;
       setState(() => _isFavorite = newState);
 
+      final t = context.read<LocaleProvider>();
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             newState
-                ? '❤️ Đã thêm vào loài yêu thích'
-                : '💔 Đã xoá khỏi loài yêu thích',
+                ? t.tr('❤️ Đã thêm vào loài yêu thích')
+                : t.tr('💔 Đã xoá khỏi loài yêu thích'),
           ),
           duration: const Duration(seconds: 2),
           behavior: SnackBarBehavior.floating,
@@ -185,6 +217,15 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen>
                                 AnimalDetailUtils.buildSectionGap(colorScheme),
                                 AnimalDetailHabitat(animal: _animal!),
                                 AnimalDetailUtils.buildSectionGap(colorScheme),
+
+                                // ── 🔊 Âm thanh loài ─────────────────────
+                                AnimalDetailSound(animal: _animal!),
+                                AnimalDetailUtils.buildSectionGap(colorScheme),
+
+                                // ── 🗺️ Bản đồ phân bố ────────────────────
+                                AnimalDistributionMap(animal: _animal!),
+                                AnimalDetailUtils.buildSectionGap(colorScheme),
+
                                 AnimalDetailConservation(animal: _animal!),
                                 AnimalDetailUtils.buildSectionGap(colorScheme),
                                 AnimalDetailTaxonomy(animal: _animal!),
@@ -200,16 +241,16 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen>
             ],
           ),
 
-          // ── Floating buttons (back + favorite + share/...) ─────────
+          // ── Floating buttons (back + share/...) ─────────
           AnimalDetailFloatingButtons(
             animalId: widget.animalId,
             animal: _animal!,
           ),
 
-          // ── Nút yêu thích (góc trên phải) ───────────────────────────
+          // ── Nút yêu thích ─────────────────────────────────────────────────
           Positioned(
-            top: MediaQuery.of(context).padding.top + 8,
-            right: 16,
+            bottom: MediaQuery.of(context).padding.bottom + 24,
+            right: 24,
             child: _FavoriteButton(
               isFavorite: _isFavorite,
               isLoading: _isTogglingFavorite,
@@ -264,8 +305,7 @@ class _FavoriteButton extends StatelessWidget {
           padding: const EdgeInsets.all(10),
           child: CircularProgressIndicator(
             strokeWidth: 2,
-            color:
-            isFavorite ? Colors.white : colorScheme.onSurface,
+            color: isFavorite ? Colors.white : colorScheme.onSurface,
           ),
         )
             : Icon(

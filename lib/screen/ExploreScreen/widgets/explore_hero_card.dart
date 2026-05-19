@@ -1,21 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../language/Locale_provider.dart';
 import '../explore_service.dart';
 
 class ExploreHeroCard extends StatelessWidget {
   final ExploreService service;
   final VoidCallback onTap;
 
-  const ExploreHeroCard({super.key, required this.service, required this.onTap});
+  const ExploreHeroCard({
+    super.key,
+    required this.service,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>();
+
     final isDone = service.hasCompletedToday;
     final btnLabel = service.readCount == 0
-        ? 'Bắt đầu khám phá'
+        ? t.tr('Bắt đầu khám phá')
         : isDone
-        ? 'Xem lại facts hôm nay'
-        : 'Tiếp tục khám phá';
+        ? t.tr('Xem lại facts hôm nay')
+        : t.tr('Tiếp tục khám phá');
 
     return GestureDetector(
       onTap: onTap,
@@ -24,7 +33,10 @@ class ExploreHeroCard extends StatelessWidget {
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [colorScheme.surfaceContainerHighest, colorScheme.surfaceContainer],
+            colors: [
+              colorScheme.surfaceContainerHighest,
+              colorScheme.surfaceContainer
+            ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -38,23 +50,28 @@ class ExploreHeroCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
               decoration: BoxDecoration(
                 color: colorScheme.primary.withOpacity(0.1),
-                border: Border.all(color: colorScheme.primary.withOpacity(0.2)),
+                border: Border.all(
+                    color: colorScheme.primary.withOpacity(0.2)),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    width: 6, height: 6,
+                    width: 6,
+                    height: 6,
                     decoration: BoxDecoration(
-                      color: colorScheme.primary, shape: BoxShape.circle,
+                      color: colorScheme.primary,
+                      shape: BoxShape.circle,
                     ),
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    'Mới mỗi ngày',
+                    t.tr('Mới mỗi ngày'),
                     style: TextStyle(
-                      color: colorScheme.primary, fontSize: 12, fontWeight: FontWeight.w600,
+                      color: colorScheme.primary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
@@ -62,18 +79,24 @@ class ExploreHeroCard extends StatelessWidget {
             ),
             const SizedBox(height: 14),
             Text(
-              '10 Sự thật thú vị',
+              t.tr('10 Sự thật thú vị'),
               style: TextStyle(
-                color: colorScheme.onSurface, fontSize: 20, fontWeight: FontWeight.w700,
+                color: colorScheme.onSurface,
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               isDone
-                  ? 'Bạn đã hoàn thành hôm nay! Quay lại ngày mai để khám phá thêm.'
-                  : 'Khám phá những điều bí ẩn về thế giới động vật — mỗi ngày một bộ mới hoàn toàn.',
+                  ? t.tr(
+                  'Bạn đã hoàn thành hôm nay! Quay lại ngày mai để khám phá thêm.')
+                  : t.tr(
+                  'Khám phá những điều bí ẩn về thế giới động vật — mỗi ngày một bộ mới hoàn toàn.'),
               style: TextStyle(
-                color: colorScheme.onSurfaceVariant, fontSize: 14, height: 1.5,
+                color: colorScheme.onSurfaceVariant,
+                fontSize: 14,
+                height: 1.5,
               ),
             ),
             const SizedBox(height: 20),
@@ -81,13 +104,18 @@ class ExploreHeroCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Tiến độ hôm nay',
-                  style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 13),
+                  t.tr('Tiến độ hôm nay'),
+                  style: TextStyle(
+                    color: colorScheme.onSurfaceVariant,
+                    fontSize: 13,
+                  ),
                 ),
                 Text(
                   '${service.readCount} / 10',
                   style: TextStyle(
-                    color: colorScheme.primary, fontSize: 13, fontWeight: FontWeight.w700,
+                    color: colorScheme.primary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ],
@@ -118,7 +146,9 @@ class ExploreHeroCard extends StatelessWidget {
                 child: Text(
                   btnLabel,
                   style: TextStyle(
-                    color: colorScheme.onPrimary, fontSize: 15, fontWeight: FontWeight.w700,
+                    color: colorScheme.onPrimary,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),

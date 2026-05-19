@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:provider/provider.dart';
+
+import '../language/Locale_provider.dart'; // Đảm bảo import Locale_provider
 
 // ════════════════════════════════════════════════════════
 // MODEL
@@ -69,7 +72,11 @@ class _DailyFactScreenState extends State<DailyFactScreen>
       duration: const Duration(milliseconds: 800),
     );
     _fadeAnim = CurvedAnimation(parent: _anim, curve: Curves.easeOut);
-    _load();
+
+    // Gọi sau khi build frame đầu tiên để lấy context provider
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _load(context.read<LocaleProvider>());
+    });
   }
 
   @override
@@ -81,7 +88,7 @@ class _DailyFactScreenState extends State<DailyFactScreen>
   // ════════════════════════════════════════════════════════
   // BƯỚC 1 — LOAD
   // ════════════════════════════════════════════════════════
-  Future<void> _load() async {
+  Future<void> _load(LocaleProvider t) async {
     if (!mounted) return;
     setState(() { _isLoading = true; _error = null; });
 
@@ -97,14 +104,14 @@ class _DailyFactScreenState extends State<DailyFactScreen>
 
       // ── B. Random animal từ Supabase ────────────────────
       final row = await _randomAnimal(today);
-      if (row == null) throw Exception('Không lấy được dữ liệu từ Supabase');
+      if (row == null) throw Exception(t.tr('Không lấy được dữ liệu từ Supabase'));
 
       // ── C. Lấy ảnh (cache Supabase trước, nếu không có thì ClipDrop) ──
       final origUrl  = (row['image_url'] as String?) ?? '';
       final imageUrl = await _resolveImage(today, row['id'].toString(), origUrl);
 
       // ── D. Build model ──────────────────────────────────
-      final animal = _buildAnimal(row, imageUrl);
+      final animal = _buildAnimal(row, imageUrl, t);
 
       // ── E. Lưu local cache ──────────────────────────────
       await _saveLocalCache(today, animal);
@@ -254,7 +261,7 @@ class _DailyFactScreenState extends State<DailyFactScreen>
   // ════════════════════════════════════════════════════════
   // BUILD MODEL TỪ ROW DB
   // ════════════════════════════════════════════════════════
-  _DailyAnimal _buildAnimal(Map<String, dynamic> a, String imageUrl) {
+  _DailyAnimal _buildAnimal(Map<String, dynamic> a, String imageUrl, LocaleProvider t) {
     // Mô tả
     final desc = (a['description_short'] as String? ?? '').trim();
 
@@ -266,16 +273,16 @@ class _DailyFactScreenState extends State<DailyFactScreen>
     final s = a['max_speed_kmh'];
     final ls = a['lifespan_avg_years'];
 
-    if (w  != null) facts.add('⚖️ Cân nặng: ${_fmt(w)} kg');
-    if (l  != null) facts.add('📏 Dài: ${_fmtLen(l)}');
-    else if (h != null) facts.add('📐 Cao: ${_fmtLen(h)}');
-    if (s  != null) facts.add('💨 Tốc độ: ${_fmt(s)} km/h');
-    if (ls != null) facts.add('⏳ Tuổi thọ: ~${_fmt(ls)} năm');
+    if (w  != null) facts.add('⚖️ ${t.tr('Cân nặng:')} ${_fmt(w)} kg');
+    if (l  != null) facts.add('📏 ${t.tr('Dài:')} ${_fmtLen(l)}');
+    else if (h != null) facts.add('📐 ${t.tr('Cao:')} ${_fmtLen(h)}');
+    if (s  != null) facts.add('💨 ${t.tr('Tốc độ:')} ${_fmt(s)} km/h');
+    if (ls != null) facts.add('⏳ ${t.tr('Tuổi thọ:')} ~${_fmt(ls)} ${t.tr('năm')}');
 
-    final diet = _mapDiet(a['diet_type'] as String?);
+    final diet = _mapDiet(a['diet_type'] as String?, t);
     if (diet != null) facts.add('🍽️ $diet');
 
-    final cons = _mapConservation(a['conservation_status'] as String?);
+    final cons = _mapConservation(a['conservation_status'] as String?, t);
     if (cons != null) facts.add(cons);
 
     final funFact = (a['fun_fact_vietnamese'] as String? ?? '').trim();
@@ -283,7 +290,7 @@ class _DailyFactScreenState extends State<DailyFactScreen>
 
     return _DailyAnimal(
       id:             a['id'].toString(),
-      nameVi:         a['name_vietnamese'] as String? ?? 'Động vật',
+      nameVi:         a['name_vietnamese'] as String? ?? t.tr('Động vật'),
       nameEn:         a['name_english']    as String? ?? '',
       scientificName: a['scientific_name'] as String? ?? '',
       description:    desc,
@@ -350,25 +357,25 @@ class _DailyFactScreenState extends State<DailyFactScreen>
     return cm > 200 ? '${m.toStringAsFixed(1)} m' : '$cm cm';
   }
 
-  String? _mapDiet(String? d) => const {
-    'carnivore':   'Ăn thịt',
-    'herbivore':   'Ăn thực vật',
-    'omnivore':    'Ăn tạp',
-    'insectivore': 'Ăn côn trùng',
-    'piscivore':   'Ăn cá',
-    'frugivore':   'Ăn trái cây',
+  String? _mapDiet(String? d, LocaleProvider t) => {
+    'carnivore':   t.tr('Ăn thịt'),
+    'herbivore':   t.tr('Ăn thực vật'),
+    'omnivore':    t.tr('Ăn tạp'),
+    'insectivore': t.tr('Ăn côn trùng'),
+    'piscivore':   t.tr('Ăn cá'),
+    'frugivore':   t.tr('Ăn trái cây'),
   }[d];
 
-  String? _mapConservation(String? c) {
+  String? _mapConservation(String? c, LocaleProvider t) {
     if (c == null) return null;
     final cl = c.toLowerCase();
-    if (cl.contains('least concern'))         return '🟢 Ít lo ngại';
-    if (cl.contains('near threatened'))       return '🔵 Sắp bị đe dọa';
-    if (cl.contains('vulnerable'))            return '🟡 Dễ bị tổn thương';
+    if (cl.contains('least concern'))         return t.tr('🟢 Ít lo ngại');
+    if (cl.contains('near threatened'))       return t.tr('🔵 Sắp bị đe dọa');
+    if (cl.contains('vulnerable'))            return t.tr('🟡 Dễ bị tổn thương');
     if (cl.contains('endangered') &&
-        !cl.contains('critically'))           return '🟠 Nguy cấp';
-    if (cl.contains('critically endangered')) return '🔴 Cực kỳ nguy cấp';
-    if (cl.contains('extinct in the wild'))   return '⚫ Tuyệt chủng ngoài TN';
+        !cl.contains('critically'))           return t.tr('🟠 Nguy cấp');
+    if (cl.contains('critically endangered')) return t.tr('🔴 Cực kỳ nguy cấp');
+    if (cl.contains('extinct in the wild'))   return t.tr('⚫ Tuyệt chủng ngoài TN');
     return null;
   }
 
@@ -377,18 +384,20 @@ class _DailyFactScreenState extends State<DailyFactScreen>
   // ════════════════════════════════════════════════════════
   @override
   Widget build(BuildContext context) {
+    final t = context.watch<LocaleProvider>();
+
     // ── Loading ──
     if (_isLoading) {
-      return const Scaffold(
-        backgroundColor: Color(0xFF0F172A),
+      return Scaffold(
+        backgroundColor: const Color(0xFF0F172A),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CircularProgressIndicator(color: Colors.white),
-              SizedBox(height: 16),
-              Text('Đang tải thông tin loài vật...',
-                  style: TextStyle(color: Colors.white70, fontSize: 14)),
+              const CircularProgressIndicator(color: Colors.white),
+              const SizedBox(height: 16),
+              Text(t.tr('Đang tải thông tin loài vật...'),
+                  style: const TextStyle(color: Colors.white70, fontSize: 14)),
             ],
           ),
         ),
@@ -405,14 +414,14 @@ class _DailyFactScreenState extends State<DailyFactScreen>
             children: [
               const Icon(Icons.error_outline, size: 64, color: Colors.red),
               const SizedBox(height: 16),
-              Text(_error ?? 'Có lỗi xảy ra',
+              Text(t.tr(_error ?? 'Có lỗi xảy ra'),
                   style: const TextStyle(color: Colors.white70),
                   textAlign: TextAlign.center),
               const SizedBox(height: 24),
               FilledButton.icon(
-                onPressed: _load,
+                onPressed: () => _load(t),
                 icon: const Icon(Icons.refresh),
-                label: const Text('Thử lại'),
+                label: Text(t.tr('Thử lại')),
               ),
             ],
           ),
@@ -459,9 +468,9 @@ class _DailyFactScreenState extends State<DailyFactScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'KIẾN THỨC THÚ VỊ',
-                          style: TextStyle(
+                        Text(
+                          t.tr('KIẾN THỨC THÚ VỊ'),
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 13,
                             fontWeight: FontWeight.w800,
@@ -471,9 +480,9 @@ class _DailyFactScreenState extends State<DailyFactScreen>
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Ngày ${DateTime.now().day} '
-                              'tháng ${DateTime.now().month} '
-                              'năm ${DateTime.now().year}',
+                          '${t.tr('Ngày')} ${DateTime.now().day} '
+                              '${t.tr('tháng')} ${DateTime.now().month} '
+                              '${t.tr('năm')} ${DateTime.now().year}',
                           style: TextStyle(
                               color: Colors.white.withOpacity(0.65),
                               fontSize: 12),
@@ -495,17 +504,17 @@ class _DailyFactScreenState extends State<DailyFactScreen>
                           border: Border.all(
                               color: Colors.white24),
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            SizedBox(
+                            const SizedBox(
                               width: 12, height: 12,
                               child: CircularProgressIndicator(
                                   color: Colors.white60, strokeWidth: 2),
                             ),
-                            SizedBox(width: 8),
-                            Text('Đang xử lý ảnh...',
-                                style: TextStyle(
+                            const SizedBox(width: 8),
+                            Text(t.tr('Đang xử lý ảnh...'),
+                                style: const TextStyle(
                                     color: Colors.white70, fontSize: 12)),
                           ],
                         ),
@@ -522,7 +531,7 @@ class _DailyFactScreenState extends State<DailyFactScreen>
                       children: [
                         // Tên Việt
                         Text(
-                          a.nameVi,
+                          a.nameVi, // Tên ở DB có thể được giữ nguyên hoặc cần dịch tuỳ data
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 42,
@@ -608,14 +617,14 @@ class _DailyFactScreenState extends State<DailyFactScreen>
                               border: Border.all(
                                   color: Colors.white.withOpacity(0.25)),
                             ),
-                            child: const Row(
+                            child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.keyboard_arrow_up_rounded,
+                                const Icon(Icons.keyboard_arrow_up_rounded,
                                     color: Colors.white, size: 20),
-                                SizedBox(width: 8),
-                                Text('Trượt lên để khám phá',
-                                    style: TextStyle(
+                                const SizedBox(width: 8),
+                                Text(t.tr('Trượt lên để khám phá'),
+                                    style: const TextStyle(
                                         color: Colors.white,
                                         fontSize: 13,
                                         fontWeight: FontWeight.w600)),

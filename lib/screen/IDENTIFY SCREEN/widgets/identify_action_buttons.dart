@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
+
+import '../../language/Locale_provider.dart'; // Đảm bảo import Locale_provider
 import '../service/Identify_service.dart';
 
 class IdentifyActionButtons extends StatelessWidget {
@@ -12,6 +15,7 @@ class IdentifyActionButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>();
 
     return Column(
       children: [
@@ -20,7 +24,7 @@ class IdentifyActionButtons extends StatelessWidget {
             Expanded(
               child: _buildOptionCard(
                 icon: Icons.camera_alt_rounded,
-                label: 'Chụp Mới',
+                label: t.tr('Chụp Mới'),
                 bgColor: colorScheme.primary,
                 onTap: () => service.pickImage(ImageSource.camera),
               ),
@@ -29,7 +33,7 @@ class IdentifyActionButtons extends StatelessWidget {
             Expanded(
               child: _buildOptionCard(
                 icon: Icons.photo_library_rounded,
-                label: 'Thư Viện',
+                label: t.tr('Thư Viện'),
                 bgColor: _accentOrange,
                 onTap: () => service.pickImage(ImageSource.gallery),
               ),
@@ -53,7 +57,7 @@ class IdentifyActionButtons extends StatelessWidget {
                 Icon(Icons.saved_search_rounded, color: colorScheme.onInverseSurface, size: 28),
                 const SizedBox(width: 12),
                 Text(
-                  'Bắt Đầu Phân Tích',
+                  t.tr('Bắt Đầu Phân Tích'),
                   style: TextStyle(color: colorScheme.onInverseSurface, fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 0.5),
                 ),
               ],

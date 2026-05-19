@@ -1,7 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import '../../home/animal_category_model.dart';
+import '../../language/Locale_provider.dart';
 import '../../report/Animal report sheet.dart';
 
 // ── Trạng thái Loading ────────────────────────────────────────
@@ -12,6 +14,8 @@ class AnimalDetailLoading extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>();
+
     return Scaffold(
       backgroundColor: colorScheme.surface,
       body: Center(
@@ -24,7 +28,7 @@ class AnimalDetailLoading extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Text(
-              'Đang tải...',
+              t.tr('Đang tải...'),
               style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 14, letterSpacing: 0.5),
             ),
           ],
@@ -41,6 +45,8 @@ class AnimalDetailError extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>();
+
     return Scaffold(
       backgroundColor: colorScheme.surface,
       body: SafeArea(
@@ -51,19 +57,19 @@ class AnimalDetailError extends StatelessWidget {
               Icon(Icons.search_off_rounded, size: 64, color: colorScheme.onSurfaceVariant.withOpacity(0.5)),
               const SizedBox(height: 16),
               Text(
-                'Không tìm thấy thông tin',
+                t.tr('Không tìm thấy thông tin'),
                 style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: colorScheme.onSurface),
               ),
               const SizedBox(height: 8),
               Text(
-                'Loài này chưa có dữ liệu trong hệ thống',
+                t.tr('Loài này chưa có dữ liệu trong hệ thống'),
                 style: TextStyle(fontSize: 13, color: colorScheme.onSurfaceVariant),
               ),
               const SizedBox(height: 28),
               TextButton(
                 onPressed: () => Navigator.pop(context),
                 child: Text(
-                  'Quay lại',
+                  t.tr('Quay lại'),
                   style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.w600),
                 ),
               ),
@@ -85,6 +91,8 @@ class AnimalDetailImageHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>();
+
     return SliverAppBar(
       expandedHeight: 420,
       pinned: true,
@@ -99,9 +107,9 @@ class AnimalDetailImageHeader extends StatelessWidget {
                 ? Image.network(
               imageUrl,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => _buildGradientPlaceholder(),
+              errorBuilder: (_, __, ___) => _buildGradientPlaceholder(t),
             )
-                : _buildGradientPlaceholder(),
+                : _buildGradientPlaceholder(t),
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -122,7 +130,7 @@ class AnimalDetailImageHeader extends StatelessWidget {
     );
   }
 
-  Widget _buildGradientPlaceholder() {
+  Widget _buildGradientPlaceholder(LocaleProvider t) {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -138,7 +146,7 @@ class AnimalDetailImageHeader extends StatelessWidget {
             Icon(category.icon, size: 100, color: Colors.white.withOpacity(0.35)),
             const SizedBox(height: 12),
             Text(
-              'Chưa có hình ảnh',
+              t.tr('Chưa có hình ảnh'),
               style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 14, letterSpacing: 0.3),
             ),
           ],

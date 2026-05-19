@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:provider/provider.dart';
+
+import '../../language/Locale_provider.dart'; // Đảm bảo đường dẫn này đúng
 import '../../Breed_List/Breed list screen.dart';
 import '../animal_category_model.dart';
 
@@ -11,6 +14,7 @@ class HomeQuickAccess extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>();
 
     return SizedBox(
       height: 120,
@@ -28,7 +32,6 @@ class HomeQuickAccess extends StatelessWidget {
             child: InkWell(
               onTap: () {
                 // Điều hướng đến trang danh sách loài tương ứng
-                // home_quick_access.dart — dòng ~33
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -60,7 +63,7 @@ class HomeQuickAccess extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    cat.nameVi,
+                    t.tr(cat.nameVi), // Dịch tên Category
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: colorScheme.onSurface,

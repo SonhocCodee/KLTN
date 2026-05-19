@@ -4,6 +4,9 @@ import 'package:flutter/services.dart';
 import 'package:kltn_app/screen/Search_smart/widgets/search_smart_widgets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:provider/provider.dart';
+import '../language/Locale_provider.dart';
+
 import 'models/search_smart_models.dart';
 import '../Animal_detail/Animal detail screen.dart';
 import '../home/animal_category_model.dart';
@@ -189,7 +192,7 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
     }
   }
 
-  void _showDetail(Map<String, dynamic> animal) {
+  void _showDetail(Map<String, dynamic> animal, LocaleProvider t) {
     final colorScheme = Theme.of(context).colorScheme;
 
     showModalBottomSheet(
@@ -303,7 +306,7 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
                           side: BorderSide(color: colorScheme.outline),
                         ),
                         child: Text(
-                          'Đóng',
+                          t.tr('Đóng'),
                           style: TextStyle(
                               fontSize: 16, color: colorScheme.onSurface),
                         ),
@@ -337,8 +340,8 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
                           );
                         },
                         icon: const Icon(Icons.open_in_new_rounded, size: 18),
-                        label: const Text('Xem chi tiết',
-                            style: TextStyle(fontSize: 16)),
+                        label: Text(t.tr('Xem chi tiết'),
+                            style: const TextStyle(fontSize: 16)),
                         style: FilledButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
@@ -360,19 +363,19 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>();
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      // CHỦ CHỐT: Dùng bottom: false để màu nền Scaffold tràn đáy
-      body: SafeArea(bottom: false, child: _buildBody(colorScheme)),
+      body: SafeArea(bottom: false, child: _buildBody(colorScheme, t)),
     );
   }
 
-  Widget _buildBody(ColorScheme colorScheme) {
-    if (_selectedConfig == null) return _buildTypeSelection(colorScheme);
+  Widget _buildBody(ColorScheme colorScheme, LocaleProvider t) {
+    if (_selectedConfig == null) return _buildTypeSelection(colorScheme, t);
     if (_isLoading) return const SmartLoadingView();
-    if (_showResults || _questionIndex >= _questions.length) return _buildResults(colorScheme);
-    return _buildQuestion(colorScheme);
+    if (_showResults || _questionIndex >= _questions.length) return _buildResults(colorScheme, t);
+    return _buildQuestion(colorScheme, t);
   }
 
   // ── Getter: lọc + sắp xếp danh sách loài ──
@@ -392,7 +395,7 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
   }
 
   // 1. Chọn Loài
-  Widget _buildTypeSelection(ColorScheme colorScheme) {
+  Widget _buildTypeSelection(ColorScheme colorScheme, LocaleProvider t) {
     final displayed = _displayedAnimalTypes;
 
     return Column(
@@ -405,7 +408,7 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Tìm động vật',
+                t.tr('Tìm động vật'),
                 style: TextStyle(
                     fontSize: 34,
                     fontWeight: FontWeight.w700,
@@ -414,7 +417,7 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
               ).animate().fadeIn(duration: 350.ms),
               const SizedBox(height: 4),
               Text(
-                'Chọn loài bạn muốn khám phá',
+                t.tr('Chọn loài bạn muốn khám phá'),
                 style: TextStyle(
                     fontSize: 16,
                     color: colorScheme.onSurfaceVariant,
@@ -437,7 +440,7 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
               onChanged: (v) => setState(() => _searchQuery = v),
               style: TextStyle(fontSize: 16, color: colorScheme.onSurface),
               decoration: InputDecoration(
-                hintText: 'Tìm loài... (chó, mèo, hổ...)',
+                hintText: t.tr('Tìm loài... (chó, mèo, hổ...)'),
                 hintStyle:
                 TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 15),
                 prefixIcon: Icon(CupertinoIcons.search,
@@ -467,14 +470,14 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
             children: [
               Text(
                 displayed.isEmpty
-                    ? 'Không tìm thấy loài nào'
-                    : '${displayed.length} loài',
+                    ? t.tr('Không tìm thấy loài nào')
+                    : '${displayed.length} ${t.tr('loài')}',
                 style: TextStyle(
                     fontSize: 13, color: colorScheme.onSurfaceVariant),
               ),
               const Spacer(),
               _SortChip(
-                label: 'Mặc định',
+                label: t.tr('Mặc định'),
                 selected: !_sortAZ,
                 onTap: () => setState(() => _sortAZ = false),
               ),
@@ -500,7 +503,7 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
               children: [
                 const Text('🔍', style: TextStyle(fontSize: 48)),
                 const SizedBox(height: 12),
-                Text('Không tìm thấy loài nào',
+                Text(t.tr('Không tìm thấy loài nào'),
                     style: TextStyle(
                         fontSize: 17,
                         color: colorScheme.onSurfaceVariant)),
@@ -530,7 +533,7 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
   }
 
   // 2. Câu hỏi Quiz
-  Widget _buildQuestion(ColorScheme colorScheme) {
+  Widget _buildQuestion(ColorScheme colorScheme, LocaleProvider t) {
     final q = _questions[_questionIndex];
     final displayOptions = _currentValidOptions.isNotEmpty ? _currentValidOptions : q.options;
     final progress = (_filters.length) / _questions.length.toDouble();
@@ -557,13 +560,13 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(CupertinoIcons.back, color: colorScheme.primary, size: 22),
-                Text('Quay lại', style: TextStyle(color: colorScheme.primary, fontSize: 17)),
+                Text(t.tr('Quay lại'), style: TextStyle(color: colorScheme.primary, fontSize: 17)),
               ],
             ),
           ),
-          title: Text('${_selectedConfig!.nameVi} ${_selectedConfig!.emoji}', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: colorScheme.onSurface)),
+          title: Text('${t.tr(_selectedConfig!.nameVi)} ${_selectedConfig!.emoji}', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: colorScheme.onSurface)),
           trailing: _results.isNotEmpty
-              ? GestureDetector(onTap: () => setState(() => _showResults = true), child: Text('Xem ${_results.length}', style: TextStyle(color: colorScheme.primary, fontSize: 17)))
+              ? GestureDetector(onTap: () => setState(() => _showResults = true), child: Text('${t.tr('Xem')} ${_results.length}', style: TextStyle(color: colorScheme.primary, fontSize: 17)))
               : const SizedBox.shrink(),
         ),
         Padding(
@@ -581,7 +584,7 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
                 ),
               ),
               const SizedBox(height: 6),
-              Text('${_results.length} kết quả đang khớp', style: TextStyle(fontSize: 13, color: colorScheme.onSurfaceVariant)),
+              Text('${_results.length} ${t.tr('kết quả đang khớp')}', style: TextStyle(fontSize: 13, color: colorScheme.onSurfaceVariant)),
             ],
           ),
         ),
@@ -592,14 +595,13 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
             children: [
               Text(q.emoji, style: const TextStyle(fontSize: 44)).animate().scale(begin: const Offset(0.7, 0.7), duration: 300.ms),
               const SizedBox(height: 12),
-              Text(q.question, textAlign: TextAlign.center, style: TextStyle(fontSize: 26, fontWeight: FontWeight.w700, color: colorScheme.onSurface, letterSpacing: -0.3)).animate().fadeIn(duration: 300.ms).slideY(begin: -0.15),
+              Text(t.tr(q.question), textAlign: TextAlign.center, style: TextStyle(fontSize: 26, fontWeight: FontWeight.w700, color: colorScheme.onSurface, letterSpacing: -0.3)).animate().fadeIn(duration: 300.ms).slideY(begin: -0.15),
             ],
           ),
         ),
         const SizedBox(height: 24),
         Expanded(
           child: SingleChildScrollView(
-            // CHỦ CHỐT: Padding đáy lớn
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
             physics: const BouncingScrollPhysics(),
             child: Column(
@@ -629,7 +631,7 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [BoxShadow(color: colorScheme.shadow.withOpacity(0.04), blurRadius: 6, offset: const Offset(0, 2))],
                     ),
-                    child: Text('Không chắc, bỏ qua', textAlign: TextAlign.center, style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 16, fontWeight: FontWeight.w400)),
+                    child: Text(t.tr('Không chắc, bỏ qua'), textAlign: TextAlign.center, style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 16, fontWeight: FontWeight.w400)),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -642,7 +644,7 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
   }
 
   // 3. Màn hình Kết quả
-  Widget _buildResults(ColorScheme colorScheme) {
+  Widget _buildResults(ColorScheme colorScheme, LocaleProvider t) {
     return Column(
       children: [
         SmartNavBar(
@@ -653,16 +655,16 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
               children: [
                 Icon(CupertinoIcons.house, color: colorScheme.primary, size: 20),
                 const SizedBox(width: 4),
-                Text('Trang chủ', style: TextStyle(color: colorScheme.primary, fontSize: 17)),
+                Text(t.tr('Trang chủ'), style: TextStyle(color: colorScheme.primary, fontSize: 17)),
               ],
             ),
           ),
           title: Text(
-            _results.isEmpty ? 'Không tìm thấy' : '${_results.length} kết quả',
+            _results.isEmpty ? t.tr('Không tìm thấy') : '${_results.length} ${t.tr('kết quả')}',
             style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: colorScheme.onSurface),
           ),
           trailing: _results.isNotEmpty
-              ? GestureDetector(onTap: () => _selectAnimalType(_selectedConfig!), child: Text('Tìm lại', style: TextStyle(color: colorScheme.primary, fontSize: 17)))
+              ? GestureDetector(onTap: () => _selectAnimalType(_selectedConfig!), child: Text(t.tr('Tìm lại'), style: TextStyle(color: colorScheme.primary, fontSize: 17)))
               : const SizedBox.shrink(),
         ),
         if (_results.isNotEmpty)
@@ -670,7 +672,7 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
             child: Row(
               children: [
-                Text('Chọn một con để xem chi tiết', style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 13)),
+                Text(t.tr('Chọn một con để xem chi tiết'), style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 13)),
               ],
             ),
           ),
@@ -678,7 +680,6 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
           child: _results.isEmpty
               ? SmartNoResultsView(onRetry: () => _selectAnimalType(_selectedConfig!))
               : GridView.builder(
-            // CHỦ CHỐT: Padding đáy lớn
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
             physics: const BouncingScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -686,7 +687,7 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
             ),
             itemCount: _results.length,
             itemBuilder: (context, i) => SmartResultCard(
-              animal: _results[i], index: i, selectedConfig: _selectedConfig, onTap: () => _showDetail(_results[i]),
+              animal: _results[i], index: i, selectedConfig: _selectedConfig, onTap: () => _showDetail(_results[i], t),
             ),
           ),
         ),

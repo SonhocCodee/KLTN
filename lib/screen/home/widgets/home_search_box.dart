@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../language/Locale_provider.dart'; // Đảm bảo import LocaleProvider
 import '../models/animal_suggestion.dart';
 
 class HomeSearchBox extends StatelessWidget {
@@ -26,6 +29,7 @@ class HomeSearchBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>(); // Khởi tạo Provider dịch
 
     return Column(
       children: [
@@ -49,7 +53,7 @@ class HomeSearchBox extends StatelessWidget {
             textInputAction: TextInputAction.search,
             style: TextStyle(color: colorScheme.onSurface),
             decoration: InputDecoration(
-              hintText: 'Tìm kiếm bạn động vật...',
+              hintText: t.tr('Tìm kiếm bạn động vật...'), // Dịch Text
               hintStyle: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 14),
               border: InputBorder.none,
               icon: isSearching
@@ -76,7 +80,7 @@ class HomeSearchBox extends StatelessWidget {
           Container(
             margin: const EdgeInsets.only(top: 4),
             decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest, // SỬA Ở ĐÂY
+              color: colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
@@ -103,7 +107,7 @@ class HomeSearchBox extends StatelessWidget {
             margin: const EdgeInsets.only(top: 4),
             padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
             decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest, // SỬA Ở ĐÂY
+              color: colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
@@ -118,7 +122,7 @@ class HomeSearchBox extends StatelessWidget {
                 const Text('😕', style: TextStyle(fontSize: 20)),
                 const SizedBox(width: 12),
                 Text(
-                  'Không tìm thấy "${searchController.text}"',
+                  '${t.tr('Không tìm thấy')} "${searchController.text}"', // Dịch Text
                   style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 14),
                 ),
               ],
@@ -131,6 +135,7 @@ class HomeSearchBox extends StatelessWidget {
   Widget _buildSuggestionItem(AnimalSuggestion s, int index, bool isLast, BuildContext context) {
     final query = searchController.text.trim();
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>(); // Gọi thêm Provider trong widget con
 
     return GestureDetector(
       onTap: () => onSuggestionTap(s),
@@ -189,7 +194,7 @@ class HomeSearchBox extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                s.typeLabel,
+                t.tr(s.typeLabel), // Dịch nhãn của loài (VD: Thú, Chim...)
                 style: TextStyle(
                     fontSize: 11,
                     color: colorScheme.primary,

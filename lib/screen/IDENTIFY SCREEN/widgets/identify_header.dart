@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../language/Locale_provider.dart'; // Đảm bảo import Locale_provider
 import '../dentify_history_screen.dart';
 import '../service/Identify_service.dart';
-
 
 class IdentifyHeader extends StatelessWidget {
   final IdentifyService service;
@@ -14,6 +14,7 @@ class IdentifyHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>();
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
@@ -26,7 +27,7 @@ class IdentifyHeader extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      'Camera Thú Vị',
+                      t.tr('Camera Thú Vị'),
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w900,
@@ -40,7 +41,7 @@ class IdentifyHeader extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Khám phá thế giới động vật qua ống kính',
+                  t.tr('Khám phá thế giới động vật qua ống kính'),
                   style: TextStyle(fontSize: 14, color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500),
                 ),
               ],
@@ -90,9 +91,9 @@ class IdentifyHeader extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(width: 6),
-                  const Text(
-                    'Lịch sử',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _accentOrange),
+                  Text(
+                    t.tr('Lịch sử'),
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _accentOrange),
                   ),
                 ],
               ),

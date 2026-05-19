@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../language/Locale_provider.dart';
+import '../../../screen/SettingsScreen/provider/unit_provider.dart'; // 👈 thêm
 
 class AnimalDetailQuickStats extends StatelessWidget {
   final Map<String, dynamic> animal;
@@ -8,16 +11,43 @@ class AnimalDetailQuickStats extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final weightAvg = animal['weight_avg_kg'] ?? 0;
-    final heightAvg = animal['height_avg_m'] ?? 0;
-    final lifespanAvg = animal['lifespan_avg_years'] ?? 0;
-    final maxSpeed = animal['max_speed_kmh'] ?? 0;
+    final t = context.watch<LocaleProvider>();
+    final u = context.watch<UnitProvider>(); // 👈 thêm
+
+    final weightAvg = animal['weight_avg_kg'];
+    final heightAvg = animal['height_avg_m'];
+    final lifespanAvg = animal['lifespan_avg_years'];
+    final maxSpeed = animal['max_speed_kmh'];
 
     final stats = <Map<String, dynamic>>[];
-    if (weightAvg > 0) stats.add({'emoji': '⚖️', 'value': '${weightAvg.toStringAsFixed(0)} kg', 'label': 'Cân nặng'});
-    if (heightAvg > 0) stats.add({'emoji': '📏', 'value': '${heightAvg.toStringAsFixed(1)} m', 'label': 'Chiều cao'});
-    if (lifespanAvg > 0) stats.add({'emoji': '🕰️', 'value': '$lifespanAvg năm', 'label': 'Tuổi thọ'});
-    if (maxSpeed > 0) stats.add({'emoji': '💨', 'value': '$maxSpeed km/h', 'label': 'Tốc độ tối đa'});
+
+    if (weightAvg != null && (weightAvg as num) > 0)
+      stats.add({
+        'emoji': '⚖️',
+        'value': u.formatWeight(weightAvg),   // kg ↔ lbs
+        'label': t.tr('Cân nặng'),
+      });
+
+    if (heightAvg != null && (heightAvg as num) > 0)
+      stats.add({
+        'emoji': '📏',
+        'value': u.formatHeight(heightAvg),   // m ↔ ft
+        'label': t.tr('Chiều cao'),
+      });
+
+    if (lifespanAvg != null && (lifespanAvg as num) > 0)
+      stats.add({
+        'emoji': '🕰️',
+        'value': '$lifespanAvg ${t.tr('năm')}',
+        'label': t.tr('Tuổi thọ'),
+      });
+
+    if (maxSpeed != null && (maxSpeed as num) > 0)
+      stats.add({
+        'emoji': '💨',
+        'value': u.formatSpeed(maxSpeed),     // km/h ↔ mph
+        'label': t.tr('Tốc độ tối đa'),
+      });
 
     if (stats.isEmpty) return const SizedBox.shrink();
 
@@ -29,8 +59,21 @@ class AnimalDetailQuickStats extends StatelessWidget {
           return Expanded(
             child: Row(
               children: [
-                Expanded(child: _buildStatTile(entry.value['emoji'], entry.value['value'], entry.value['label'], colorScheme)),
-                if (!isLast) Container(width: 1, height: 40, color: colorScheme.outlineVariant, margin: const EdgeInsets.symmetric(horizontal: 4)),
+                Expanded(
+                  child: _buildStatTile(
+                    entry.value['emoji'],
+                    entry.value['value'],
+                    entry.value['label'],
+                    colorScheme,
+                  ),
+                ),
+                if (!isLast)
+                  Container(
+                    width: 1,
+                    height: 40,
+                    color: colorScheme.outlineVariant,
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                  ),
               ],
             ),
           );
@@ -39,7 +82,8 @@ class AnimalDetailQuickStats extends StatelessWidget {
     );
   }
 
-  Widget _buildStatTile(String emoji, String value, String label, ColorScheme colorScheme) {
+  Widget _buildStatTile(
+      String emoji, String value, String label, ColorScheme colorScheme) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 6),
       decoration: BoxDecoration(
@@ -51,9 +95,23 @@ class AnimalDetailQuickStats extends StatelessWidget {
         children: [
           Text(emoji, style: const TextStyle(fontSize: 22)),
           const SizedBox(height: 6),
-          Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: colorScheme.onSurface), textAlign: TextAlign.center),
+          Text(
+            value,
+            style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                color: colorScheme.onSurface),
+            textAlign: TextAlign.center,
+          ),
           const SizedBox(height: 2),
-          Text(label, style: TextStyle(fontSize: 10, color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500), textAlign: TextAlign.center),
+          Text(
+            label,
+            style: TextStyle(
+                fontSize: 10,
+                color: colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w500),
+            textAlign: TextAlign.center,
+          ),
         ],
       ),
     );

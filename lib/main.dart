@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:kltn_app/screen/Animal_detail/widgets/Animal_api_cache_service.dart';
 import 'package:kltn_app/screen/ExploreScreen/explore_service.dart';
 import 'package:kltn_app/screen/SettingsScreen/provider/Notification_service.dart';
 import 'package:kltn_app/screen/SettingsScreen/provider/theme_provider.dart';
+import 'package:kltn_app/screen/SettingsScreen/provider/unit_provider.dart'; // 👈 thêm
 import 'package:kltn_app/screen/language/Locale_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -20,10 +22,8 @@ void main() async {
     anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRudmxxbml4b21taGpxd3BmbG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzE1MDEsImV4cCI6MjA4NTkwNzUwMX0.sz5oI5lhecJ0DCJNByI3CIHFICHh2PBt5FHnrMfmDaE',
   );
 
-  // ── Khởi tạo Notification Service ──
   await NotificationService().init();
 
-  // ── Load bản dịch tiếng Anh trước khi chạy app ──
   final localeProvider = LocaleProvider();
   await localeProvider.loadTranslations();
 
@@ -40,6 +40,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => ExploreService()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => UnitProvider()),
         ChangeNotifierProvider.value(value: localeProvider),
       ],
       child: const AniQuestApp(),

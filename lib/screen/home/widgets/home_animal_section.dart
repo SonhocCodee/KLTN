@@ -2,6 +2,9 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+
+import '../../language/Locale_provider.dart'; // Đảm bảo đường dẫn này đúng
 import '../../Breed_List/Breed list screen.dart';
 import '../animal_category_model.dart';
 import '../home_screen.dart'; // Để gọi _getShortDesc (sẽ di chuyển hàm này)
@@ -19,6 +22,7 @@ class HomeAnimalSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>();
 
     return Container(
       margin: const EdgeInsets.only(bottom: 25),
@@ -36,7 +40,7 @@ class HomeAnimalSection extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(data.category.nameVi,
+                      Text(t.tr(data.category.nameVi), // Dịch tên Category
                           style: TextStyle(
                               fontSize: 22, color: colorScheme.onSurface)),
                       Text(
@@ -49,7 +53,7 @@ class HomeAnimalSection extends StatelessWidget {
                     ],
                   ),
                 ),
-                _buildBadge(data),
+                _buildBadge(data, t),
               ],
             ),
           ),
@@ -59,7 +63,7 @@ class HomeAnimalSection extends StatelessWidget {
     );
   }
 
-  Widget _buildBadge(AnimalCategoryData data) {
+  Widget _buildBadge(AnimalCategoryData data, LocaleProvider t) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
@@ -67,7 +71,7 @@ class HomeAnimalSection extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
-        data.displayText,
+        t.tr(data.displayText), // Dịch nội dung badge (vd: "15 loài" hoặc "Chưa có")
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.bold,
@@ -78,7 +82,6 @@ class HomeAnimalSection extends StatelessWidget {
   }
 }
 
-// Giữ nguyên class _InteractiveAnimalCard (vì nó khá lớn và có animation)
 class _InteractiveAnimalCard extends StatefulWidget {
   final AnimalCategoryData data;
   const _InteractiveAnimalCard({super.key, required this.data});
@@ -112,6 +115,7 @@ class _InteractiveAnimalCardState extends State<_InteractiveAnimalCard>
     final hasData = widget.data.hasData;
     final category = widget.data.category;
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>();
 
     return GestureDetector(
       onTapDown: (_) => hasData ? _controller.forward() : null,
@@ -185,7 +189,7 @@ class _InteractiveAnimalCardState extends State<_InteractiveAnimalCard>
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            hasData ? 'Khám phá ngay' : 'Đang cập nhật',
+                            hasData ? t.tr('Khám phá ngay') : t.tr('Đang cập nhật'),
                             style: const TextStyle(
                               color: Colors.white, // Giữ màu trắng
                               fontWeight: FontWeight.bold,

@@ -3,6 +3,7 @@ import 'package:kltn_app/screen/IDENTIFY%20SCREEN/service/Identify_service.dart'
 import 'package:kltn_app/screen/IDENTIFY%20SCREEN/widgets/Identify_history_tile.dart';
 import 'package:provider/provider.dart';
 
+import '../language/Locale_provider.dart';
 
 
 
@@ -25,28 +26,28 @@ class _IdentifyHistoryScreenState extends State<IdentifyHistoryScreen> {
     });
   }
 
-  Future<void> _confirmClearAll(BuildContext context, IdentifyService service) async {
+  Future<void> _confirmClearAll(BuildContext context, IdentifyService service, LocaleProvider t) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.delete_sweep_rounded, color: Colors.redAccent),
-            SizedBox(width: 8),
-            Text('Xoá tất cả?', style: TextStyle(fontWeight: FontWeight.w900)),
+            const Icon(Icons.delete_sweep_rounded, color: Colors.redAccent),
+            const SizedBox(width: 8),
+            Text(t.tr('Xoá tất cả?'), style: const TextStyle(fontWeight: FontWeight.w900)),
           ],
         ),
-        content: const Text('Toàn bộ lịch sử tìm kiếm sẽ bị xoá vĩnh viễn.'),
+        content: Text(t.tr('Toàn bộ lịch sử tìm kiếm sẽ bị xoá vĩnh viễn.')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Huỷ'),
+            child: Text(t.tr('Huỷ')),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Colors.redAccent),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Xoá hết'),
+            child: Text(t.tr('Xoá hết')),
           ),
         ],
       ),
@@ -60,6 +61,7 @@ class _IdentifyHistoryScreenState extends State<IdentifyHistoryScreen> {
   Widget build(BuildContext context) {
     final service = context.watch<IdentifyService>();
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>();
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -85,7 +87,7 @@ class _IdentifyHistoryScreenState extends State<IdentifyHistoryScreen> {
                         Row(
                           children: [
                             Text(
-                              'Lịch Sử',
+                              t.tr('Lịch Sử'),
                               style: TextStyle(
                                 fontSize: 26,
                                 fontWeight: FontWeight.w900,
@@ -98,7 +100,7 @@ class _IdentifyHistoryScreenState extends State<IdentifyHistoryScreen> {
                           ],
                         ),
                         Text(
-                          'Các lần nhận diện trước đây',
+                          t.tr('Các lần nhận diện trước đây'),
                           style: TextStyle(fontSize: 13, color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500),
                         ),
                       ],
@@ -107,10 +109,10 @@ class _IdentifyHistoryScreenState extends State<IdentifyHistoryScreen> {
                   // Nút xoá tất cả
                   if (service.historyItems.isNotEmpty)
                     IconButton(
-                      onPressed: () => _confirmClearAll(context, service),
+                      onPressed: () => _confirmClearAll(context, service, t),
                       icon: const Icon(Icons.delete_sweep_rounded),
                       color: Colors.redAccent,
-                      tooltip: 'Xoá tất cả',
+                      tooltip: t.tr('Xoá tất cả'),
                     ),
                 ],
               ),
@@ -129,7 +131,7 @@ class _IdentifyHistoryScreenState extends State<IdentifyHistoryScreen> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
-                        '${service.historyItems.length} lần tìm kiếm',
+                        '${service.historyItems.length} ${t.tr('lần tìm kiếm')}',
                         style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
@@ -146,9 +148,9 @@ class _IdentifyHistoryScreenState extends State<IdentifyHistoryScreen> {
             // ── Body ────────────────────────────────────────────────────
             Expanded(
               child: service.isLoadingHistory
-                  ? _buildLoading(colorScheme)
+                  ? _buildLoading(colorScheme, t)
                   : service.historyItems.isEmpty
-                  ? _buildEmpty(colorScheme)
+                  ? _buildEmpty(colorScheme, t)
                   : _buildList(service, colorScheme),
             ),
           ],
@@ -157,20 +159,20 @@ class _IdentifyHistoryScreenState extends State<IdentifyHistoryScreen> {
     );
   }
 
-  Widget _buildLoading(ColorScheme colorScheme) {
+  Widget _buildLoading(ColorScheme colorScheme, LocaleProvider t) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          CircularProgressIndicator(color: _accentOrange, strokeWidth: 3),
+          const CircularProgressIndicator(color: _accentOrange, strokeWidth: 3),
           const SizedBox(height: 16),
-          Text('Đang tải lịch sử...', style: TextStyle(color: colorScheme.onSurfaceVariant)),
+          Text(t.tr('Đang tải lịch sử...'), style: TextStyle(color: colorScheme.onSurfaceVariant)),
         ],
       ),
     );
   }
 
-  Widget _buildEmpty(ColorScheme colorScheme) {
+  Widget _buildEmpty(ColorScheme colorScheme, LocaleProvider t) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -185,12 +187,12 @@ class _IdentifyHistoryScreenState extends State<IdentifyHistoryScreen> {
           ),
           const SizedBox(height: 20),
           Text(
-            'Chưa có lịch sử',
+            t.tr('Chưa có lịch sử'),
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
           ),
           const SizedBox(height: 8),
           Text(
-            'Hãy chụp hoặc chọn ảnh\nđể bắt đầu nhận diện!',
+            t.tr('Hãy chụp hoặc chọn ảnh\nđể bắt đầu nhận diện!'),
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 14, color: colorScheme.onSurfaceVariant, height: 1.5),
           ),

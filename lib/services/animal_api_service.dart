@@ -14,7 +14,7 @@ class AnimalApiService {
 
   // Groq — miễn phí, nhanh, đăng ký tại console.groq.com
   static const String _groqUrl = 'https://api.groq.com/openai/v1/chat/completions';
-  static const String _groqKey = 'YOUR_GROQ_API_KEY'; // Thay bằng key thật
+  static const String _groqKey = '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'; // Thay bằng key thật
 
   // Supabase shared cache
   static const String _supabaseUrl = 'https://dnvlqnixommhjqwpflmw.supabase.co';

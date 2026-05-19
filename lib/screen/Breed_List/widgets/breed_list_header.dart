@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../language/Locale_provider.dart';
 import '../../home/animal_category_model.dart'; // Chỉnh đường dẫn nếu cần
 
 class BreedListHeader extends StatelessWidget {
@@ -14,6 +16,7 @@ class BreedListHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>();
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -62,7 +65,7 @@ class BreedListHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  category.nameVi,
+                  t.tr(category.nameVi),
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w900,
@@ -70,7 +73,7 @@ class BreedListHeader extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '$totalCount loài',
+                  '$totalCount ${t.tr('loài')}',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,

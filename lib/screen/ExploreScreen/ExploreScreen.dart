@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'dart:ui';
+import 'package:provider/provider.dart';
+
+import '../language/Locale_provider.dart';
 
 class ExploreScreen extends StatelessWidget {
   const ExploreScreen({super.key});
@@ -36,6 +38,8 @@ class ExploreScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.watch<LocaleProvider>();
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       body: SafeArea(
@@ -48,17 +52,20 @@ class ExploreScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Khám Phá',
-                      style: TextStyle(
+                    Text(
+                      t.tr('Khám Phá'),
+                      style: const TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w900,
                         color: Color(0xFF1E293B),
                       ),
                     ),
-                    const Text(
-                      'Hôm nay học gì về thế giới động vật?',
-                      style: TextStyle(fontSize: 14, color: Color(0xFF64748B)),
+                    Text(
+                      t.tr('Hôm nay học gì về thế giới động vật?'),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF64748B),
+                      ),
                     ),
                     const SizedBox(height: 24),
 
@@ -84,14 +91,14 @@ class ExploreScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Row(
+                          Row(
                             children: [
-                              Icon(CupertinoIcons.star_fill,
+                              const Icon(CupertinoIcons.star_fill,
                                   color: Colors.white, size: 14),
-                              SizedBox(width: 6),
+                              const SizedBox(width: 6),
                               Text(
-                                'LOÀI NỔI BẬT HÔM NAY',
-                                style: TextStyle(
+                                t.tr('LOÀI NỔI BẬT HÔM NAY'),
+                                style: const TextStyle(
                                   color: Colors.white70,
                                   fontSize: 11,
                                   fontWeight: FontWeight.w700,
@@ -110,9 +117,10 @@ class ExploreScreen extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 6),
-                          const Text(
-                            'Vận động viên leo núi bậc thầy trong tự nhiên, có thể mang con mồi nặng hơn cơ thể lên cây cao.',
-                            style: TextStyle(
+                          Text(
+                            t.tr(
+                                'Vận động viên leo núi bậc thầy trong tự nhiên, có thể mang con mồi nặng hơn cơ thể lên cây cao.'),
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 13,
                               height: 1.5,
@@ -126,9 +134,9 @@ class ExploreScreen extends StatelessWidget {
                               color: Colors.white.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(20),
                             ),
-                            child: const Text(
-                              'Đọc thêm →',
-                              style: TextStyle(
+                            child: Text(
+                              t.tr('Đọc thêm →'),
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w700,
                                 fontSize: 13,
@@ -140,9 +148,9 @@ class ExploreScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 28),
 
-                    const Text(
-                      'Bài viết mới nhất',
-                      style: TextStyle(
+                    Text(
+                      t.tr('Bài viết mới nhất'),
+                      style: const TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w800,
                         color: Color(0xFF1E293B),

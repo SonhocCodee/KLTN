@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:provider/provider.dart';
+import '../../language/Locale_provider.dart';
+
 import '../models/search_smart_models.dart';
 
 
@@ -24,6 +27,7 @@ class SmartOptionRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>();
 
     return GestureDetector(
       onTap: onTap,
@@ -38,7 +42,7 @@ class SmartOptionRow extends StatelessWidget {
                 const SizedBox(width: 14),
                 Expanded(
                   child: Text(
-                    option.label,
+                    t.tr(option.label),
                     style: TextStyle(
                       fontSize: 17,
                       color: colorScheme.onSurface,
@@ -69,6 +73,7 @@ class SmartTypeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>();
 
     return GestureDetector(
       onTap: onTap,
@@ -90,7 +95,7 @@ class SmartTypeCard extends StatelessWidget {
             Text(config.emoji, style: const TextStyle(fontSize: 48)),
             const SizedBox(height: 8),
             Text(
-              config.nameVi,
+              t.tr(config.nameVi),
               style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w600,
@@ -245,6 +250,7 @@ class SmartLoadingView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>();
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -252,7 +258,7 @@ class SmartLoadingView extends StatelessWidget {
           const CupertinoActivityIndicator(radius: 16),
           const SizedBox(height: 16),
           Text(
-            'Đang tìm kiếm...',
+            t.tr('Đang tìm kiếm...'),
             style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 16),
           ),
         ],
@@ -269,6 +275,7 @@ class SmartNoResultsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>();
 
     return Center(
       child: Column(
@@ -277,7 +284,7 @@ class SmartNoResultsView extends StatelessWidget {
           const Text('🔍', style: TextStyle(fontSize: 64)),
           const SizedBox(height: 16),
           Text(
-            'Không tìm thấy',
+            t.tr('Không tìm thấy'),
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w700,
@@ -286,7 +293,7 @@ class SmartNoResultsView extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Thử tìm lại với ít tiêu chí hơn',
+            t.tr('Thử tìm lại với ít tiêu chí hơn'),
             style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 16),
           ),
           const SizedBox(height: 28),
@@ -299,7 +306,7 @@ class SmartNoResultsView extends StatelessWidget {
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Text(
-                'Tìm lại từ đầu',
+                t.tr('Tìm lại từ đầu'),
                 style: TextStyle(
                   color: colorScheme.onPrimary,
                   fontSize: 16,
