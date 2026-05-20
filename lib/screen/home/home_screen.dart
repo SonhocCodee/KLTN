@@ -305,6 +305,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   String _getShortDesc(String id, LocaleProvider t) {
+    if (id.contains('fish')) return t.tr('Thế giới dưới nước huyền bí với muôn loài kỳ thú.');
     if (id.contains('dog ')) return t.tr('Người bạn trung thành và đáng yêu nhất của bé.');
     if (id.contains('cat')) return t.tr('Những người bạn nhỏ thích cuộn tròn và làm nũng.');
     if (id.contains('bird')) return t.tr('Những nhạc sĩ của bầu trời với tiếng hót líu lo.');

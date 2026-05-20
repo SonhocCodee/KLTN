@@ -145,6 +145,31 @@ class AnimalCategory {
       totalExpected: 11000,
       isEnabled: false,
     ),
+    AnimalCategory(
+      id: 'fish',
+      nameVi: 'Cá',
+      nameEn: 'Fish',
+      icon: Icons.bug_report,
+      gradient: [Color(0xFF0077B6), Color(0xFF00B4D8)],
+      animalType: 'fish',
+      imageAssetPath: '',
+      totalExpected: 11000,
+      // lottieAsset: 'assets/lottie/fish.json', // nếu có
+    ),
+
+    AnimalCategory(
+      id: 'bird',
+      animalType: 'bird',
+      nameVi: 'Chim',
+      nameEn: 'Bird',
+      icon: Icons.flutter_dash_rounded,
+      gradient: [Color(0xFF38BDF8), Color(0xFF0EA5E9)],
+      imageAssetPath: 'assets/images/bird.jpg',
+      totalExpected: 11000,
+      isEnabled: true,
+    ),
+
+
   ];
 
   static AnimalCategory? getById(String id) {
