@@ -17,6 +17,14 @@ import '../update/update_screen.dart';
 import 'animal_category_model.dart';
 import 'models/animal_suggestion.dart';
 
+enum _HomeCategoryFilter {
+  all,
+  fourLegs,
+  fish,
+  twoLegs,
+}
+
+
 // ═══════════════════════════════════════════════════════
 // SERVICE TÌM KIẾM
 // ═══════════════════════════════════════════════════════
@@ -73,6 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<AnimalCategoryData> _categoryData = [];
   bool _isLoading = true;
   bool _sortAZ = false; // false = mặc định, true = A-Z
+  _HomeCategoryFilter _categoryFilter = _HomeCategoryFilter.all;
 
   // --- Search State ---
   final TextEditingController _searchController = TextEditingController();
@@ -298,11 +307,71 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   List<AnimalCategoryData> get _displayedCategoryData {
-    if (!_sortAZ) return _categoryData;
-    final sorted = List<AnimalCategoryData>.from(_categoryData);
-    sorted.sort((a, b) => a.category.nameVi.compareTo(b.category.nameVi));
-    return sorted;
+    var list = _categoryData.where((item) {
+      final id = item.category.id.toLowerCase();
+      final animalType = item.category.animalType.toLowerCase();
+      final key = '$id $animalType';
+
+      switch (_categoryFilter) {
+        case _HomeCategoryFilter.all:
+          return true;
+
+        // Nhóm 4 chân: các category thú nuôi/thú hoang phổ biến.
+        // Vì Home chỉ có dữ liệu category, ta lọc theo id/animalType.
+        // Nếu sau này có category mới 4 chân, thêm keyword vào đây.
+        case _HomeCategoryFilter.fourLegs:
+          return _containsAny(key, const [
+            'dog',
+            'cat',
+            'cattle',
+            'cow',
+            'buffalo',
+            'horse',
+            'lion',
+            'tiger',
+            'bear',
+            'goat',
+            'sheep',
+            'pig',
+            'rabbit',
+            'deer',
+            'elephant',
+            'mammal',
+          ]);
+
+        case _HomeCategoryFilter.fish:
+          return key.contains('fish');
+
+        // Nhóm 2 chân hiện tại chủ yếu là chim.
+        // Nếu có poultry/chicken/duck sau này thì vẫn bắt được.
+        case _HomeCategoryFilter.twoLegs:
+          return _containsAny(key, const [
+            'bird',
+            'aves',
+            'chicken',
+            'duck',
+            'goose',
+            'poultry',
+            'penguin',
+            'ostrich',
+          ]);
+      }
+    }).toList();
+
+    if (_sortAZ) {
+      list.sort((a, b) => a.category.nameVi.compareTo(b.category.nameVi));
+    }
+
+    return list;
   }
+
+  bool _containsAny(String source, List<String> keywords) {
+    for (final keyword in keywords) {
+      if (source.contains(keyword)) return true;
+    }
+    return false;
+  }
+
 
   String _getShortDesc(String id, LocaleProvider t) {
     if (id.contains('fish')) return t.tr('Thế giới dưới nước huyền bí với muôn loài kỳ thú.');
@@ -384,7 +453,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                      child: Row(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             t.tr('Danh sách loài'),
@@ -394,20 +464,70 @@ class _HomeScreenState extends State<HomeScreen> {
                               color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
-                          const Spacer(),
-                          // Chip: Mặc định
-                          _FilterChip(
-                            label: t.tr('Mặc định'),
-                            selected: !_sortAZ,
-                            onTap: () => setState(() => _sortAZ = false),
-                          ),
-                          const SizedBox(width: 8),
-                          // Chip: A-Z
-                          _FilterChip(
-                            label: 'A - Z',
-                            icon: Icons.sort_by_alpha_rounded,
-                            selected: _sortAZ,
-                            onTap: () => setState(() => _sortAZ = true),
+                          const SizedBox(height: 10),
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            physics: const BouncingScrollPhysics(),
+                            child: Row(
+                              children: [
+                                _FilterChip(
+                                  label: t.tr('Mặc định'),
+                                  icon: Icons.dashboard_rounded,
+                                  selected: !_sortAZ &&
+                                      _categoryFilter == _HomeCategoryFilter.all,
+                                  onTap: () => setState(() {
+                                    _sortAZ = false;
+                                    _categoryFilter = _HomeCategoryFilter.all;
+                                  }),
+                                ),
+                                const SizedBox(width: 8),
+                                _FilterChip(
+                                  label: 'A - Z',
+                                  icon: Icons.sort_by_alpha_rounded,
+                                  selected: _sortAZ,
+                                  onTap: () => setState(() => _sortAZ = !_sortAZ),
+                                ),
+                                const SizedBox(width: 8),
+                                _FilterChip(
+                                  label: t.tr('4 chân'),
+                                  icon: Icons.pets_rounded,
+                                  selected:
+                                      _categoryFilter == _HomeCategoryFilter.fourLegs,
+                                  onTap: () => setState(() {
+                                    _categoryFilter =
+                                        _categoryFilter == _HomeCategoryFilter.fourLegs
+                                            ? _HomeCategoryFilter.all
+                                            : _HomeCategoryFilter.fourLegs;
+                                  }),
+                                ),
+                                const SizedBox(width: 8),
+                                _FilterChip(
+                                  label: t.tr('Cá'),
+                                  icon: Icons.water_rounded,
+                                  selected:
+                                      _categoryFilter == _HomeCategoryFilter.fish,
+                                  onTap: () => setState(() {
+                                    _categoryFilter =
+                                        _categoryFilter == _HomeCategoryFilter.fish
+                                            ? _HomeCategoryFilter.all
+                                            : _HomeCategoryFilter.fish;
+                                  }),
+                                ),
+                                const SizedBox(width: 8),
+                                _FilterChip(
+                                  label: t.tr('2 chân'),
+                                  icon: Icons.flutter_dash_rounded,
+                                  selected:
+                                      _categoryFilter == _HomeCategoryFilter.twoLegs,
+                                  onTap: () => setState(() {
+                                    _categoryFilter =
+                                        _categoryFilter == _HomeCategoryFilter.twoLegs
+                                            ? _HomeCategoryFilter.all
+                                            : _HomeCategoryFilter.twoLegs;
+                                  }),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),

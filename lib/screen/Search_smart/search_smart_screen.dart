@@ -11,6 +11,8 @@ import 'models/search_smart_models.dart';
 import '../Animal_detail/Animal detail screen.dart';
 import '../home/animal_category_model.dart';
 
+enum _AnimalTypeFilter { all, fourLegs, fish, twoLegs }
+
 class SmartQuizPage extends StatefulWidget {
   const SmartQuizPage({super.key});
 
@@ -28,6 +30,7 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   bool _sortAZ = false;
+  _AnimalTypeFilter _typeFilter = _AnimalTypeFilter.all;
 
   final Map<String, dynamic> _filters = {};
   List<Map<String, dynamic>> _results = [];
@@ -52,6 +55,7 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
       _searchQuery = '';
       _searchController.clear();
       _sortAZ = false;
+      _typeFilter = _AnimalTypeFilter.all;
     });
   }
 
@@ -378,20 +382,73 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
     return _buildQuestion(colorScheme, t);
   }
 
-  // ── Getter: lọc + sắp xếp danh sách loài ──
+  // ── Getter: search + lọc nhóm + sắp xếp danh sách loài ──
   List<AnimalTypeConfig> get _displayedAnimalTypes {
     var list = allAnimalTypes.where((c) {
-      if (_searchQuery.isEmpty) return true;
-      final q = _searchQuery.toLowerCase();
-      return c.nameVi.toLowerCase().contains(q) ||
-          c.nameEn.toLowerCase().contains(q);
+      if (_searchQuery.isNotEmpty) {
+        final q = _searchQuery.toLowerCase();
+        final matchSearch = c.nameVi.toLowerCase().contains(q) ||
+            c.nameEn.toLowerCase().contains(q) ||
+            c.key.toLowerCase().contains(q) ||
+            c.animalType.toLowerCase().contains(q);
+        if (!matchSearch) return false;
+      }
+
+      return _matchTypeFilter(c);
     }).toList();
 
     if (_sortAZ) {
-      list = List.from(list)
+      list = List<AnimalTypeConfig>.from(list)
         ..sort((a, b) => a.nameVi.compareTo(b.nameVi));
     }
     return list;
+  }
+
+  bool _matchTypeFilter(AnimalTypeConfig c) {
+    final key = '${c.key} ${c.animalType} ${c.nameVi} ${c.nameEn}'.toLowerCase();
+
+    switch (_typeFilter) {
+      case _AnimalTypeFilter.all:
+        return true;
+      case _AnimalTypeFilter.fish:
+        return key.contains('fish') || key.contains('cá');
+      case _AnimalTypeFilter.twoLegs:
+        return _containsAny(key, const [
+          'bird',
+          'aves',
+          'chim',
+          'chicken',
+          'duck',
+          'goose',
+          'penguin',
+        ]);
+      case _AnimalTypeFilter.fourLegs:
+        return _containsAny(key, const [
+          'dog',
+          'cat',
+          'buffalo',
+          'cattle',
+          'cow',
+          'horse',
+          'bear',
+          'lion',
+          'tiger',
+          'goat',
+          'sheep',
+          'pig',
+          'rabbit',
+          'deer',
+          'elephant',
+          'mammal',
+        ]);
+    }
+  }
+
+  bool _containsAny(String text, List<String> keywords) {
+    for (final k in keywords) {
+      if (text.contains(k)) return true;
+    }
+    return false;
   }
 
   // 1. Chọn Loài
@@ -463,10 +520,11 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
 
         const SizedBox(height: 10),
 
-        // ── Sort chips ──
+        // ── Filter + Sort chips ──
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 displayed.isEmpty
@@ -475,18 +533,54 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
                 style: TextStyle(
                     fontSize: 13, color: colorScheme.onSurfaceVariant),
               ),
-              const Spacer(),
-              _SortChip(
-                label: t.tr('Mặc định'),
-                selected: !_sortAZ,
-                onTap: () => setState(() => _sortAZ = false),
-              ),
-              const SizedBox(width: 8),
-              _SortChip(
-                label: 'A - Z',
-                icon: CupertinoIcons.sort_down,
-                selected: _sortAZ,
-                onTap: () => setState(() => _sortAZ = true),
+              const SizedBox(height: 8),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: Row(
+                  children: [
+                    _SortChip(
+                      label: t.tr('Mặc định'),
+                      icon: CupertinoIcons.square_grid_2x2,
+                      selected: _typeFilter == _AnimalTypeFilter.all && !_sortAZ,
+                      onTap: () => setState(() {
+                        _typeFilter = _AnimalTypeFilter.all;
+                        _sortAZ = false;
+                      }),
+                    ),
+                    const SizedBox(width: 8),
+                    _SortChip(
+                      label: 'A - Z',
+                      icon: CupertinoIcons.sort_down,
+                      selected: _sortAZ,
+                      onTap: () => setState(() => _sortAZ = !_sortAZ),
+                    ),
+                    const SizedBox(width: 8),
+                    _SortChip(
+                      label: t.tr('4 chân'),
+                      icon: Icons.pets_rounded,
+                      selected: _typeFilter == _AnimalTypeFilter.fourLegs,
+                      onTap: () => setState(() =>
+                          _typeFilter = _AnimalTypeFilter.fourLegs),
+                    ),
+                    const SizedBox(width: 8),
+                    _SortChip(
+                      label: t.tr('Cá'),
+                      icon: Icons.water_rounded,
+                      selected: _typeFilter == _AnimalTypeFilter.fish,
+                      onTap: () => setState(() =>
+                          _typeFilter = _AnimalTypeFilter.fish),
+                    ),
+                    const SizedBox(width: 8),
+                    _SortChip(
+                      label: t.tr('2 chân'),
+                      icon: Icons.flutter_dash_rounded,
+                      selected: _typeFilter == _AnimalTypeFilter.twoLegs,
+                      onTap: () => setState(() =>
+                          _typeFilter = _AnimalTypeFilter.twoLegs),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
