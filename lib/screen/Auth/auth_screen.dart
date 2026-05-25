@@ -192,13 +192,17 @@ class _AuthScreenState extends State<AuthScreen>
               fontWeight: FontWeight.w900,
               color: Colors.white,
               letterSpacing: -0.5,
+              shadows: [
+                Shadow(color: Colors.black87, offset: Offset(0, 0), blurRadius: 8),
+                Shadow(color: Colors.black54, offset: Offset(1, 1), blurRadius: 4),
+              ],
             ),
           ),
         ),
         const SizedBox(height: 6),
         Text(
           _isLogin
-              ? 'Đăng nhập để lưu tiến độ & báo cáo'
+              ? 'Đăng nhập để sử dụng đầy đủ các tính năng'
               : 'Tham gia cùng hàng nghìn người yêu động vật',
           style: TextStyle(
             fontSize: 13,

@@ -307,6 +307,7 @@ class IdentifyService extends ChangeNotifier {
         isNotAnimal = true;
         isAnalyzing = false;
         notifyListeners();
+        onDone(); // ← Fix bug 2: trigger animation "Ảnh không hợp lệ" khi offline
         return;
       }
 
@@ -314,7 +315,12 @@ class IdentifyService extends ChangeNotifier {
       final confidence = (maxScore * 100).toStringAsFixed(1);
       final breed = _labels[maxIdx];
 
-      await _fetchAndSetResult({'breed': breed, 'nameVi': breed, 'confidence': confidence, 'status': 'OK'}, fallback ? 'local_fallback' : 'local', onDone);
+      await _fetchAndSetResult(
+        {'breed': breed, 'nameVi': breed, 'confidence': confidence, 'status': 'OK'},
+        fallback ? 'local_fallback' : 'local',
+        onDone,
+        skipNetwork: !fallback, // offline → skip Supabase; fallback (có mạng nhưng API lỗi) → vẫn query Supabase
+      );
     } catch (e) {
       isAnalyzing = false;
       notifyListeners();
@@ -337,7 +343,12 @@ class IdentifyService extends ChangeNotifier {
     ],
   };
 
-  Future<bool> _fetchAndSetResult(Map<String, String> parsed, String source, VoidCallback onDone) async {
+  Future<bool> _fetchAndSetResult(
+      Map<String, String> parsed,
+      String source,
+      VoidCallback onDone, {
+        bool skipNetwork = false,
+      }) async {
     if (parsed['status'] == 'NOT_ANIMAL') {
       // Ảnh không chứa động vật → báo không hợp lệ, KHÔNG fallback tiếp
       isNotAnimal = true;
@@ -351,34 +362,38 @@ class IdentifyService extends ChangeNotifier {
     final nameVi = parsed['nameVi']!;
     Map<String, dynamic>? animal;
 
-    try {
-      animal = await _querySupabase('name_english=eq.${Uri.encodeComponent(breed)}');
-      animal ??= await _querySupabase('name_english=ilike.${Uri.encodeComponent('%${breed.trim()}%')}');
-      if (animal == null && nameVi.isNotEmpty) {
-        animal ??= await _querySupabase('name_vietnamese=ilike.${Uri.encodeComponent('%${nameVi.trim()}%')}');
-      }
-
-      if (animal == null) {
-        final remapped = await _remapBreedWithAI(breed, nameVi);
-        if (remapped != null) {
-          animal = await _querySupabase('name_english=eq.${Uri.encodeComponent(remapped)}');
+    // Chỉ query Supabase khi có mạng
+    if (!skipNetwork) {
+      try {
+        animal = await _querySupabase('name_english=eq.${Uri.encodeComponent(breed)}');
+        animal ??= await _querySupabase('name_english=ilike.${Uri.encodeComponent('%${breed.trim()}%')}');
+        if (animal == null && nameVi.isNotEmpty) {
+          animal ??= await _querySupabase('name_vietnamese=ilike.${Uri.encodeComponent('%${nameVi.trim()}%')}');
         }
+
+        if (animal == null) {
+          final remapped = await _remapBreedWithAI(breed, nameVi);
+          if (remapped != null) {
+            animal = await _querySupabase('name_english=eq.${Uri.encodeComponent(remapped)}');
+          }
+        }
+      } catch (e) {
+        debugPrint('❌ Supabase: $e');
       }
-    } catch (e) {
-      debugPrint('❌ Supabase: $e');
     }
 
-    if (animal != null) {
-      resultAnimalId = animal['id'].toString();
-      resultNameVi = animal['name_vietnamese'] ?? nameVi;
-      resultNameEn = animal['name_english'] ?? breed;
-      resultImageUrl = animal['image_url'];
-      resultConfidence = parsed['confidence'];
-      aiSource = source;
-      isAnalyzing = false;
-      notifyListeners();
-      onDone();
-      // Lưu lịch sử sau khi set result
+    resultNameVi = animal?['name_vietnamese'] ?? nameVi;
+    resultNameEn = animal?['name_english'] ?? breed;
+    resultImageUrl = animal?['image_url'];
+    resultAnimalId = animal != null ? animal['id'].toString() : null;
+    resultConfidence = parsed['confidence'];
+    aiSource = source;
+    isAnalyzing = false;
+    notifyListeners();
+    onDone();
+
+    // Lưu lịch sử chỉ khi có mạng
+    if (!skipNetwork) {
       _saveHistory(
         nameVi: resultNameVi!,
         nameEn: resultNameEn!,
@@ -387,26 +402,7 @@ class IdentifyService extends ChangeNotifier {
         animalId: resultAnimalId,
         animalImageUrl: resultImageUrl,
       );
-      return true;
     }
-
-    resultNameVi = nameVi;
-    resultNameEn = breed;
-    resultConfidence = parsed['confidence'];
-    resultAnimalId = null;
-    resultImageUrl = null;
-    aiSource = source;
-    isAnalyzing = false;
-    notifyListeners();
-    onDone();
-    _saveHistory(
-      nameVi: nameVi,
-      nameEn: breed,
-      confidence: parsed['confidence'],
-      aiSource: source,
-      animalId: null,
-      animalImageUrl: null,
-    );
     return true;
   }
 
