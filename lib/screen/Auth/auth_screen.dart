@@ -1,5 +1,5 @@
 import 'dart:math' as math;
-import 'dart:async'; // Đã thêm thư viện này để dùng StreamSubscription
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -186,7 +186,7 @@ class _AuthScreenState extends State<AuthScreen>
             colors: _gradientColors,
           ).createShader(bounds),
           child: Text(
-            _isLogin ? 'Chào mừng trở lại!' : 'Tạo tài khoản',
+            _isLogin ? 'Chào mừng!' : 'Tạo tài khoản',
             style: const TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w900,

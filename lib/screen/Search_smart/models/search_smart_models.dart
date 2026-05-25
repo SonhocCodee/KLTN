@@ -57,48 +57,22 @@ class AnimalTypeConfig {
 }
 
 // ── CẤU HÌNH MÈO ──
+// Bảng cat_traits: không có id riêng, dùng animal_id JOIN animals
+// Chỉ dùng các cột thực tế có trong cat_traits
 const _catConfig = AnimalTypeConfig(
   key: 'cat',
-  dbTable: 'cats',
+  dbTable: 'cat_traits',
   animalType: 'cat',
   emoji: '🐱',
   nameVi: 'Mèo',
   nameEn: 'Cat',
   questions: [
     QuestionConfig(
-      id: 'primary_colors', question: 'Lông màu gì?', emoji: '🎨', column: 'primary_colors', isArray: true,
-      options: [
-        OptionConfig(label: 'Trắng', emoji: '⚪', value: 'white'),
-        OptionConfig(label: 'Đen', emoji: '⚫', value: 'black'),
-        OptionConfig(label: 'Cam / Vàng', emoji: '🟠', value: 'orange'),
-        OptionConfig(label: 'Xám / Xanh', emoji: '🔘', value: 'gray'),
-        OptionConfig(label: 'Nâu / Kem', emoji: '🟤', value: 'cream'),
-      ],
-    ),
-    QuestionConfig(
       id: 'coat_length', question: 'Lông dài hay ngắn?', emoji: '✂️', column: 'coat_length',
       options: [
-        OptionConfig(label: 'Không lông', emoji: '🫥', value: 'hairless'),
         OptionConfig(label: 'Ngắn', emoji: '📏', value: 'short'),
         OptionConfig(label: 'Trung bình', emoji: '📐', value: 'medium'),
-        OptionConfig(label: 'Dài / Rất dài', emoji: '🧶', value: 'long'),
-      ],
-    ),
-    QuestionConfig(
-      id: 'patterns', question: 'Có hoa văn không?', emoji: '🎭', column: 'patterns', isArray: true,
-      options: [
-        OptionConfig(label: 'Trơn (1 màu)', emoji: '⬜', value: 'solid'),
-        OptionConfig(label: 'Vằn (tabby)', emoji: '🦓', value: 'tabby'),
-        OptionConfig(label: 'Hai màu', emoji: '⬛', value: 'bicolor'),
-        OptionConfig(label: 'Đốm', emoji: '🔵', value: 'spotted'),
-        OptionConfig(label: 'Tam thể', emoji: '🌈', value: 'calico'),
-      ],
-    ),
-    QuestionConfig(
-      id: 'has_floppy_ears', question: 'Tai như thế nào?', emoji: '👂', column: 'has_floppy_ears', isBool: true,
-      options: [
-        OptionConfig(label: 'Tai cụp / xệ', emoji: '🐱', value: true),
-        OptionConfig(label: 'Tai dựng nhọn', emoji: '🦊', value: false),
+        OptionConfig(label: 'Dài', emoji: '🧶', value: 'long'),
       ],
     ),
     QuestionConfig(
@@ -109,11 +83,10 @@ const _catConfig = AnimalTypeConfig(
       ],
     ),
     QuestionConfig(
-      id: 'size_category', question: 'Con to hay nhỏ?', emoji: '📏', column: 'size_category',
+      id: 'has_floppy_ears', question: 'Tai như thế nào?', emoji: '👂', column: 'has_floppy_ears', isBool: true,
       options: [
-        OptionConfig(label: 'Rất nhỏ (< 3kg)', emoji: '🐭', value: 'small'),
-        OptionConfig(label: 'Trung bình', emoji: '🐱', value: 'medium'),
-        OptionConfig(label: 'To lớn (> 6kg)', emoji: '🦁', value: 'large'),
+        OptionConfig(label: 'Tai cụp / xệ', emoji: '🐱', value: true),
+        OptionConfig(label: 'Tai dựng thẳng', emoji: '🦊', value: false),
       ],
     ),
     QuestionConfig(
@@ -123,37 +96,41 @@ const _catConfig = AnimalTypeConfig(
         OptionConfig(label: 'Đuôi ngắn / cụt', emoji: '✂️', value: false),
       ],
     ),
+    QuestionConfig(
+      id: 'has_stripes', question: 'Lông có vằn không?', emoji: '🦓', column: 'has_stripes', isBool: true,
+      options: [
+        OptionConfig(label: 'Có vằn', emoji: '🦓', value: true),
+        OptionConfig(label: 'Không có vằn', emoji: '⬜', value: false),
+      ],
+    ),
+    QuestionConfig(
+      id: 'has_spots', question: 'Lông có đốm không?', emoji: '🔵', column: 'has_spots', isBool: true,
+      options: [
+        OptionConfig(label: 'Có đốm', emoji: '🔵', value: true),
+        OptionConfig(label: 'Không có đốm', emoji: '⬜', value: false),
+      ],
+    ),
+    QuestionConfig(
+      id: 'lap_cat', question: 'Thích ngồi trên lòng người không?', emoji: '🫂', column: 'lap_cat', isBool: true,
+      options: [
+        OptionConfig(label: 'Rất thích', emoji: '😻', value: true),
+        OptionConfig(label: 'Thích độc lập', emoji: '🐱', value: false),
+      ],
+    ),
   ],
 );
 
 // ── CẤU HÌNH CHÓ ──
+// Bảng dog_traits: không có id riêng, dùng animal_id JOIN animals
+// Chỉ dùng các cột thực tế có trong dog_traits
 const _dogConfig = AnimalTypeConfig(
   key: 'dog',
-  dbTable: 'dogs',
+  dbTable: 'dog_traits',
   animalType: 'dog',
   emoji: '🐶',
   nameVi: 'Chó',
   nameEn: 'Dog',
   questions: [
-    QuestionConfig(
-      id: 'size_category', question: 'Con to hay nhỏ?', emoji: '📏', column: 'size_category',
-      options: [
-        OptionConfig(label: 'Rất nhỏ (< 5kg)', emoji: '🐾', value: 'small'),
-        OptionConfig(label: 'Vừa (5–20kg)', emoji: '🐕', value: 'medium'),
-        OptionConfig(label: 'To (20–40kg)', emoji: '🦮', value: 'large'),
-        OptionConfig(label: 'Khổng lồ (> 40kg)', emoji: '🐻', value: 'giant'),
-      ],
-    ),
-    QuestionConfig(
-      id: 'primary_colors', question: 'Lông màu gì?', emoji: '🎨', column: 'primary_colors', isArray: true,
-      options: [
-        OptionConfig(label: 'Trắng', emoji: '⚪', value: 'white'),
-        OptionConfig(label: 'Đen', emoji: '⚫', value: 'black'),
-        OptionConfig(label: 'Nâu', emoji: '🟤', value: 'brown'),
-        OptionConfig(label: 'Vàng / Vàng đậm', emoji: '🟡', value: 'golden'),
-        OptionConfig(label: 'Xám', emoji: '🔘', value: 'gray'),
-      ],
-    ),
     QuestionConfig(
       id: 'coat_length', question: 'Lông ngắn hay dài?', emoji: '✂️', column: 'coat_length',
       options: [
@@ -170,19 +147,31 @@ const _dogConfig = AnimalTypeConfig(
       ],
     ),
     QuestionConfig(
-      id: 'patterns', question: 'Lông có hoa văn không?', emoji: '🎭', column: 'patterns', isArray: true,
+      id: 'is_fluffy', question: 'Lông có bông xù không?', emoji: '☁️', column: 'is_fluffy', isBool: true,
       options: [
-        OptionConfig(label: 'Trơn (1 màu)', emoji: '⬜', value: 'solid'),
-        OptionConfig(label: 'Hai màu', emoji: '⬛', value: 'bicolor'),
-        OptionConfig(label: 'Đốm / vá', emoji: '🔵', value: 'spotted'),
-        OptionConfig(label: 'Vằn', emoji: '🦓', value: 'brindle'),
+        OptionConfig(label: 'Rất bông xù', emoji: '☁️', value: true),
+        OptionConfig(label: 'Không xù', emoji: '🪶', value: false),
       ],
     ),
     QuestionConfig(
-      id: 'has_mane', question: 'Có bờm lông quanh cổ không?', emoji: '🦁', column: 'has_mane', isBool: true,
+      id: 'has_spots', question: 'Lông có đốm không?', emoji: '🔵', column: 'has_spots', isBool: true,
       options: [
-        OptionConfig(label: 'Có bờm lông dày', emoji: '🦁', value: true),
-        OptionConfig(label: 'Không có', emoji: '🐕', value: false),
+        OptionConfig(label: 'Có đốm', emoji: '🔵', value: true),
+        OptionConfig(label: 'Không có đốm', emoji: '⬜', value: false),
+      ],
+    ),
+    QuestionConfig(
+      id: 'has_stripes', question: 'Lông có vằn không?', emoji: '🦓', column: 'has_stripes', isBool: true,
+      options: [
+        OptionConfig(label: 'Có vằn', emoji: '🦓', value: true),
+        OptionConfig(label: 'Không có vằn', emoji: '⬜', value: false),
+      ],
+    ),
+    QuestionConfig(
+      id: 'good_with_children', question: 'Thân thiện với trẻ em không?', emoji: '👶', column: 'good_with_children', isBool: true,
+      options: [
+        OptionConfig(label: 'Rất thân thiện', emoji: '😄', value: true),
+        OptionConfig(label: 'Cần thận trọng', emoji: '⚠️', value: false),
       ],
     ),
   ],

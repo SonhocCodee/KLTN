@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
@@ -75,7 +76,8 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
       _showResults = false;
       _isLoading = true;
     });
-    await _fetchResults(_filters);
+    // Fetch toàn bộ trước để _results có dữ liệu, logic advance mới hoạt động đúng
+    await _fetchResults({});
     setState(() => _isLoading = false);
     await _advanceToNextUsefulQuestion();
   }
@@ -85,7 +87,7 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
     final testFilters = Map<String, dynamic>.from(baseFilters);
     testFilters[q.column] = value;
     try {
-      final data = await _buildQuery(testFilters).limit(50);
+      final data = await _buildQuery(testFilters);
       return (data as List).length;
     } catch (e) {
       return 0;
@@ -105,7 +107,8 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
     if (_selectedConfig == null) return;
 
     while (_questionIndex < _questions.length) {
-      if (_results.length <= 3) {
+      // Chỉ dừng hỏi khi đã lọc ít nhất 1 bộ lọc VÀ kết quả đủ nhỏ
+      if (_filters.isNotEmpty && _results.length <= 3) {
         setState(() => _showResults = true);
         return;
       }
@@ -162,7 +165,35 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
 
   dynamic _buildQuery(Map<String, dynamic> filters) {
     final config = _selectedConfig!;
-    var query = _client.from(config.dbTable).select('id, name_vietnamese, name_english, scientific_name, image_url, description_short, animal_type');
+
+    // Bảng *_traits (dog_traits, cat_traits) không có id riêng:
+    // Dùng foreign key animal_id để JOIN với bảng animals lấy tên/ảnh
+    final isTraitsTable = config.dbTable.endsWith('_traits');
+    if (isTraitsTable) {
+      // SELECT từ dog_traits/cat_traits JOIN animals qua foreign key animal_id
+      // Dùng animals(...) không có !inner để tránh lỗi khi FK chưa được đặt tên explicit
+      var query = _client
+          .from(config.dbTable)
+          .select('animal_id, animals(id, name_vietnamese, name_english, scientific_name, image_url, description_short, animal_type)');
+      for (final entry in filters.entries) {
+        final col = entry.key;
+        final val = entry.value;
+        final qConfig = _questions.firstWhere((q) => q.column == col, orElse: () => _questions.first);
+        if (qConfig.isBool || val is bool) {
+          query = query.eq(col, val) as dynamic;
+        } else if (qConfig.isArray) {
+          query = query.contains(col, [val]) as dynamic;
+        } else {
+          query = query.eq(col, val) as dynamic;
+        }
+      }
+      return query;
+    }
+
+    // Bảng animals thông thường
+    var query = _client.from(config.dbTable).select(
+      'id, name_vietnamese, name_english, scientific_name, image_url, description_short, animal_type',
+    );
 
     if (config.dbTable == 'animals') {
       query = query.eq('animal_type', config.animalType) as dynamic;
@@ -189,9 +220,31 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
   Future<void> _fetchResults(Map<String, dynamic> filters) async {
     if (_selectedConfig == null) return;
     try {
-      final data = await _buildQuery(filters).limit(50);
-      setState(() => _results = List<Map<String, dynamic>>.from(data as List));
+      final data = await _buildQuery(filters);
+      final list = data as List;
+      final isTraitsTable = _selectedConfig!.dbTable.endsWith('_traits');
+      setState(() {
+        if (isTraitsTable) {
+          // Flatten nested animals object lên top-level
+          // animals có thể là Map (1-1 FK) hoặc List (nếu Supabase trả array)
+          _results = list.map((row) {
+            final raw = row['animals'];
+            final Map<String, dynamic> animalData;
+            if (raw is Map<String, dynamic>) {
+              animalData = raw;
+            } else if (raw is List && raw.isNotEmpty) {
+              animalData = Map<String, dynamic>.from(raw.first as Map);
+            } else {
+              animalData = {};
+            }
+            return animalData;
+          }).where((a) => a.isNotEmpty).toList();
+        } else {
+          _results = List<Map<String, dynamic>>.from(list);
+        }
+      });
     } catch (e) {
+      debugPrint('[SmartSearch] fetchResults error: $e');
       setState(() => _results = []);
     }
   }
@@ -561,7 +614,7 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
                       icon: Icons.pets_rounded,
                       selected: _typeFilter == _AnimalTypeFilter.fourLegs,
                       onTap: () => setState(() =>
-                          _typeFilter = _AnimalTypeFilter.fourLegs),
+                      _typeFilter = _AnimalTypeFilter.fourLegs),
                     ),
                     const SizedBox(width: 8),
                     _SortChip(
@@ -569,7 +622,7 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
                       icon: Icons.water_rounded,
                       selected: _typeFilter == _AnimalTypeFilter.fish,
                       onTap: () => setState(() =>
-                          _typeFilter = _AnimalTypeFilter.fish),
+                      _typeFilter = _AnimalTypeFilter.fish),
                     ),
                     const SizedBox(width: 8),
                     _SortChip(
@@ -577,7 +630,7 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
                       icon: Icons.flutter_dash_rounded,
                       selected: _typeFilter == _AnimalTypeFilter.twoLegs,
                       onTap: () => setState(() =>
-                          _typeFilter = _AnimalTypeFilter.twoLegs),
+                      _typeFilter = _AnimalTypeFilter.twoLegs),
                     ),
                   ],
                 ),
@@ -659,7 +712,7 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
             ),
           ),
           title: Text('${t.tr(_selectedConfig!.nameVi)} ${_selectedConfig!.emoji}', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: colorScheme.onSurface)),
-          trailing: _results.isNotEmpty
+          trailing: (_results.isNotEmpty && _filters.isNotEmpty)
               ? GestureDetector(onTap: () => setState(() => _showResults = true), child: Text('${t.tr('Xem')} ${_results.length}', style: TextStyle(color: colorScheme.primary, fontSize: 17)))
               : const SizedBox.shrink(),
         ),
@@ -678,7 +731,12 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
                 ),
               ),
               const SizedBox(height: 6),
-              Text('${_results.length} ${t.tr('kết quả đang khớp')}', style: TextStyle(fontSize: 13, color: colorScheme.onSurfaceVariant)),
+              Text(
+                _filters.isEmpty
+                    ? t.tr('Trả lời để tìm loài phù hợp')
+                    : '${_results.length} ${t.tr('kết quả đang khớp')}',
+                style: TextStyle(fontSize: 13, color: colorScheme.onSurfaceVariant),
+              ),
             ],
           ),
         ),

@@ -29,6 +29,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
     super.initState();
     _bgCtrl = AnimationController(vsync: this, duration: const Duration(seconds: 20))..repeat();
   }
+  final List<Color> _gradientColors = [
+    const Color(0xFFFBBF24),
+    const Color(0xFFF97316),
+  ];
 
   @override
   void dispose() {
@@ -106,9 +110,21 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
         ),
         const SizedBox(height: 20),
         ShaderMask(
-          shaderCallback: (b) => LinearGradient(colors: _colors).createShader(b),
-          child: const Text('Quên mật khẩu?',
-            style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.white),
+          shaderCallback: (bounds) => LinearGradient(
+            colors: _gradientColors,
+          ).createShader(bounds),
+          child: Text(
+            'Quên mật khẩu?',
+            style: const TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+              letterSpacing: -0.5,
+              shadows: [
+                Shadow(color: Colors.black87, offset: Offset(0, 0), blurRadius: 8),
+                Shadow(color: Colors.black54, offset: Offset(1, 1), blurRadius: 4),
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 8),

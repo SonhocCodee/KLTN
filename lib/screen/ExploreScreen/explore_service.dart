@@ -142,10 +142,13 @@ class ExploreService extends ChangeNotifier {
   Future<void> _loadStats() async {
     final prefs = await SharedPreferences.getInstance();
 
-    totalFactsRead = prefs.getInt(_keyTotalFacts)   ?? 0;
-    totalSpecies   = prefs.getInt(_keyTotalSpecies) ?? 0;
-    streakDays     = prefs.getInt(_keyStreak)       ?? 0;
+    totalFactsRead = prefs.getInt(_keyTotalFacts) ?? 0;
+    streakDays     = prefs.getInt(_keyStreak)     ?? 0;
     _lastQuizDate  = prefs.getString(_keyLastQuizDate);
+
+    // FIX: tính totalSpecies từ list thực tế thay vì integer dễ bị lệch
+    final allSpeciesList = prefs.getStringList(_keyAllReadSpecies) ?? [];
+    totalSpecies = allSpeciesList.toSet().length;
 
     await _mergeStatsFromSupabase(prefs);
     await _loadQuizPctFromSupabase(prefs);
@@ -456,10 +459,11 @@ class ExploreService extends ChangeNotifier {
       final allSpeciesSet = (prefs.getStringList(_keyAllReadSpecies) ?? []).toSet();
       if (!allSpeciesSet.contains(animalId)) {
         allSpeciesSet.add(animalId);
-        totalSpecies = allSpeciesSet.length;
         await prefs.setStringList(_keyAllReadSpecies, allSpeciesSet.toList());
-        await prefs.setInt(_keyTotalSpecies, totalSpecies);
       }
+      // FIX: luôn tính lại từ set, không dùng ++ để tránh lệch với server
+      totalSpecies = allSpeciesSet.length;
+      await prefs.setInt(_keyTotalSpecies, totalSpecies);
     }
 
     if (isQuizUnlocked && quizQuestions.isEmpty) {
