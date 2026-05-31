@@ -1,7 +1,6 @@
 // lib/main_layout.dart
 import 'package:flutter/material.dart';
 
-import '../ExploreScreen/ExploreScreen.dart';
 import '../ExploreScreen/explore_page.dart';
 import '../IDENTIFY SCREEN/indentify_screen.dart';
 import '../Search_smart/search_smart_screen.dart';

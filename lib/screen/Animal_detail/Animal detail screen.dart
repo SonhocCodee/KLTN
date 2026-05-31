@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:kltn_app/screen/Animal_detail/service/groq_translation_service.dart';
 import 'package:provider/provider.dart';
 import 'package:kltn_app/screen/Animal_detail/widgets/animal_detail_external_links.dart';
 import 'package:kltn_app/screen/Animal_detail/widgets/animal_detail_header.dart';
 import '../../services/animal_home_service.dart';
+import '../Auth/auth_screen.dart';
+import '../Auth/auth_service.dart';
 import '../home/animal_category_model.dart';
 
 import '../language/Locale_provider.dart';
 import '../profile/favorite_service.dart';
+import '../report/Animal report sheet.dart';
 import 'widgets/animal_detail_utils.dart';
 import 'widgets/animal_detail_title.dart';
 import 'widgets/animal_detail_quick_stats.dart';
@@ -25,10 +29,20 @@ class AnimalDetailScreen extends StatefulWidget {
   final String animalId;
   final AnimalCategory category;
 
+  /// Dùng khi user bấm tim lúc chưa đăng nhập.
+  /// Sau khi đăng nhập xong sẽ quay lại đúng loài này và tự thêm yêu thích.
+  final bool autoFavoriteAfterLogin;
+
+  /// Dùng khi user bấm báo cáo lúc chưa đăng nhập.
+  /// Sau khi đăng nhập xong sẽ quay lại đúng loài này và tự mở form báo cáo.
+  final bool autoReportAfterLogin;
+
   const AnimalDetailScreen({
     super.key,
     required this.animalId,
     required this.category,
+    this.autoFavoriteAfterLogin = false,
+    this.autoReportAfterLogin = false,
   });
 
   @override
@@ -47,6 +61,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen>
   bool _isLoading = true;
   bool _isFavorite = false;
   bool _isTogglingFavorite = false;
+  bool _didRunAutoAction = false;
 
   late AnimationController _fadeController;
   late AnimationController _slideController;
@@ -99,9 +114,12 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen>
 
         // ── Trigger dịch ngầm nếu đang xem tiếng Anh ─────────────────────
         _maybeTranslate(animal);
+
+        // Nếu user vừa đăng nhập từ popup tim/báo cáo thì chạy tiếp hành động cũ.
+        _runAutoActionAfterLogin();
       }
     } catch (e) {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -125,10 +143,15 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen>
 
   Future<void> _toggleFavorite() async {
     if (_isTogglingFavorite) return;
+
+    if (!AuthService.isAuthenticatedUser) {
+      _showLoginRequiredDialog(_ProtectedAction.favorite);
+      return;
+    }
+
     setState(() => _isTogglingFavorite = true);
     try {
-      final newState =
-      await _favoriteService.toggleFavorite(widget.animalId);
+      final newState = await _favoriteService.toggleFavorite(widget.animalId);
       if (!mounted) return;
       setState(() => _isFavorite = newState);
 
@@ -148,6 +171,152 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen>
     } finally {
       if (mounted) setState(() => _isTogglingFavorite = false);
     }
+  }
+
+  Future<void> _addFavoriteAfterLogin() async {
+    if (_isTogglingFavorite || _isFavorite) return;
+    if (!AuthService.isAuthenticatedUser) return;
+
+    setState(() => _isTogglingFavorite = true);
+    try {
+      final success = await _favoriteService.addFavorite(widget.animalId);
+      if (!mounted) return;
+
+      if (success) {
+        setState(() => _isFavorite = true);
+        final t = context.read<LocaleProvider>();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(t.tr('❤️ Đã thêm vào loài yêu thích')),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isTogglingFavorite = false);
+    }
+  }
+
+  void _handleReportTap() {
+    HapticFeedback.lightImpact();
+
+    if (!AuthService.isAuthenticatedUser) {
+      _showLoginRequiredDialog(_ProtectedAction.report);
+      return;
+    }
+
+    _openReportSheet();
+  }
+
+  void _openReportSheet() {
+    if (!mounted || _animal == null) return;
+    showAnimalReportSheet(
+      context,
+      animalId: widget.animalId,
+      animal: _animal!,
+    );
+  }
+
+  void _runAutoActionAfterLogin() {
+    if (_didRunAutoAction) return;
+    if (!AuthService.isAuthenticatedUser) return;
+    if (!widget.autoFavoriteAfterLogin && !widget.autoReportAfterLogin) return;
+
+    _didRunAutoAction = true;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+
+      if (widget.autoFavoriteAfterLogin) {
+        await _addFavoriteAfterLogin();
+      }
+
+      if (!mounted) return;
+
+      if (widget.autoReportAfterLogin) {
+        _openReportSheet();
+      }
+    });
+  }
+
+  void _showLoginRequiredDialog(_ProtectedAction action) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isFavoriteAction = action == _ProtectedAction.favorite;
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: colorScheme.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: colorScheme.primary.withOpacity(0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  isFavoriteAction ? Icons.favorite_rounded : Icons.flag_rounded,
+                  color: isFavoriteAction ? Colors.redAccent : colorScheme.primary,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Cần đăng nhập',
+                  style: TextStyle(
+                    color: colorScheme.onSurface,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            isFavoriteAction
+                ? 'Vui lòng đăng nhập để thêm loài này vào danh sách yêu thích.'
+                : 'Vui lòng đăng nhập để gửi báo cáo sửa thông tin loài này.',
+            style: TextStyle(
+              color: colorScheme.onSurfaceVariant,
+              height: 1.45,
+            ),
+          ),
+          actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Để sau'),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => AuthScreen(
+                      redirectAfterLogin: AnimalDetailScreen(
+                        animalId: widget.animalId,
+                        category: widget.category,
+                        autoFavoriteAfterLogin: action == _ProtectedAction.favorite,
+                        autoReportAfterLogin: action == _ProtectedAction.report,
+                      ),
+                    ),
+                  ),
+                );
+              },
+              child: const Text('Đăng nhập'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -245,6 +414,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen>
           AnimalDetailFloatingButtons(
             animalId: widget.animalId,
             animal: _animal!,
+            onReportTap: _handleReportTap,
           ),
 
           // ── Nút yêu thích ─────────────────────────────────────────────────
@@ -262,6 +432,8 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen>
     );
   }
 }
+
+enum _ProtectedAction { favorite, report }
 
 // ── Widget nút yêu thích ────────────────────────────────────────────────────
 

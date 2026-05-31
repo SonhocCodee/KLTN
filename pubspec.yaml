@@ -40,6 +40,8 @@ dependencies:
   flutter_map: ^7.0.2
   latlong2: ^0.9.1
   just_audio: ^0.9.40
+  firebase_core: ^4.2.1
+  firebase_messaging: ^16.0.4
 
 
 

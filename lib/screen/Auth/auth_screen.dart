@@ -9,7 +9,11 @@ import '../home/home_wrapper.dart';
 
 // ── Entry point ───────────────────────────────────────────────
 class AuthScreen extends StatefulWidget {
-  const AuthScreen({super.key});
+  /// Nếu khác null, sau khi đăng nhập thành công sẽ quay về màn này
+  /// thay vì nhảy về HomeWrapper.
+  final Widget? redirectAfterLogin;
+
+  const AuthScreen({super.key, this.redirectAfterLogin});
 
   @override
   State<AuthScreen> createState() => _AuthScreenState();
@@ -24,6 +28,7 @@ class _AuthScreenState extends State<AuthScreen>
   late Animation<Offset> _formSlide;
 
   bool _isLogin = true;
+  bool _didNavigateAfterLogin = false;
 
   // Biến lắng nghe trạng thái đăng nhập của Supabase
   late final StreamSubscription<AuthState> _authSubscription;
@@ -72,9 +77,7 @@ class _AuthScreenState extends State<AuthScreen>
       else if ((event == AuthChangeEvent.initialSession || event == AuthChangeEvent.signedIn) && session != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (_) => const HomeWrapper()),
-            );
+            _goAfterLogin();
           }
         });
       }
@@ -97,11 +100,21 @@ class _AuthScreenState extends State<AuthScreen>
     _formController.forward();
   }
 
-  void _onLoginSuccess() {
+  void _goAfterLogin() {
+    if (_didNavigateAfterLogin || !mounted) return;
+    _didNavigateAfterLogin = true;
+
+    final redirect = widget.redirectAfterLogin;
 
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const HomeWrapper()),
+      MaterialPageRoute(
+        builder: (_) => redirect ?? const HomeWrapper(),
+      ),
     );
+  }
+
+  void _onLoginSuccess() {
+    _goAfterLogin();
   }
 
   @override
@@ -343,6 +356,28 @@ class _LoginFormState extends State<_LoginForm> {
 
         // Google
         _GoogleButton(loading: _loading, onTap: _googleSignIn),
+
+        const SizedBox(height: 20),
+
+        // Tiếp tục với tư cách khách
+        GestureDetector(
+          onTap: () async {
+            await AuthService.continueAsGuest();
+            widget.onSuccess();
+          },
+          child: Center(
+            child: Text(
+              'Tiếp tục với tư cách khách',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.black.withOpacity(0.45),
+                decoration: TextDecoration.underline,
+                decorationColor: Colors.black.withOpacity(0.3),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ),
 
         const SizedBox(height: 24),
 

@@ -3,9 +3,10 @@ import 'package:kltn_app/screen/SettingsScreen/provider/Notification_service.dar
 import 'package:kltn_app/screen/SettingsScreen/widgets/ettings_info_options.dart';
 import 'package:provider/provider.dart';
 
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:kltn_app/screen/welcome/welcome_screen.dart';
 
+import '../auth/auth_screen.dart';
+import '../auth/auth_service.dart';
 import '../language/Locale_provider.dart';
 import '../update/update_screen.dart';
 import 'widgets/settings_animated_header.dart';
@@ -39,6 +40,10 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
   final Color accentOrange = const Color(0xFFEF6C00);
 
   final _notifService = NotificationService();
+
+  bool get _isAuthenticatedUser {
+    return AuthService.currentUser != null && !AuthService.isGuest;
+  }
 
   @override
   void initState() {
@@ -112,6 +117,15 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
     super.dispose();
   }
 
+  Future<void> _handleLoginOrRegister(BuildContext context) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const AuthScreen()),
+    );
+
+    // Nếu user đăng nhập rồi quay lại Settings thì refresh lại nút.
+    if (mounted) setState(() {});
+  }
+
   Future<void> _handleLogout(BuildContext context, LocaleProvider t) async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -142,7 +156,7 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
     );
 
     if (confirm == true) {
-      await Supabase.instance.client.auth.signOut();
+      await AuthService.signOut();
       if (context.mounted) {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const WelcomeScreen()),
@@ -150,6 +164,55 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
         );
       }
     }
+  }
+
+  Widget _buildAuthButton({
+    required BuildContext context,
+    required LocaleProvider t,
+    required ColorScheme colorScheme,
+  }) {
+    if (_isAuthenticatedUser) {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16),
+        child: OutlinedButton.icon(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: Colors.red,
+            side: const BorderSide(color: Colors.red),
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+          icon: const Icon(Icons.logout_rounded),
+          label: Text(
+            t.tr('Đăng xuất'),
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          onPressed: () => _handleLogout(context, t),
+        ),
+      );
+    }
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      child: ElevatedButton.icon(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primaryGreen,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+        icon: const Icon(Icons.login_rounded),
+        label: Text(
+          t.tr('Đăng nhập / Đăng ký'),
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        onPressed: () => _handleLoginOrRegister(context),
+      ),
+    );
   }
 
   @override
@@ -236,24 +299,10 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
 
           const SizedBox(height: 12),
 
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            child: OutlinedButton.icon(
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.red,
-                side: const BorderSide(color: Colors.red),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-              icon: const Icon(Icons.logout_rounded),
-              label: Text(
-                t.tr('Đăng xuất'),
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              onPressed: () => _handleLogout(context, t),
-            ),
+          _buildAuthButton(
+            context: context,
+            t: t,
+            colorScheme: colorScheme,
           ),
 
           const SizedBox(height: 32),

@@ -1,10 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../Auth/auth_service.dart';
 
 class FavoriteService {
   final _supabase = Supabase.instance.client;
 
-  String? get _userId => _supabase.auth.currentUser?.id;
+  String? get _userId => AuthService.isGuest ? null : _supabase.auth.currentUser?.id;
 
   Future<List<Map<String, dynamic>>> getFavorites() async {
     final uid = _userId;

@@ -5,6 +5,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import '../../services/animal_home_service.dart';
 import '../Animal_detail/Animal detail screen.dart';
+import '../Auth/auth_screen.dart';
+import '../Auth/auth_service.dart';
 import 'favorite_service.dart'; // để load chi tiết loài
 import '../home/animal_category_model.dart';
 
@@ -55,10 +57,23 @@ class _ProfilePageState extends State<ProfilePage>
   final _nameController = TextEditingController();
   bool _isEditingName = false;
 
+  bool get _isAuthenticated =>
+      _supabase.auth.currentUser != null && !AuthService.isGuest;
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+
+    // Nếu đang ở guest mode/chưa đăng nhập thật thì không gọi Supabase.
+    // Nếu vẫn gọi _loadProfile() mà userId null, biến _isLoadingProfile sẽ bị true mãi.
+    if (!_isAuthenticated) {
+      _isLoadingProfile = false;
+      _isLoadingReports = false;
+      _isLoadingFavorites = false;
+      return;
+    }
+
     _loadProfile();
     _loadReports();
     _loadFavorites();
@@ -92,7 +107,12 @@ class _ProfilePageState extends State<ProfilePage>
 
   Future<void> _loadProfile() async {
     final userId = _supabase.auth.currentUser?.id;
-    if (userId == null) return;
+    if (!_isAuthenticated || userId == null) {
+      if (mounted) {
+        setState(() => _isLoadingProfile = false);
+      }
+      return;
+    }
 
     try {
       final profileRes = await _supabase
@@ -134,6 +154,16 @@ class _ProfilePageState extends State<ProfilePage>
   // ── Load favorites ────────────────────────────────────────────────────────
 
   Future<void> _loadFavorites() async {
+    if (!_isAuthenticated) {
+      if (mounted) {
+        setState(() {
+          _favoriteAnimals = [];
+          _isLoadingFavorites = false;
+        });
+      }
+      return;
+    }
+
     setState(() => _isLoadingFavorites = true);
     try {
       // Lấy danh sách animal_id yêu thích
@@ -182,7 +212,15 @@ class _ProfilePageState extends State<ProfilePage>
 
   Future<void> _loadReports() async {
     final userId = _supabase.auth.currentUser?.id;
-    if (userId == null) return;
+    if (!_isAuthenticated || userId == null) {
+      if (mounted) {
+        setState(() {
+          _allReports = [];
+          _isLoadingReports = false;
+        });
+      }
+      return;
+    }
 
     try {
       final results = await Future.wait([
@@ -355,6 +393,10 @@ class _ProfilePageState extends State<ProfilePage>
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
+    if (!_isAuthenticated) {
+      return _buildNotLoggedIn(context);
+    }
+
     return Scaffold(
       backgroundColor: colorScheme.surface,
       body: _isLoadingProfile
@@ -369,6 +411,101 @@ class _ProfilePageState extends State<ProfilePage>
           SliverToBoxAdapter(
               child: _buildReportsSection(colorScheme)),
         ],
+      ),
+    );
+  }
+
+  // ── Màn hình chưa đăng nhập ───────────────────────────────────────────────
+  Widget _buildNotLoggedIn(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Scaffold(
+      backgroundColor: colorScheme.surface,
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 88,
+                  height: 88,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: colorScheme.primaryContainer,
+                  ),
+                  child: Center(
+                    child: Icon(
+                      Icons.lock_outline_rounded,
+                      size: 42,
+                      color: colorScheme.onPrimaryContainer,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Vui lòng đăng nhập',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Vui lòng đăng nhập để sử dụng tính năng hồ sơ, xem loài yêu thích và theo dõi báo cáo của bạn.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    height: 1.5,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 28),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const AuthScreen()),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: 15,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [
+                          Color(0xFFFBBF24),
+                          Color(0xFFF97316),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(36),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFFBBF24).withOpacity(0.35),
+                          blurRadius: 18,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: const Text(
+                      'Đăng nhập ngay',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -301,13 +301,15 @@ class IdentifyService extends ChangeNotifier {
       final scores = List<double>.from(output[0]);
       final maxScore = scores.reduce((a, b) => a > b ? a : b);
 
-      // Ngưỡng tối thiểu 40%: dưới mức này coi như ảnh không hợp lệ
-      if (maxScore < 0.40) {
-        debugPrint('⚠️ Local model confidence quá thấp (${(maxScore*100).toStringAsFixed(1)}%) → NOT_ANIMAL');
+      // Ngưỡng tối thiểu 40%: chỉ áp dụng khi dùng local model làm FALLBACK
+      // (có mạng nhưng API lỗi). Khi offline hoàn toàn, bỏ qua kiểm tra này
+      // vì local model chỉ nhận diện giống mèo/chó, không thể phán "NOT_ANIMAL".
+      if (fallback && maxScore < 0.40) {
+        debugPrint('⚠️ Local fallback confidence quá thấp (${(maxScore*100).toStringAsFixed(1)}%) → NOT_ANIMAL');
         isNotAnimal = true;
         isAnalyzing = false;
         notifyListeners();
-        onDone(); // ← Fix bug 2: trigger animation "Ảnh không hợp lệ" khi offline
+        onDone();
         return;
       }
 

@@ -161,10 +161,15 @@ class AnimalDetailFloatingButtons extends StatelessWidget {
   final String animalId;
   final Map<String, dynamic> animal;
 
+  /// Nếu truyền vào, parent sẽ tự xử lý logic bấm báo cáo
+  /// như check đăng nhập rồi mới mở form.
+  final VoidCallback? onReportTap;
+
   const AnimalDetailFloatingButtons({
     super.key,
     required this.animalId,
     required this.animal,
+    this.onReportTap,
   });
 
   @override
@@ -181,7 +186,7 @@ class AnimalDetailFloatingButtons extends StatelessWidget {
             ),
             _buildGlassButton(
               icon: Icons.flag_rounded,
-              onTap: () {
+              onTap: onReportTap ?? () {
                 HapticFeedback.lightImpact();
                 showAnimalReportSheet(context, animalId: animalId, animal: animal);
               },

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "885960278136",
+    "project_id": "zootrek-21a16",
+    "storage_bucket": "zootrek-21a16.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:885960278136:android:ef66f140fd229eb474ad8d",
+        "android_client_info": {
+          "package_name": "com.example.kltn_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB_pCP8LKgDBV_bLUwyEjwtOw6iw1q0dIo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
