@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ZooTrek · Gửi thông báo</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0d0f14;
+      color: #e8eaf0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      width: 100%;
+      max-width: 620px;
+      background: #161922;
+      border: 1px solid #2a2f3e;
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 24px 80px rgba(0,0,0,.35);
+    }
+    h1 { margin: 0 0 4px; font-size: 24px; }
+    p { margin: 0 0 24px; color: #7a82a0; font-size: 14px; }
+    label { display: block; margin: 14px 0 7px; font-weight: 700; font-size: 13px; color: #a8afc7; }
+    input, textarea, select {
+      width: 100%;
+      background: #0d0f14;
+      border: 1px solid #2a2f3e;
+      color: #e8eaf0;
+      border-radius: 12px;
+      padding: 12px 14px;
+      outline: none;
+      font-size: 14px;
+    }
+    textarea { resize: vertical; min-height: 95px; }
+    input:focus, textarea:focus, select:focus { border-color: #4f8ef7; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    button {
+      width: 100%;
+      margin-top: 22px;
+      border: 0;
+      border-radius: 14px;
+      padding: 14px 18px;
+      background: #4f8ef7;
+      color: white;
+      font-weight: 800;
+      cursor: pointer;
+      font-size: 15px;
+    }
+    button:disabled { opacity: .6; cursor: not-allowed; }
+    pre {
+      white-space: pre-wrap;
+      background: #0d0f14;
+      border: 1px solid #2a2f3e;
+      border-radius: 12px;
+      padding: 14px;
+      margin-top: 18px;
+      color: #a8f7c1;
+      min-height: 54px;
+      font-size: 13px;
+    }
+    .hint { margin-top: 6px; color: #7a82a0; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>🐾 Gửi thông báo ZooTrek</h1>
+    <p>Gửi push notification tới thiết bị đã mở app và lưu FCM token.</p>
+
+    <label>Supabase Function URL</label>
+    <input id="functionUrl" placeholder="https://xxx.supabase.co/functions/v1/send-push" />
+    <div class="hint">Lấy trong Supabase → Edge Functions → send-push.</div>
+
+    <label>Admin Push Secret</label>
+    <input id="adminSecret" type="password" placeholder="ADMIN_PUSH_SECRET" />
+
+    <div class="row">
+      <div>
+        <label>Loại thông báo</label>
+        <select id="type">
+          <option value="general">Thông báo chung</option>
+          <option value="update">Cập nhật ứng dụng</option>
+          <option value="daily_fact">Fact hằng ngày</option>
+        </select>
+      </div>
+      <div>
+        <label>Đối tượng</label>
+        <select id="target">
+          <option value="all">Tất cả thiết bị</option>
+          <option value="users">Một số user_id</option>
+        </select>
+      </div>
+    </div>
+
+    <label>User IDs, chỉ dùng khi chọn “Một số user_id”</label>
+    <input id="userIds" placeholder="uuid1, uuid2, uuid3" />
+
+    <label>Tiêu đề</label>
+    <input id="title" value="ZooTrek có thông báo mới" />
+
+    <label>Nội dung</label>
+    <textarea id="body">Mở ứng dụng để khám phá thêm về thế giới động vật nhé!</textarea>
+
+    <label>Data JSON, tuỳ chọn</label>
+    <textarea id="dataJson">{"screen":"home"}</textarea>
+    <div class="hint">Với cập nhật app nên dùng: {"screen":"update"}</div>
+
+    <button id="sendBtn">Gửi thông báo</button>
+    <pre id="result">Chưa gửi.</pre>
+  </main>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    $('type').addEventListener('change', () => {
+      if ($('type').value === 'update') {
+        $('title').value = 'ZooTrek có bản cập nhật mới 🚀';
+        $('body').value = 'Đã có phiên bản mới. Bấm để mở màn hình cập nhật ngay.';
+        $('dataJson').value = '{"screen":"update"}';
+      }
+    });
+
+    $('sendBtn').addEventListener('click', async () => {
+      const btn = $('sendBtn');
+      const result = $('result');
+      btn.disabled = true;
+      result.textContent = 'Đang gửi...';
+
+      try {
+        const functionUrl = $('functionUrl').value.trim();
+        const adminSecret = $('adminSecret').value.trim();
+        const target = $('target').value;
+        const userIds = $('userIds').value
+          .split(',')
+          .map(s => s.trim())
+          .filter(Boolean);
+
+        let data = {};
+        const rawData = $('dataJson').value.trim();
+        if (rawData) data = JSON.parse(rawData);
+
+        const payload = {
+          title: $('title').value.trim(),
+          body: $('body').value.trim(),
+          type: $('type').value,
+          target,
+          user_ids: target === 'users' ? userIds : [],
+          data,
+          created_by: 'dashboard'
+        };
+
+        const res = await fetch(functionUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-secret': adminSecret,
+          },
+          body: JSON.stringify(payload),
+        });
+
+        const text = await res.text();
+        try {
+          result.textContent = JSON.stringify(JSON.parse(text), null, 2);
+        } catch (_) {
+          result.textContent = text;
+        }
+      } catch (e) {
+        result.textContent = 'Lỗi: ' + e.message;
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

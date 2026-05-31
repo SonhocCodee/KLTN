@@ -63,7 +63,6 @@ void main() async {
     ),
   );
 }
-
 class AniQuestApp extends StatelessWidget {
   const AniQuestApp({super.key});
 
@@ -78,6 +77,7 @@ class AniQuestApp extends StatelessWidget {
       splitScreenMode: true,
       builder: (context, child) {
         return MaterialApp(
+          navigatorKey: AppNavigator.navigatorKey,
           title: 'AniQuest',
           debugShowCheckedModeBanner: false,
           theme: themeProvider.themeData,
