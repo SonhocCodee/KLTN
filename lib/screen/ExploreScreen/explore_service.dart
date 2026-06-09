@@ -92,6 +92,7 @@ class ExploreService extends ChangeNotifier {
   static const _keyTotalFacts     = 'explore_total_facts';
   static const _keyTotalSpecies   = 'explore_total_species';
   static const _keyAllReadSpecies = 'explore_all_read_species';
+  static const _keySpeciesBaseline = 'explore_species_baseline';
   static const _keyRecoveryMonth  = 'streak_recovery_month';
   static const _keyRecoveryUsed   = 'streak_recovery_used';
 
@@ -146,9 +147,19 @@ class ExploreService extends ChangeNotifier {
     streakDays     = prefs.getInt(_keyStreak)     ?? 0;
     _lastQuizDate  = prefs.getString(_keyLastQuizDate);
 
-    // FIX: tính totalSpecies từ list thực tế thay vì integer dễ bị lệch
+    // Server chỉ lưu tổng, local mới lưu được danh sách ID đã đọc.
+    // Baseline giữ phần tổng đã có từ server để lần đọc tiếp theo không bị tụt về 1.
     final allSpeciesList = prefs.getStringList(_keyAllReadSpecies) ?? [];
-    totalSpecies = allSpeciesList.toSet().length;
+    final speciesBaseline = prefs.getInt(_keySpeciesBaseline) ?? 0;
+    totalSpecies = speciesBaseline + allSpeciesList.toSet().length;
+    final savedTotalSpecies = prefs.getInt(_keyTotalSpecies) ?? 0;
+    if (savedTotalSpecies > totalSpecies) {
+      totalSpecies = savedTotalSpecies;
+      await prefs.setInt(
+        _keySpeciesBaseline,
+        savedTotalSpecies - allSpeciesList.toSet().length,
+      );
+    }
 
     await _mergeStatsFromSupabase(prefs);
     await _loadQuizPctFromSupabase(prefs);
@@ -196,9 +207,19 @@ class ExploreService extends ChangeNotifier {
         totalFactsRead = serverFacts;
         await prefs.setInt(_keyTotalFacts, totalFactsRead);
       }
-      if (serverSpecies > totalSpecies) {
+      final localSpeciesCount =
+          (prefs.getStringList(_keyAllReadSpecies) ?? []).toSet().length;
+      final currentBaseline = prefs.getInt(_keySpeciesBaseline) ?? 0;
+      final currentTotal = currentBaseline + localSpeciesCount;
+      if (serverSpecies > currentTotal) {
+        await prefs.setInt(
+          _keySpeciesBaseline,
+          serverSpecies - localSpeciesCount,
+        );
         totalSpecies = serverSpecies;
         await prefs.setInt(_keyTotalSpecies, totalSpecies);
+      } else {
+        totalSpecies = currentTotal;
       }
     } catch (e) {
       debugPrint('[ExploreService] Merge stats error: $e');
@@ -220,12 +241,13 @@ class ExploreService extends ChangeNotifier {
           .eq('user_id', userId)
           .eq('completed', true);
 
-      if (rows == null || (rows as List).isEmpty) {
+      final quizRows = rows as List;
+      if (quizRows.isEmpty) {
         quizCorrectPct = 0;
         return;
       }
       int sumScore = 0, sumTotal = 0;
-      for (final r in rows) {
+      for (final r in quizRows) {
         sumScore += (r['score'] as int? ?? 0);
         sumTotal += (r['total'] as int? ?? 0);
       }
@@ -461,8 +483,8 @@ class ExploreService extends ChangeNotifier {
         allSpeciesSet.add(animalId);
         await prefs.setStringList(_keyAllReadSpecies, allSpeciesSet.toList());
       }
-      // FIX: luôn tính lại từ set, không dùng ++ để tránh lệch với server
-      totalSpecies = allSpeciesSet.length;
+      final speciesBaseline = prefs.getInt(_keySpeciesBaseline) ?? 0;
+      totalSpecies = speciesBaseline + allSpeciesSet.length;
       await prefs.setInt(_keyTotalSpecies, totalSpecies);
     }
 
