@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide debugPrint;
 import 'package:kltn_app/screen/Breed_List/widgets/Breed_list_filter.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -7,8 +7,9 @@ import '../Animal_detail/Animal detail screen.dart';
 import '../home/animal_category_model.dart';
 import '../language/Locale_provider.dart';
 import '../profile/favorite_service.dart';
-
-// Import các widgets đã tách
+import 'dart:async';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'widgets/breed_list_header.dart';
 import 'widgets/breed_list_search_bar.dart';
 import 'widgets/breed_list_empty_state.dart';
@@ -35,9 +36,12 @@ class _BreedListScreenState extends State<BreedListScreen> {
   List<Map<String, dynamic>> _animals = [];
   Set<String> _favoriteIds = {};
   bool _isLoading = true;
+  bool _isOfflineError = false;
+  bool _isUsingCache = false;
   String _searchQuery = '';
   AnimalFilterState _filterState = const AnimalFilterState();
 
+  String get _cacheKey => 'breed_list_cache_${widget.category.id}';
   @override
   void initState() {
     super.initState();
@@ -49,35 +53,120 @@ class _BreedListScreenState extends State<BreedListScreen> {
     final ids = await _favoriteService.getFavoriteIds();
     if (mounted) setState(() => _favoriteIds = ids);
   }
+  Future<void> _saveAnimalsCache(List<Map<String, dynamic>> animals) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_cacheKey, jsonEncode(animals));
+    } catch (e) {
+      debugPrint('⚠️ Save animals cache error: $e');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> _readAnimalsCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_cacheKey);
+      if (raw == null || raw.isEmpty) return [];
+
+      final decoded = jsonDecode(raw);
+      if (decoded is! List) return [];
+
+      return decoded
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+    } catch (e) {
+      debugPrint('⚠️ Read animals cache error: $e');
+      return [];
+    }
+  }
 
   Future<void> _loadAnimals() async {
-    setState(() => _isLoading = true);
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+        _isOfflineError = false;
+        _isUsingCache = false;
+      });
+    }
+
+    // 1. Đọc cache trước để nếu mất mạng vẫn có gì đó hiển thị.
+    final cachedAnimals = await _readAnimalsCache();
+
+    if (cachedAnimals.isNotEmpty && mounted) {
+      setState(() {
+        _animals = cachedAnimals;
+        _isLoading = false;
+        _isOfflineError = false;
+        _isUsingCache = true;
+      });
+    }
+
     try {
-      // Select đủ các cột cần cho filter + sort + hiển thị
+      // 2. Gọi Supabase nhưng có timeout, tránh xoay mãi khi mất mạng.
       final data = await Supabase.instance.client
           .from('animals')
           .select('''
-            id, name_vietnamese, name_english, scientific_name,
-            image_url, animal_type,
-            relative_size, diet_type, conservation_status,
-            weight_avg_kg, lifespan_avg_years,
-            is_endangered, domestication_status, temperament
-          ''')
+          id, name_vietnamese, name_english, scientific_name,
+          image_url, animal_type,
+          relative_size, diet_type, conservation_status,
+          weight_avg_kg, lifespan_avg_years,
+          is_endangered, domestication_status, temperament
+        ''')
           .eq('animal_type', widget.category.id)
-          .order('name_vietnamese');
+          .order('name_vietnamese')
+          .timeout(const Duration(seconds: 5));
+
+      final list = List<Map<String, dynamic>>.from(data as List);
+
+      // 3. Có mạng + có dữ liệu mới thì lưu cache.
+      await _saveAnimalsCache(list);
 
       if (!mounted) return;
       setState(() {
-        _animals = List<Map<String, dynamic>>.from(data as List);
+        _animals = list;
         _isLoading = false;
+        _isOfflineError = false;
+        _isUsingCache = false;
+      });
+    } on TimeoutException catch (e) {
+      debugPrint('⚠️ Timeout loading animals: $e');
+
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _isOfflineError = cachedAnimals.isEmpty;
+        _isUsingCache = cachedAnimals.isNotEmpty;
+        _animals = cachedAnimals;
       });
     } catch (e) {
-      // fallback về service cũ nếu lỗi
+      debugPrint('❌ Error loading animals: $e');
+
+      // 4. Fallback service cũ nếu có thể.
       try {
-        final animals = await _service.getAnimalsByType(widget.category.id);
-        setState(() { _animals = animals; _isLoading = false; });
-      } catch (_) {
-        setState(() => _isLoading = false);
+        final animals = await _service
+            .getAnimalsByType(widget.category.id)
+            .timeout(const Duration(seconds: 5));
+
+        await _saveAnimalsCache(animals);
+
+        if (!mounted) return;
+        setState(() {
+          _animals = animals;
+          _isLoading = false;
+          _isOfflineError = false;
+          _isUsingCache = false;
+        });
+      } catch (e2) {
+        debugPrint('❌ Fallback loading animals error: $e2');
+
+        if (!mounted) return;
+        setState(() {
+          _animals = cachedAnimals;
+          _isLoading = false;
+          _isOfflineError = cachedAnimals.isEmpty;
+          _isUsingCache = cachedAnimals.isNotEmpty;
+        });
       }
     }
   }
@@ -132,6 +221,36 @@ class _BreedListScreenState extends State<BreedListScreen> {
               ),
               const SizedBox(height: 8),
 
+              if (_isUsingCache)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: Colors.orange.withOpacity(0.35)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.offline_bolt_rounded, size: 18, color: Colors.orange),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            t.tr('Đang hiển thị dữ liệu đã lưu do không có mạng'),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.orange,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
               // ── Bộ lọc inline ──
               BreedListFilterBar(
                 category: widget.category,
@@ -167,7 +286,11 @@ class _BreedListScreenState extends State<BreedListScreen> {
                   ),
                 )
               else if (_filteredAnimals.isEmpty)
-                BreedListEmptyState(searchQuery: _searchQuery)
+                BreedListEmptyState(
+                  searchQuery: _searchQuery,
+                  isOfflineError: _isOfflineError,
+                  onRetry: _loadAnimals,
+                )
               else
                 Expanded(
                   child: RefreshIndicator(

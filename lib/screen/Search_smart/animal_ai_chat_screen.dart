@@ -11,19 +11,13 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as p;
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
+import '../../core/app_env.dart';
 import '../Animal_detail/Animal detail screen.dart';
 import '../home/animal_category_model.dart';
 
-// ════════════════════════════════════════════════════════════════
-// PUBSPEC DEPENDENCIES CẦN THÊM:
-// sqflite: ^2.3.3
-// path: ^1.9.0
-// connectivity_plus: ^6.0.5
-// ════════════════════════════════════════════════════════════════
 
-/// Trang chatbot AI tách riêng.
-/// flutter run --dart-define=GROQ_API_KEY=gsk_xxx
+
+
 class AnimalAiChatScreen extends StatefulWidget {
   const AnimalAiChatScreen({super.key});
 
@@ -78,8 +72,6 @@ class _AnimalAiChatScreenState extends State<AnimalAiChatScreen> {
 
   Future<void> _initConnectivity() async {
     try {
-      // Connectivity chỉ cho biết máy có Wi-Fi/mobile hay không,
-      // không đảm bảo Internet thật sự dùng được.
       final results = await Connectivity().checkConnectivity();
       await _handleConnectivity(results);
     } catch (_) {
@@ -90,8 +82,6 @@ class _AnimalAiChatScreenState extends State<AnimalAiChatScreen> {
         .onConnectivityChanged
         .listen((results) => unawaited(_handleConnectivity(results)));
 
-    // Có những máy khi Internet quay lại nhưng Wi‑Fi/mobile không đổi
-    // thì connectivity_plus không bắn event. Watcher này giúp tự bật lại online mode.
     _networkWatchTimer?.cancel();
     _networkWatchTimer = Timer.periodic(const Duration(seconds: 5), (_) {
       unawaited(_refreshOnlineStatus());
@@ -136,7 +126,6 @@ class _AnimalAiChatScreenState extends State<AnimalAiChatScreen> {
       setState(() => _isOnline = online);
     }
 
-    // Vừa có Internet thật sự trở lại → trigger sync.
     if (online && !wasOnline) _triggerSync();
   }
 
@@ -2189,11 +2178,9 @@ class OfflineKeywordSearch {
 // ════════════════════════════════════════════════════════════════
 
 class GroqAnimalChatService {
-  static const String _groqApiKey =
-      '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';
-  static const String _groqUrl =
-      'https://api.groq.com/openai/v1/chat/completions';
-  static const String _groqModel = 'llama-3.3-70b-versatile';
+  static const String _groqApiKey = AppEnv.groqApiKey;
+  static const String _groqUrl = AppEnv.groqChatUrl;
+  static const String _groqModel = AppEnv.groqChatModel;
 
   final SupabaseClient _supabase = Supabase.instance.client;
 
@@ -2206,8 +2193,12 @@ class GroqAnimalChatService {
     // ── OFFLINE PATH ──────────────────────────────────────────
     // Không chỉ tin ConnectivityResult, vì máy có Wi-Fi nhưng Internet đã mất
     // vẫn làm Groq/Supabase treo tới timeout.
-    if (!isOnline) {
-      return _offlineFallback(question);
+    if (!AppEnv.hasGroq) {
+      return _offlineFallback(
+        question,
+        reason:
+        '⚠️ Chưa cấu hình GROQ_API_KEY, mình đã chuyển sang tìm offline.',
+      );
     }
 
     final hasInternet = await NetworkHealth.hasInternet(

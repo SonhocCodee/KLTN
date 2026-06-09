@@ -14,7 +14,7 @@ import 'package:kltn_app/screen/home/home_wrapper.dart';
 import 'package:kltn_app/screen/Auth/auth_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-
+import 'core/app_env.dart';
 import 'firebase_options.dart';
 import 'core/app_navigator.dart';
 import 'services/push_notification_service.dart';
@@ -28,9 +28,13 @@ void main() async {
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   await ScreenUtil.ensureScreenSize();
 
+  WidgetsFlutterBinding.ensureInitialized();
+
+  AppEnv.checkRequiredForAppStart();
+
   await Supabase.initialize(
-    url: 'https://dnvlqnixommhjqwpflmw.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRudmxxbml4b21taGpxd3BmbG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzE1MDEsImV4cCI6MjA4NTkwNzUwMX0.sz5oI5lhecJ0DCJNByI3CIHFICHh2PBt5FHnrMfmDaE',
+    url: AppEnv.supabaseUrl,
+    anonKey: AppEnv.supabaseAnonKey,
   );
   await PushNotificationService.instance.init();
 

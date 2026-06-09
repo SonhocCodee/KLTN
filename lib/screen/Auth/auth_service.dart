@@ -44,11 +44,14 @@ class AuthService {
     await prefs.setBool(_guestKey, true);
   }
 
-  static Future<void> _clearGuestMode() async {
+  /// Gọi ngay sau khi đăng nhập thành công để thoát guest mode.
+  static Future<void> markLoggedIn() async {
     _isGuest = false;
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_guestKey);
   }
+
+  static Future<void> _clearGuestMode() => markLoggedIn();
 
   // ── Email + Password ─────────────────────────────────────
   static Future<AuthResponse> signUpWithEmail({

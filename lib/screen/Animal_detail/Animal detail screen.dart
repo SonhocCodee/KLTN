@@ -296,20 +296,25 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen>
               child: const Text('Để sau'),
             ),
             FilledButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.of(dialogContext).pop();
-                Navigator.of(context).push(
+
+                final ok = await Navigator.of(context).push<bool>(
                   MaterialPageRoute(
-                    builder: (_) => AuthScreen(
-                      redirectAfterLogin: AnimalDetailScreen(
-                        animalId: widget.animalId,
-                        category: widget.category,
-                        autoFavoriteAfterLogin: action == _ProtectedAction.favorite,
-                        autoReportAfterLogin: action == _ProtectedAction.report,
-                      ),
-                    ),
+                    settings: const RouteSettings(arguments: {'popAfterLogin': true}),
+                    builder: (_) => const AuthScreen(),
                   ),
                 );
+
+                if (!mounted || ok != true || !AuthService.isAuthenticatedUser) {
+                  return;
+                }
+
+                if (action == _ProtectedAction.favorite) {
+                  await _addFavoriteAfterLogin();
+                } else {
+                  _openReportSheet();
+                }
               },
               child: const Text('Đăng nhập'),
             ),

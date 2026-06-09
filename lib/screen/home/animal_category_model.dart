@@ -76,7 +76,7 @@ class AnimalCategory {
       icon: Icons.landscape,
       gradient: [Color(0xFF8B4513), Color(0xFF654321)],
       imageAssetPath: 'assets/images/bear.jpg',
-      totalExpected: 10,
+      totalExpected: 15,
       isEnabled: true,
     ),
     AnimalCategory(
@@ -109,42 +109,11 @@ class AnimalCategory {
       icon: Icons.water,
       gradient: [Color(0xFF0EA5E9), Color(0xFF0284C7)],
       imageAssetPath: 'assets/images/buffalo.jpg',
-      totalExpected: 18,
+      totalExpected: 74,
       isEnabled: true,
     ),
-    AnimalCategory(
-      id: 'bird',
-      animalType: 'bird',
-      nameVi: 'Chim',
-      nameEn: 'Bird',
-      icon: Icons.flutter_dash,
-      gradient: [Color(0xFF60A5FA), Color(0xFF3B82F6)],
-      imageAssetPath: 'assets/images/bird.jpg',
-      totalExpected: 10000,
-      isEnabled: false,
-    ),
-    AnimalCategory(
-      id: 'fish',
-      animalType: 'fish',
-      nameVi: 'Cá',
-      nameEn: 'Fish',
-      icon: Icons.set_meal,
-      gradient: [Color(0xFF14B8A6), Color(0xFF0891B2)],
-      imageAssetPath: 'assets/images/fish.jpg',
-      totalExpected: 35000,
-      isEnabled: false,
-    ),
-    AnimalCategory(
-      id: 'reptile',
-      animalType: 'reptile',
-      nameVi: 'Bò Sát',
-      nameEn: 'Reptile',
-      icon: Icons.bug_report,
-      gradient: [Color(0xFF84CC16), Color(0xFF65A30D)],
-      imageAssetPath: 'assets/images/reptile.jpg',
-      totalExpected: 11000,
-      isEnabled: false,
-    ),
+
+
     AnimalCategory(
       id: 'fish',
       nameVi: 'Cá',
@@ -152,9 +121,8 @@ class AnimalCategory {
       icon: Icons.bug_report,
       gradient: [Color(0xFF0077B6), Color(0xFF00B4D8)],
       animalType: 'fish',
-      imageAssetPath: '',
-      totalExpected: 11000,
-      // lottieAsset: 'assets/lottie/fish.json', // nếu có
+      imageAssetPath: 'assets/images/fish.jpeg',
+      totalExpected: 32500,
     ),
 
     AnimalCategory(
@@ -165,7 +133,7 @@ class AnimalCategory {
       icon: Icons.flutter_dash_rounded,
       gradient: [Color(0xFF38BDF8), Color(0xFF0EA5E9)],
       imageAssetPath: 'assets/images/bird.jpg',
-      totalExpected: 11000,
+      totalExpected: 11131,
       isEnabled: true,
     ),
 

@@ -7,6 +7,8 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+import '../../../core/app_env.dart';
+
 // ── Model lịch sử tìm kiếm ────────────────────────────────────────────────
 class SearchHistoryItem {
   final int id;
@@ -44,18 +46,17 @@ class SearchHistoryItem {
 }
 
 class IdentifyService extends ChangeNotifier {
-  // ── API Keys & Endpoints (Giữ nguyên 100%) ────────────────────────────────
-  static const _geminiApiKey = 'AIzaSyCWcewCDAfJZASHrb5RyjTjEz2c901Wb_U';
-  static const _geminiUrl =
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+  // ── API Keys & Endpoints từ env ────────────────────────────────
+  static const _geminiApiKey = AppEnv.geminiApiKey;
+  static const _geminiUrl = AppEnv.geminiUrl;
 
-  static const _groqApiKey = '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';
-  static const _groqUrl = 'https://api.groq.com/openai/v1/chat/completions';
-  static const _groqModel = 'meta-llama/llama-4-scout-17b-16e-instruct';
+  static const _groqApiKey = AppEnv.groqApiKey;
+  static const _groqUrl = AppEnv.groqChatUrl;
+  static const _groqModel = AppEnv.groqVisionModel;
 
-  static const _supabaseUrl = 'https://dnvlqnixommhjqwpflmw.supabase.co';
-  static const _supabaseKey =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRudmxxbml4b21taGpxd3BmbG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDMzMTUwMSwiZXhwIjoyMDg1OTA3NTAxfQ.W2cxnWC-DJoE9GRdUWMZU3-e27VFVA05BTJotZHfR54';
+  static const _supabaseUrl = AppEnv.supabaseUrl;
+
+  static const _supabaseKey = AppEnv.supabaseAnonKey;
 
   static const _prompt =
       'You are an expert zoologist and animal breed identifier. '
@@ -223,6 +224,10 @@ class IdentifyService extends ChangeNotifier {
 
   // ── AI Identifications ────────────────────────────────────────────────────
   Future<bool> _identifyWithGemini(File f, VoidCallback onDone) async {
+    if (!AppEnv.hasGemini) {
+      debugPrint('⚠️ Thiếu GEMINI_API_KEY, bỏ qua Gemini');
+      return false;
+    }
     try {
       final jpeg = await _prepareImage(f);
       final body = jsonEncode({
@@ -250,6 +255,10 @@ class IdentifyService extends ChangeNotifier {
   }
 
   Future<bool> _identifyWithGroq(File f, VoidCallback onDone) async {
+    if (!AppEnv.hasGroq) {
+      debugPrint('⚠️ Thiếu GROQ_API_KEY, bỏ qua Groq');
+      return false;
+    }
     try {
       final jpeg = await _prepareImage(f);
       final body = jsonEncode({
@@ -409,6 +418,10 @@ class IdentifyService extends ChangeNotifier {
   }
 
   Future<String?> _remapBreedWithAI(String breed, String nameVi) async {
+    if (!AppEnv.hasGroq) {
+      debugPrint('⚠️ Thiếu GROQ_API_KEY, bỏ qua remap bằng AI');
+      return null;
+    }
     try {
       final animalType = _detectAnimalType(breed, nameVi);
       final dbList = _dbBreedsByType[animalType];

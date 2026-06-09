@@ -44,3 +44,28 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 firebase-service-account.json
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+.env.json
+*.env.json
+
+# Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
+.packages
+pubspec.lock
+
+# Android / iOS local
+android/local.properties
+ios/Pods/
+ios/Podfile.lock
+
+# IDE
+.idea/
+.vscode/
+.DS_Store

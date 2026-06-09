@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide debugPrint;
 import 'package:kltn_app/screen/home/widgets/home_animal_section.dart';
 import 'package:kltn_app/screen/home/widgets/home_quick_access.dart';
 import 'package:kltn_app/screen/home/widgets/home_search_box.dart';
@@ -223,24 +223,55 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadData() async {
-    setState(() => _isLoading = true);
+    final fallbackData = AnimalCategory.getEnabledCategories()
+        .map(
+          (cat) => AnimalCategoryData(
+        category: cat,
+
+        // Offline vẫn mở được card.
+        // Dùng totalExpected vì đây là số hardcode sẵn trong AnimalCategory.
+        count: cat.totalExpected,
+      ),
+    )
+        .toList();
+
+    // Hiện danh mục cứng ngay lập tức, không chờ mạng.
+    if (mounted) {
+      setState(() {
+        _categoryData = fallbackData;
+        _isLoading = false;
+      });
+    }
+
+    // Sau đó nếu có mạng thì cập nhật count thật từ Supabase.
     try {
-      final counts = await _service.getAnimalCounts();
-      List<AnimalCategoryData> data = [];
-      for (var category in AnimalCategory.getEnabledCategories()) {
-        final count = counts[category.id] ?? 0;
-        data.add(AnimalCategoryData(category: category, count: count));
-      }
+      final counts = await _service
+          .getAnimalCounts()
+          .timeout(const Duration(seconds: 4));
+
+      final data = AnimalCategory.getEnabledCategories().map((category) {
+        final dbCount = counts[category.id];
+
+        return AnimalCategoryData(
+          category: category,
+          count: dbCount != null && dbCount > 0
+              ? dbCount
+              : category.totalExpected,
+        );
+      }).toList();
+
+      if (!mounted) return;
       setState(() {
         _categoryData = data;
         _isLoading = false;
       });
     } catch (e) {
+      debugPrint('⚠️ [Home] Offline/fallback categories: $e');
+
+      if (!mounted) return;
       setState(() {
+        _categoryData = fallbackData;
         _isLoading = false;
-        _categoryData = AnimalCategory.getEnabledCategories()
-            .map((cat) => AnimalCategoryData(category: cat, count: 0))
-            .toList();
       });
     }
   }

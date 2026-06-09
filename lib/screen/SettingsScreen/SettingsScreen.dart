@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:kltn_app/screen/SettingsScreen/provider/Notification_service.dart';
 import 'package:kltn_app/screen/SettingsScreen/widgets/ettings_info_options.dart';
 import 'package:provider/provider.dart';
@@ -40,10 +43,9 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
   final Color accentOrange = const Color(0xFFEF6C00);
 
   final _notifService = NotificationService();
+  StreamSubscription<AuthState>? _authSub;
 
-  bool get _isAuthenticatedUser {
-    return AuthService.currentUser != null && !AuthService.isGuest;
-  }
+  bool get _isAuthenticatedUser => AuthService.isAuthenticatedUser;
 
   @override
   void initState() {
@@ -57,6 +59,10 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
     _scaleAnimation = Tween<double>(begin: 0.9, end: 1.1).animate(
       CurvedAnimation(parent: _animController, curve: Curves.easeInOut),
     );
+
+    _authSub = AuthService.authStateStream.listen((_) {
+      if (mounted) setState(() {});
+    });
 
     _loadNotifState();
     _fetchAppVersion();
@@ -113,13 +119,17 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
 
   @override
   void dispose() {
+    _authSub?.cancel();
     _animController.dispose();
     super.dispose();
   }
 
   Future<void> _handleLoginOrRegister(BuildContext context) async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const AuthScreen()),
+    await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        settings: const RouteSettings(arguments: {'popAfterLogin': true}),
+        builder: (_) => const AuthScreen(),
+      ),
     );
 
     // Nếu user đăng nhập rồi quay lại Settings thì refresh lại nút.

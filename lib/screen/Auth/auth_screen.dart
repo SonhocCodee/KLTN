@@ -9,11 +9,20 @@ import '../home/home_wrapper.dart';
 
 // ── Entry point ───────────────────────────────────────────────
 class AuthScreen extends StatefulWidget {
-  /// Nếu khác null, sau khi đăng nhập thành công sẽ quay về màn này
+  /// Nếu khác null, sau khi đăng nhập thành công sẽ mở màn này
   /// thay vì nhảy về HomeWrapper.
   final Widget? redirectAfterLogin;
 
-  const AuthScreen({super.key, this.redirectAfterLogin});
+  /// true: login xong pop về màn trước đó.
+  /// Dùng khi mở login từ report/favorite/explore/settings.
+  final bool popAfterLogin;
+
+  const AuthScreen({
+    super.key,
+    this.redirectAfterLogin,
+    this.popAfterLogin = false,
+  });
+
 
   @override
   State<AuthScreen> createState() => _AuthScreenState();
@@ -100,16 +109,38 @@ class _AuthScreenState extends State<AuthScreen>
     _formController.forward();
   }
 
-  void _goAfterLogin() {
+  Future<void> _goAfterLogin() async {
     if (_didNavigateAfterLogin || !mounted) return;
     _didNavigateAfterLogin = true;
 
+    // Quan trọng: login xong phải xoá guest mode trước khi quay lại
+    // Explore/Settings, nếu không các màn đó vẫn tưởng là khách.
+    await AuthService.markLoggedIn();
+
+    if (!mounted) return;
+
+    final args = ModalRoute.of(context)?.settings.arguments;
+    final popByRouteArgs =
+        args == true ||
+            (args is Map && args['popAfterLogin'] == true);
+
+    if (widget.popAfterLogin || popByRouteArgs) {
+      Navigator.of(context).pop(true);
+      return;
+    }
+
     final redirect = widget.redirectAfterLogin;
 
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (_) => redirect ?? const HomeWrapper(),
-      ),
+    if (redirect != null) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => redirect),
+      );
+      return;
+    }
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const HomeWrapper()),
+      (route) => false,
     );
   }
 

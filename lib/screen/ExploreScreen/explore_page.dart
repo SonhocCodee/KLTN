@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
 
 import '../language/Locale_provider.dart';
@@ -26,22 +29,41 @@ class ExplorePage extends StatefulWidget {
 }
 
 class _ExplorePageState extends State<ExplorePage> {
+  StreamSubscription<AuthState>? _authSub;
+
   bool get _canUseFeature {
-    return AuthService.currentUser != null && !AuthService.isGuest;
+    return AuthService.isAuthenticatedUser;
   }
 
   @override
   void initState() {
     super.initState();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-
-      // Nếu chưa đăng nhập hoặc đang ở guest mode thì không gọi service,
-      // tránh ExploreService load dữ liệu user rồi bị xoay/loading mãi.
-      if (!_canUseFeature) return;
-
-      context.read<ExploreService>().init();
+      _refreshAfterAuthChanged();
     });
+
+    _authSub = AuthService.authStateStream.listen((_) {
+      _refreshAfterAuthChanged();
+    });
+  }
+
+  @override
+  void dispose() {
+    _authSub?.cancel();
+    super.dispose();
+  }
+
+  void _refreshAfterAuthChanged() {
+    if (!mounted) return;
+
+    setState(() {});
+
+    // Nếu chưa đăng nhập hoặc đang ở guest mode thì không gọi service,
+    // tránh ExploreService load dữ liệu user rồi bị xoay/loading mãi.
+    if (!_canUseFeature) return;
+
+    context.read<ExploreService>().init();
   }
 
   @override
@@ -158,10 +180,15 @@ class _ExplorePageState extends State<ExplorePage> {
                 ),
                 const SizedBox(height: 28),
                 GestureDetector(
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const AuthScreen()),
+                  onTap: () async {
+                    final ok = await Navigator.of(context).push<bool>(
+                      MaterialPageRoute(
+                        settings: const RouteSettings(arguments: {'popAfterLogin': true}),
+                        builder: (_) => const AuthScreen(),
+                      ),
                     );
+                    if (!mounted) return;
+                    if (ok == true) _refreshAfterAuthChanged();
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(
