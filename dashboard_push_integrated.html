@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AniQuest · Admin Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #0d0f14;
+  --surface:  #161922;
+  --card:     #1c2030;
+  --border:   #2a2f3e;
+  --primary:  #4f8ef7;
+  --green:    #22c55e;
+  --red:      #ef4444;
+  --amber:    #f59e0b;
+  --purple:   #a855f7;
+  --text:     #e8eaf0;
+  --muted:    #7a82a0;
+  --radius:   14px;
+  --font:     'Be Vietnam Pro', sans-serif;
+}
+
+body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* ── Login ──────────────────────────────────────────────────── */
+#login-screen {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh;
+  background: radial-gradient(ellipse at 50% 0%, #1a2340 0%, var(--bg) 70%);
+}
+.login-box {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 20px; padding: 40px 36px; width: 100%; max-width: 400px; text-align: center;
+}
+.login-box .logo { font-size: 36px; margin-bottom: 8px; }
+.login-box h1 { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+.login-box p  { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+.input-group  { position: relative; margin-bottom: 14px; text-align: left; }
+.input-group label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+.input-group input {
+  width: 100%; background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 16px; color: var(--text);
+  font-family: var(--font); font-size: 14px; outline: none; transition: border-color .2s;
+}
+.input-group input:focus { border-color: var(--primary); }
+.login-error { color: var(--red); font-size: 13px; margin-top: 10px; min-height: 20px; }
+
+/* ── Buttons ────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 8px; padding: 10px 20px; border-radius: 10px; border: none;
+  cursor: pointer; font-family: var(--font); font-size: 14px; font-weight: 700;
+  transition: opacity .15s, transform .1s;
+}
+.btn:active  { transform: scale(.97); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn-primary { background: var(--primary); color: #fff; width: 100%; }
+.btn-green   { background: var(--green);   color: #fff; }
+.btn-red     { background: var(--red);     color: #fff; }
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+
+/* ── App layout ─────────────────────────────────────────────── */
+#app { display: none; }
+
+.topbar {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 14px 28px; display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+}
+.topbar-left { display: flex; align-items: center; gap: 12px; }
+.topbar-logo { font-size: 22px; }
+.topbar h2   { font-size: 16px; font-weight: 800; }
+.topbar span { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.topbar-right { display: flex; align-items: center; gap: 12px; }
+
+/* ── Tab Navigation ─────────────────────────────────────────── */
+.tab-nav {
+  display: flex; gap: 4px; padding: 16px 28px 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.tab-btn {
+  padding: 10px 20px; border-radius: 8px 8px 0 0;
+  border: 1px solid transparent; border-bottom: none;
+  background: transparent; color: var(--muted);
+  font-family: var(--font); font-size: 14px; font-weight: 600;
+  cursor: pointer; display: flex; align-items: center; gap: 8px;
+  transition: all .2s; position: relative; bottom: -1px;
+}
+.tab-btn.active {
+  background: var(--card); border-color: var(--border);
+  color: var(--text); border-bottom-color: var(--card);
+}
+.tab-btn .tab-badge {
+  background: var(--amber); color: #000;
+  font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 20px;
+}
+.tab-btn.active .tab-badge { background: var(--primary); color: #fff; }
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ── Main content ───────────────────────────────────────────── */
+.main { max-width: 1100px; margin: 0 auto; padding: 28px 20px; }
+
+/* ── Badges ─────────────────────────────────────────────────── */
+.badge {
+  display: inline-flex; align-items: center;
+  padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+}
+.badge-amber  { background: rgba(245,158,11,.15); color: var(--amber); }
+.badge-green  { background: rgba(34,197,94,.15);  color: var(--green); }
+.badge-red    { background: rgba(239,68,68,.15);  color: var(--red); }
+.badge-blue   { background: rgba(79,142,247,.15); color: var(--primary); }
+.badge-purple { background: rgba(168,85,247,.15); color: var(--purple); }
+
+/* ── Stats bar ──────────────────────────────────────────────── */
+.stats-bar { display: flex; gap: 12px; margin-bottom: 22px; flex-wrap: wrap; }
+.stat-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 14px 20px; flex: 1; min-width: 100px; text-align: center;
+}
+.stat-card .num { font-size: 26px; font-weight: 800; }
+.stat-card .lbl { font-size: 11px; color: var(--muted); margin-top: 3px; font-weight: 600; }
+
+/* ── Filters ────────────────────────────────────────────────── */
+.filters { display: flex; align-items: center; gap: 10px; margin-bottom: 22px; flex-wrap: wrap; }
+.filter-btn {
+  padding: 7px 16px; border-radius: 8px; border: 1px solid var(--border);
+  background: transparent; color: var(--muted); font-family: var(--font);
+  font-size: 13px; font-weight: 600; cursor: pointer; transition: all .15s;
+}
+.filter-btn.active, .filter-btn:hover {
+  background: var(--primary); border-color: var(--primary); color: #fff;
+}
+.refresh-btn {
+  margin-left: auto; padding: 7px 14px; border-radius: 8px;
+  border: 1px solid var(--border); background: transparent; color: var(--muted);
+  font-family: var(--font); font-size: 13px; cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
+}
+.refresh-btn:hover { color: var(--text); border-color: var(--text); }
+
+/* ── Cards (shared) ─────────────────────────────────────────── */
+.reports-list   { display: flex; flex-direction: column; gap: 16px; }
+.report-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden; transition: border-color .2s;
+}
+.report-card:hover          { border-color: #3a4060; }
+.report-card.status-approved, .report-card.status-resolved { border-left: 3px solid var(--green); }
+.report-card.status-rejected, .report-card.status-closed   { border-left: 3px solid var(--red); }
+.report-card.status-pending, .report-card.status-new       { border-left: 3px solid var(--amber); }
+.report-card.status-in_progress { border-left: 3px solid var(--primary); }
+
+.card-header {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 18px 20px 14px; border-bottom: 1px solid var(--border);
+}
+.animal-icon {
+  width: 42px; height: 42px; background: var(--surface); border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;
+}
+.card-meta { flex: 1; min-width: 0; }
+.card-meta h3  { font-size: 14px; font-weight: 700; }
+.card-meta .sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
+.card-meta .reporter { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 12px; color: var(--muted); }
+
+/* ── User avatar chip ───────────────────────────────────────── */
+.user-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(79,142,247,.1); border: 1px solid rgba(79,142,247,.2);
+  border-radius: 20px; padding: 4px 12px 4px 4px; font-size: 12px;
+}
+.user-avatar {
+  width: 24px; height: 24px; border-radius: 50%; object-fit: cover;
+  background: var(--border); display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; color: var(--primary);
+}
+.user-chip .user-name { font-weight: 600; color: var(--primary); }
+.user-chip .user-email { color: var(--muted); }
+
+.card-body { padding: 16px 20px; }
+.changes-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px; margin-bottom: 14px;
+}
+.change-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 13px; }
+.change-item .field-name { font-size: 10px; font-weight: 700; color: var(--muted); letter-spacing: .5px; text-transform: uppercase; margin-bottom: 5px; }
+.change-item .new-val    { font-size: 13px; font-weight: 600; color: var(--green); word-break: break-word; }
+.note-box {
+  background: rgba(245,158,11,.07); border: 1px solid rgba(245,158,11,.2);
+  border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #d4aa6a; margin-top: 4px;
+}
+
+.card-footer {
+  display: flex; align-items: center; justify-content: flex-end;
+  gap: 10px; padding: 12px 20px; border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+.admin-note-row { flex: 1; }
+.admin-note-row input {
+  width: 100%; background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 12px; color: var(--text);
+  font-family: var(--font); font-size: 12px; outline: none;
+}
+.admin-note-row input:focus { border-color: var(--primary); }
+
+/* ── Feedback specific ──────────────────────────────────────── */
+.fb-type-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+}
+.fb-bug        { background: rgba(239,68,68,.15);  color: var(--red);    }
+.fb-suggestion { background: rgba(168,85,247,.15); color: var(--purple); }
+.fb-other      { background: rgba(79,142,247,.15); color: var(--primary);}
+
+.media-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.media-thumb {
+  width: 100px; height: 100px; border-radius: 8px; object-fit: cover;
+  border: 1px solid var(--border); cursor: pointer; transition: transform .15s;
+}
+.media-thumb:hover { transform: scale(1.04); }
+.media-video-thumb {
+  width: 100px; height: 100px; border-radius: 8px;
+  background: #111; border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; cursor: pointer; text-decoration: none;
+  transition: transform .15s;
+}
+.media-video-thumb:hover { transform: scale(1.04); border-color: var(--primary); }
+
+/* ── Empty / Loading ────────────────────────────────────────── */
+.empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+.empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+.empty-state p { font-size: 14px; }
+.spinner {
+  width: 32px; height: 32px; border: 3px solid var(--border);
+  border-top-color: var(--primary); border-radius: 50%;
+  animation: spin .7s linear infinite; margin: 60px auto;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Toast ──────────────────────────────────────────────────── */
+#toast {
+  position: fixed; bottom: 28px; right: 28px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 14px 20px; font-size: 13px; font-weight: 600;
+  box-shadow: 0 8px 28px rgba(0,0,0,.4);
+  transform: translateY(20px); opacity: 0; transition: all .3s;
+  z-index: 999; display: flex; align-items: center; gap: 10px;
+}
+#toast.show { opacity: 1; transform: translateY(0); }
+
+/* ── Lightbox ───────────────────────────────────────────────── */
+#lightbox {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,.9);
+  z-index: 9999; align-items: center; justify-content: center;
+}
+#lightbox.show { display: flex; }
+#lightbox img { max-width: 90vw; max-height: 90vh; border-radius: 10px; }
+#lightbox-close {
+  position: absolute; top: 20px; right: 28px; font-size: 28px;
+  color: #fff; cursor: pointer; opacity: .7;
+}
+#lightbox-close:hover { opacity: 1; }
+
+/* ── Push notification tab ─────────────────────────────────── */
+.push-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(320px, .95fr); gap: 18px; align-items: start; }
+.push-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px; overflow: hidden;
+}
+.push-card h3 { font-size: 16px; font-weight: 800; margin-bottom: 4px; }
+.push-card .desc { color: var(--muted); font-size: 13px; line-height: 1.6; margin-bottom: 18px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-field { margin-bottom: 14px; }
+.form-field label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 7px; }
+.form-field input, .form-field textarea, .form-field select {
+  width: 100%; background: var(--surface); color: var(--text);
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 11px 13px; font-family: var(--font); font-size: 13px; outline: none;
+}
+.form-field textarea { min-height: 92px; resize: vertical; line-height: 1.55; }
+.form-field input:focus, .form-field textarea:focus, .form-field select:focus { border-color: var(--primary); }
+.field-hint { color: var(--muted); font-size: 11px; margin-top: 6px; line-height: 1.45; }
+.push-result {
+  white-space: pre-wrap; word-break: break-word; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 10px; padding: 12px;
+  min-height: 72px; color: #a8f7c1; font-size: 12px; line-height: 1.55;
+}
+.push-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.push-actions .btn { width: auto; }
+.push-history { display: flex; flex-direction: column; gap: 12px; }
+.push-history-item {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 13px 14px;
+}
+.push-history-item h4 { font-size: 13px; margin-bottom: 5px; }
+.push-history-item p { font-size: 12px; color: var(--muted); line-height: 1.55; margin-bottom: 8px; }
+.push-history-meta { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; font-size: 11px; color: var(--muted); }
+@media (max-width: 860px) { .push-grid, .form-row { grid-template-columns: 1fr; } }
+
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══════════════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="logo">🦁</div>
+    <h1>Admin Dashboard</h1>
+    <p>AniQuest · Quản lý báo cáo & góp ý</p>
+    <div class="input-group">
+      <label>SUPABASE URL</label>
+      <input id="supabase-url" type="text" placeholder="https://xxxx.supabase.co" />
+    </div>
+    <div class="input-group">
+      <label>SERVICE ROLE KEY</label>
+      <input id="service-key" type="password" placeholder="eyJhbGci..." />
+    </div>
+    <button class="btn btn-primary" onclick="doLogin()">Đăng nhập</button>
+    <div class="login-error" id="login-error"></div>
+    <p style="font-size:11px;color:var(--muted);margin-top:20px;line-height:1.6">
+      Dùng <strong style="color:var(--text)">service_role key</strong> từ<br/>
+      Supabase → Project Settings → API
+    </p>
+  </div>
+</div>
+
+<!-- ══ APP ════════════════════════════════════════════════════ -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-logo">🦁</span>
+      <div>
+        <h2>AniQuest Admin</h2>
+        <span>Dashboard quản lý</span>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <span class="badge badge-amber" id="pending-count">—</span>
+      <button class="btn btn-outline" onclick="logout()" style="padding:7px 14px;font-size:13px">Đăng xuất</button>
+    </div>
+  </div>
+
+  <!-- Tab Nav -->
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('animal-reports', this)" id="tab-btn-animal">
+      🐾 Sửa thông tin loài
+      <span class="tab-badge" id="tab-badge-animal">—</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('feedbacks', this)" id="tab-btn-feedback">
+      💬 Góp ý & Báo lỗi
+      <span class="tab-badge" id="tab-badge-feedback">—</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('push', this)" id="tab-btn-push">
+      🔔 Thông báo đẩy
+      <span class="tab-badge" id="tab-badge-push">—</span>
+    </button>
+  </div>
+
+  <!-- ══ TAB: Animal Reports ══════════════════════════════════ -->
+  <div class="tab-panel active" id="panel-animal-reports">
+    <div class="main">
+      <div class="stats-bar">
+        <div class="stat-card"><div class="num" id="ar-total">—</div><div class="lbl">TỔNG</div></div>
+        <div class="stat-card"><div class="num" style="color:var(--amber)" id="ar-pending">—</div><div class="lbl">CHỜ DUYỆT</div></div>
+        <div class="stat-card"><div class="num" style="color:var(--green)" id="ar-approved">—</div><div class="lbl">ĐÃ DUYỆT</div></div>
+        <div class="stat-card"><div class="num" style="color:var(--red)" id="ar-rejected">—</div><div class="lbl">TỪ CHỐI</div></div>
+      </div>
+      <div class="filters">
+        <button class="filter-btn active" onclick="arSetFilter('pending',this)">⏳ Chờ duyệt</button>
+        <button class="filter-btn" onclick="arSetFilter('approved',this)">✅ Đã duyệt</button>
+        <button class="filter-btn" onclick="arSetFilter('rejected',this)">❌ Từ chối</button>
+        <button class="filter-btn" onclick="arSetFilter('all',this)">📋 Tất cả</button>
+        <button class="refresh-btn" onclick="loadAnimalReports()">↻ Làm mới</button>
+      </div>
+      <div id="ar-container"><div class="spinner"></div></div>
+    </div>
+  </div>
+
+
+
+  <!-- ══ TAB: Push Notifications ══════════════════════════════ -->
+  <div class="tab-panel" id="panel-push">
+    <div class="main">
+      <div class="stats-bar">
+        <div class="stat-card"><div class="num" id="push-token-total">—</div><div class="lbl">THIẾT BỊ ĐÃ LƯU TOKEN</div></div>
+        <div class="stat-card"><div class="num" style="color:var(--green)" id="push-enabled-total">—</div><div class="lbl">ĐANG BẬT</div></div>
+        <div class="stat-card"><div class="num" style="color:var(--primary)" id="push-sent-total">—</div><div class="lbl">LẦN GỬI</div></div>
+        <div class="stat-card"><div class="num" style="color:var(--amber)" id="push-last-sent">—</div><div class="lbl">GẦN NHẤT</div></div>
+      </div>
+
+      <div class="push-grid">
+        <div class="push-card">
+          <h3>🔔 Gửi thông báo đẩy</h3>
+          <div class="desc">Gửi thông báo cập nhật app hoặc thông báo tuỳ ý tới thiết bị đã mở app và lưu FCM token.</div>
+
+          <div class="form-field">
+            <label>Supabase Function URL</label>
+            <input id="push-function-url" placeholder="https://xxx.supabase.co/functions/v1/send-push" />
+            <div class="field-hint">Tự điền theo SUPABASE URL khi đăng nhập. Nếu khác project thì sửa lại.</div>
+          </div>
+
+          <div class="form-field">
+            <label>Admin Push Secret</label>
+            <input id="push-admin-secret" type="password" placeholder="ADMIN_PUSH_SECRET" />
+            <div class="field-hint">Chỉ lưu local trên trình duyệt của admin, không lưu vào database.</div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-field">
+              <label>Loại thông báo</label>
+              <select id="push-type" onchange="pushApplyTemplate()">
+                <option value="general">Thông báo chung</option>
+                <option value="update">Cập nhật ứng dụng</option>
+                <option value="daily_fact">Fact hằng ngày</option>
+                <option value="animal">Động vật</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label>Đối tượng</label>
+              <select id="push-target" onchange="pushToggleUserIds()">
+                <option value="all">Tất cả thiết bị</option>
+                <option value="users">Một số user_id</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-field" id="push-user-ids-wrap" style="display:none">
+            <label>User IDs</label>
+            <input id="push-user-ids" placeholder="uuid1, uuid2, uuid3" />
+          </div>
+
+          <div class="form-field">
+            <label>Tiêu đề</label>
+            <input id="push-title" value="ZooTrek có thông báo mới" />
+          </div>
+
+          <div class="form-field">
+            <label>Nội dung</label>
+            <textarea id="push-body">Mở ứng dụng để khám phá thêm về thế giới động vật nhé!</textarea>
+          </div>
+
+          <div class="form-field">
+            <label>Data JSON</label>
+            <textarea id="push-data-json">{"screen":"home"}</textarea>
+            <div class="field-hint">Cập nhật app dùng: {"screen":"update"}. Bấm thông báo sẽ mở màn UpdateScreen.</div>
+          </div>
+
+          <div class="push-actions">
+            <button class="btn btn-green" id="push-send-btn" onclick="pushSendNotification()">🚀 Gửi thông báo</button>
+            <button class="btn btn-outline" onclick="pushResetForm()">↺ Reset form</button>
+            <button class="btn btn-outline" onclick="loadPushStats()">↻ Làm mới thống kê</button>
+          </div>
+        </div>
+
+        <div class="push-card">
+          <h3>📡 Kết quả gửi</h3>
+          <div class="desc">Kết quả trả về từ Supabase Edge Function.</div>
+          <pre class="push-result" id="push-result">Chưa gửi.</pre>
+
+          <h3 style="margin-top:22px">🕘 Lịch sử gần đây</h3>
+          <div class="desc">Đọc từ bảng push_notifications.</div>
+          <div id="push-history"><div class="spinner"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TAB: Feedbacks ═══════════════════════════════════════ -->
+  <div class="tab-panel" id="panel-feedbacks">
+    <div class="main">
+      <div class="stats-bar">
+        <div class="stat-card"><div class="num" id="fb-total">—</div><div class="lbl">TỔNG GÓP Ý</div></div>
+        <div class="stat-card"><div class="num" style="color:var(--red)"    id="fb-bug">—</div><div class="lbl">BÁO LỖI</div></div>
+        <div class="stat-card"><div class="num" style="color:var(--purple)" id="fb-suggestion">—</div><div class="lbl">GÓP Ý</div></div>
+        <div class="stat-card"><div class="num" style="color:var(--amber)"  id="fb-new">—</div><div class="lbl">CHƯA XỬ LÝ</div></div>
+      </div>
+      <div class="filters">
+        <button class="filter-btn active" onclick="fbSetFilter('all',this)">📋 Tất cả</button>
+        <button class="filter-btn" onclick="fbSetFilter('bug',this)">🐛 Lỗi</button>
+        <button class="filter-btn" onclick="fbSetFilter('suggestion',this)">💡 Góp ý</button>
+        <button class="filter-btn" onclick="fbSetFilter('other',this)">💬 Khác</button>
+        <button class="filter-btn" onclick="fbSetFilter('new',this)">🆕 Mới</button>
+        <button class="filter-btn" onclick="fbSetFilter('resolved',this)">✅ Đã xử lý</button>
+        <button class="refresh-btn" onclick="loadFeedbacks()">↻ Làm mới</button>
+      </div>
+      <div id="fb-container"><div class="spinner"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- Lightbox -->
+<div id="lightbox" onclick="closeLightbox()">
+  <span id="lightbox-close">✕</span>
+  <img id="lightbox-img" src="" alt="" />
+</div>
+
+<script>
+// ── Config ──────────────────────────────────────────────────
+let SUPABASE_URL = '';
+let SERVICE_KEY  = '';
+let arCurrentFilter = 'pending';
+let fbCurrentFilter = 'all';
+
+// ── Field labels (animal reports) ───────────────────────────
+const FIELD_LABELS = {
+  suggested_name_vietnamese:     'Tên tiếng Việt',
+  suggested_name_english:        'Tên tiếng Anh',
+  suggested_scientific_name:     'Tên khoa học',
+  suggested_description_short:   'Mô tả ngắn',
+  suggested_fun_fact_vietnamese:  'Fun fact',
+  suggested_image_url:           'Hình ảnh (URL)',
+  weight_avg_kg:                 'Cân nặng (kg)',
+  height_avg_m:                  'Chiều cao (m)',
+  lifespan_avg_years:            'Tuổi thọ (năm)',
+  max_speed_kmh:                 'Tốc độ (km/h)',
+};
+const FIELD_TO_COLUMN = {
+  suggested_name_vietnamese:    'name_vietnamese',
+  suggested_name_english:       'name_english',
+  suggested_scientific_name:    'scientific_name',
+  suggested_description_short:  'description_short',
+  suggested_fun_fact_vietnamese:'fun_fact_vietnamese',
+  suggested_image_url:          'image_url',
+};
+
+// ── Auth ────────────────────────────────────────────────────
+function doLogin() {
+  const url = document.getElementById('supabase-url').value.trim();
+  const key = document.getElementById('service-key').value.trim();
+  const err = document.getElementById('login-error');
+  if (!url || !key) { err.textContent = 'Vui lòng nhập đủ thông tin.'; return; }
+  if (!url.startsWith('https://')) { err.textContent = 'URL phải bắt đầu bằng https://'; return; }
+  SUPABASE_URL = url.replace(/\/$/, '');
+  SERVICE_KEY  = key;
+  err.textContent = '';
+  localStorage.setItem('sb_url', SUPABASE_URL);
+  localStorage.setItem('sb_key', SERVICE_KEY);
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  loadAll();
+}
+
+function logout() {
+  localStorage.removeItem('sb_url');
+  localStorage.removeItem('sb_key');
+  SUPABASE_URL = SERVICE_KEY = '';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  const url = localStorage.getItem('sb_url');
+  const key = localStorage.getItem('sb_key');
+  if (url && key) {
+    document.getElementById('supabase-url').value = url;
+    document.getElementById('service-key').value  = key;
+    SUPABASE_URL = url; SERVICE_KEY = key;
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    syncPushDefaults();
+    loadAll();
+  }
+  syncPushDefaults();
+});
+
+// ── Tab switching ────────────────────────────────────────────
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(`panel-${tab}`).classList.add('active');
+}
+
+// ── API ──────────────────────────────────────────────────────
+async function sbFetch(path, options = {}) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    ...options,
+    headers: {
+      'apikey': SERVICE_KEY,
+      'Authorization': `Bearer ${SERVICE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': options.prefer || '',
+      ...(options.headers || {}),
+    },
+  });
+  if (!res.ok) { const t = await res.text(); throw new Error(`${res.status}: ${t}`); }
+  return res.status === 204 ? null : res.json();
+}
+
+async function loadAll() {
+  await Promise.all([loadAnimalReports(), loadFeedbacks(), loadPushStats()]);
+}
+
+// ════════════════════════════════════════════════════════════
+// ANIMAL REPORTS
+// ════════════════════════════════════════════════════════════
+async function loadAnimalReports() {
+  const container = document.getElementById('ar-container');
+  container.innerHTML = '<div class="spinner"></div>';
+  try {
+    const all = await sbFetch('animal_reports?select=status&order=created_at.desc');
+    const pending  = all.filter(r => r.status === 'pending').length;
+    const approved = all.filter(r => r.status === 'approved').length;
+    const rejected = all.filter(r => r.status === 'rejected').length;
+
+    document.getElementById('ar-total').textContent    = all.length;
+    document.getElementById('ar-pending').textContent  = pending;
+    document.getElementById('ar-approved').textContent = approved;
+    document.getElementById('ar-rejected').textContent = rejected;
+    document.getElementById('tab-badge-animal').textContent = pending;
+    document.getElementById('pending-count').textContent = `${pending} chờ duyệt`;
+
+    let query = 'animal_reports?select=*,animals(name_vietnamese,name_english,image_url)&order=created_at.desc';
+    if (arCurrentFilter !== 'all') query += `&status=eq.${arCurrentFilter}`;
+    const reports = await sbFetch(query);
+    renderAnimalReports(reports);
+  } catch (e) {
+    container.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>${e.message}</p></div>`;
+  }
+}
+
+function arSetFilter(f, btn) {
+  arCurrentFilter = f;
+  document.querySelectorAll('#panel-animal-reports .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  loadAnimalReports();
+}
+
+function renderAnimalReports(reports) {
+  const container = document.getElementById('ar-container');
+  if (!reports.length) {
+    container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>Không có report nào</p></div>';
+    return;
+  }
+  container.innerHTML = '<div class="reports-list">' + reports.map(renderArCard).join('') + '</div>';
+}
+
+function renderArCard(r) {
+  const date = new Date(r.created_at).toLocaleString('vi-VN');
+  const statusBadge = {
+    pending:  '<span class="badge badge-amber">⏳ Chờ duyệt</span>',
+    approved: '<span class="badge badge-green">✅ Đã duyệt</span>',
+    rejected: '<span class="badge badge-red">❌ Từ chối</span>',
+  }[r.status] || '';
+
+  const changes = [];
+  for (const [field, label] of Object.entries(FIELD_LABELS)) {
+    if (r[field]) changes.push({ field, label, newVal: r[field] });
+  }
+  const sf = r.suggested_fields || {};
+  for (const [key, val] of Object.entries(sf)) {
+    changes.push({ field: key, label: FIELD_LABELS[key] || key, newVal: val, fromJson: true });
+  }
+
+  const changesHtml = changes.length
+    ? `<div class="changes-grid">${changes.map(c => `
+        <div class="change-item">
+          <div class="field-name">${c.label}</div>
+          <div class="new-val">${c.newVal}</div>
+        </div>`).join('')}</div>`
+    : '<p style="font-size:13px;color:var(--muted)">Không có trường nào thay đổi.</p>';
+
+  const noteHtml = r.note ? `<div class="note-box">💬 ${r.note}</div>` : '';
+
+  // Reporter chip (hỗ trợ cả có/không đăng nhập + avatar)
+  const reporterHtml = buildReporterChip(r);
+
+  const animalData = r.animals || {};
+  const nameVi = animalData.name_vietnamese || '';
+  const nameEn = animalData.name_english || '';
+  const animalNameHtml = nameVi
+    ? `${nameVi} <span style="font-weight:500;color:var(--muted);font-size:13px">${nameEn ? '· ' + nameEn : ''}</span>`
+    : `Animal ID: <code style="font-size:12px;color:var(--primary)">${r.animal_id}</code>`;
+
+  const thumbUrl = r.suggested_image_url || animalData.image_url || '';
+  const imgHtml = thumbUrl
+    ? `<img src="${thumbUrl}" style="width:100%;max-height:360px;object-fit:cover;border-radius:8px;margin-bottom:12px" onerror="this.style.display='none'" />`
+    : '';
+
+  const isPending = r.status === 'pending';
+  const footerHtml = isPending ? `
+    <div class="admin-note-row">
+      <input type="text" id="ar-note-${r.id}" placeholder="Ghi chú admin (tùy chọn)..." />
+    </div>
+    <button class="btn btn-red" onclick="arReject('${r.id}')">❌ Từ chối</button>
+    <button class="btn btn-green" onclick="arApprove('${r.id}', ${JSON.stringify(changes).replace(/"/g,'&quot;')})">✅ Duyệt & Cập nhật</button>
+  ` : `<span style="font-size:12px;color:var(--muted)">${r.admin_note ? '📝 ' + r.admin_note : ''} ${r.reviewed_at ? ' · ' + new Date(r.reviewed_at).toLocaleString('vi-VN') : ''}</span>`;
+
+  return `
+    <div class="report-card status-${r.status}" id="ar-card-${r.id}">
+      <div class="card-header">
+        <div class="animal-icon">🐾</div>
+        <div class="card-meta">
+          <h3>${animalNameHtml}</h3>
+          <div class="sub">${date}</div>
+          <div class="reporter">${reporterHtml} &nbsp;${statusBadge}</div>
+        </div>
+      </div>
+      <div class="card-body">${imgHtml}${changesHtml}${noteHtml}</div>
+      <div class="card-footer">${footerHtml}</div>
+    </div>`;
+}
+
+async function arApprove(reportId, changes) {
+  try {
+    const reports = await sbFetch(`animal_reports?id=eq.${reportId}&select=animal_id,suggested_fields`);
+    if (!reports.length) throw new Error('Report không tồn tại');
+    const { animal_id } = reports[0];
+    const update = {};
+    for (const c of changes) {
+      if (c.fromJson) update[c.field] = isNaN(c.newVal) ? c.newVal : Number(c.newVal);
+      else { const col = FIELD_TO_COLUMN[c.field]; if (col) update[col] = c.newVal; }
+    }
+    if (Object.keys(update).length > 0) {
+      await sbFetch(`animals?id=eq.${animal_id}`, { method: 'PATCH', body: JSON.stringify(update), prefer: 'return=minimal' });
+    }
+    const adminNote = document.getElementById(`ar-note-${reportId}`)?.value || '';
+    await sbFetch(`animal_reports?id=eq.${reportId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status: 'approved', admin_note: adminNote || null, reviewed_at: new Date().toISOString() }),
+      prefer: 'return=minimal',
+    });
+    showToast('✅ Đã duyệt và cập nhật!', 'green');
+    loadAnimalReports();
+  } catch (e) { showToast('❌ Lỗi: ' + e.message, 'red'); }
+}
+
+async function arReject(reportId) {
+  try {
+    const adminNote = document.getElementById(`ar-note-${reportId}`)?.value || '';
+    await sbFetch(`animal_reports?id=eq.${reportId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status: 'rejected', admin_note: adminNote || null, reviewed_at: new Date().toISOString() }),
+      prefer: 'return=minimal',
+    });
+    showToast('Report đã bị từ chối', 'red');
+    loadAnimalReports();
+  } catch (e) { showToast('❌ Lỗi: ' + e.message, 'red'); }
+}
+
+// ════════════════════════════════════════════════════════════
+// FEEDBACKS
+// ════════════════════════════════════════════════════════════
+async function loadFeedbacks() {
+  const container = document.getElementById('fb-container');
+  container.innerHTML = '<div class="spinner"></div>';
+  try {
+    const all = await sbFetch('app_feedbacks?select=type,status&order=created_at.desc');
+    const bugs        = all.filter(f => f.type === 'bug').length;
+    const suggestions = all.filter(f => f.type === 'suggestion').length;
+    const newCount    = all.filter(f => f.status === 'new').length;
+
+    document.getElementById('fb-total').textContent      = all.length;
+    document.getElementById('fb-bug').textContent        = bugs;
+    document.getElementById('fb-suggestion').textContent = suggestions;
+    document.getElementById('fb-new').textContent        = newCount;
+    document.getElementById('tab-badge-feedback').textContent = newCount;
+
+    let query = 'app_feedbacks?select=*&order=created_at.desc';
+    if (fbCurrentFilter === 'new')        query += '&status=eq.new';
+    else if (fbCurrentFilter === 'resolved') query += '&status=eq.resolved';
+    else if (['bug','suggestion','other'].includes(fbCurrentFilter)) query += `&type=eq.${fbCurrentFilter}`;
+
+    const feedbacks = await sbFetch(query);
+    renderFeedbacks(feedbacks);
+  } catch (e) {
+    container.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>${e.message}</p></div>`;
+  }
+}
+
+function fbSetFilter(f, btn) {
+  fbCurrentFilter = f;
+  document.querySelectorAll('#panel-feedbacks .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  loadFeedbacks();
+}
+
+function renderFeedbacks(feedbacks) {
+  const container = document.getElementById('fb-container');
+  if (!feedbacks.length) {
+    container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>Không có góp ý nào</p></div>';
+    return;
+  }
+  container.innerHTML = '<div class="reports-list">' + feedbacks.map(renderFbCard).join('') + '</div>';
+}
+
+function renderFbCard(f) {
+  const date = new Date(f.created_at).toLocaleString('vi-VN');
+
+  const typeInfo = {
+    bug:        { emoji: '🐛', label: 'Báo lỗi',  cls: 'fb-bug' },
+    suggestion: { emoji: '💡', label: 'Góp ý',    cls: 'fb-suggestion' },
+    other:      { emoji: '💬', label: 'Khác',     cls: 'fb-other' },
+  }[f.type] || { emoji: '📝', label: f.type, cls: 'fb-other' };
+
+  const statusBadge = {
+    new:         '<span class="badge badge-amber">🆕 Mới</span>',
+    in_progress: '<span class="badge badge-blue">🔄 Đang xử lý</span>',
+    resolved:    '<span class="badge badge-green">✅ Đã xử lý</span>',
+    closed:      '<span class="badge badge-red">🔒 Đóng</span>',
+  }[f.status] || '<span class="badge badge-amber">🆕 Mới</span>';
+
+  const typeBadge = `<span class="fb-type-chip ${typeInfo.cls}">${typeInfo.emoji} ${typeInfo.label}</span>`;
+
+  // Reporter chip
+  const reporterHtml = buildReporterChip(f, { nameKey: 'contact_name', emailKey: 'contact_email', isAuthKey: 'user_id' });
+
+  // Media attachments
+  const mediaUrls = f.media_urls || [];
+  const mediaHtml = mediaUrls.length ? `
+    <div class="media-grid">
+      ${mediaUrls.map(url => {
+        const isVideo = /\.(mp4|mov|avi|mkv)$/i.test(url);
+        return isVideo
+          ? `<a class="media-video-thumb" href="${url}" target="_blank" title="Mở video">🎬</a>`
+          : `<img class="media-thumb" src="${url}" alt="media" onclick="openLightbox('${url}')" onerror="this.style.display='none'" />`;
+      }).join('')}
+    </div>` : '';
+
+  const noteHtml = f.admin_note ? `<div class="note-box">📝 Admin: ${f.admin_note}</div>` : '';
+
+  const isOpen = f.status === 'new' || f.status === 'in_progress';
+  const footerHtml = isOpen ? `
+    <div class="admin-note-row">
+      <input type="text" id="fb-note-${f.id}" placeholder="Ghi chú admin..." value="${f.admin_note || ''}" />
+    </div>
+    <button class="btn btn-outline" style="font-size:13px" onclick="fbSetStatus('${f.id}','in_progress')">🔄 Đang xử lý</button>
+    <button class="btn btn-green"   onclick="fbResolve('${f.id}')">✅ Đánh dấu đã xử lý</button>
+  ` : `
+    <span style="font-size:12px;color:var(--muted)">
+      ${f.admin_note ? '📝 ' + f.admin_note : ''}
+      ${f.updated_at ? ' · ' + new Date(f.updated_at).toLocaleString('vi-VN') : ''}
+    </span>
+    <button class="btn btn-outline" style="font-size:12px;padding:6px 12px" onclick="fbSetStatus('${f.id}','new')">↩ Mở lại</button>
+  `;
+
+  return `
+    <div class="report-card status-${f.status}" id="fb-card-${f.id}">
+      <div class="card-header">
+        <div class="animal-icon">${typeInfo.emoji}</div>
+        <div class="card-meta">
+          <h3>${typeBadge} &nbsp;${statusBadge}</h3>
+          <div class="sub">${date}</div>
+          <div class="reporter">${reporterHtml}</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <p style="font-size:14px;line-height:1.7;color:var(--text);white-space:pre-wrap">${escHtml(f.description)}</p>
+        ${mediaHtml}
+        ${noteHtml}
+      </div>
+      <div class="card-footer">${footerHtml}</div>
+    </div>`;
+}
+
+async function fbResolve(id) {
+  try {
+    const note = document.getElementById(`fb-note-${id}`)?.value || '';
+    await sbFetch(`app_feedbacks?id=eq.${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status: 'resolved', admin_note: note || null, updated_at: new Date().toISOString() }),
+      prefer: 'return=minimal',
+    });
+    showToast('✅ Đã đánh dấu xử lý!', 'green');
+    loadFeedbacks();
+  } catch (e) { showToast('❌ Lỗi: ' + e.message, 'red'); }
+}
+
+async function fbSetStatus(id, status) {
+  try {
+    const note = document.getElementById(`fb-note-${id}`)?.value || '';
+    await sbFetch(`app_feedbacks?id=eq.${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status, admin_note: note || null, updated_at: new Date().toISOString() }),
+      prefer: 'return=minimal',
+    });
+    showToast('Đã cập nhật trạng thái', 'green');
+    loadFeedbacks();
+  } catch (e) { showToast('❌ Lỗi: ' + e.message, 'red'); }
+}
+
+
+
+// ════════════════════════════════════════════════════════════
+// PUSH NOTIFICATIONS
+// ════════════════════════════════════════════════════════════
+function syncPushDefaults() {
+  const urlInput = document.getElementById('push-function-url');
+  if (!urlInput) return;
+  const savedFnUrl = localStorage.getItem('push_function_url');
+  const savedSecret = localStorage.getItem('push_admin_secret');
+  if (savedFnUrl) urlInput.value = savedFnUrl;
+  else if (SUPABASE_URL) urlInput.value = `${SUPABASE_URL}/functions/v1/send-push`;
+  if (savedSecret) document.getElementById('push-admin-secret').value = savedSecret;
+}
+
+function pushToggleUserIds() {
+  const wrap = document.getElementById('push-user-ids-wrap');
+  wrap.style.display = document.getElementById('push-target').value === 'users' ? 'block' : 'none';
+}
+
+function pushApplyTemplate() {
+  const type = document.getElementById('push-type').value;
+  const title = document.getElementById('push-title');
+  const body = document.getElementById('push-body');
+  const data = document.getElementById('push-data-json');
+
+  if (type === 'update') {
+    title.value = 'ZooTrek có bản cập nhật mới 🚀';
+    body.value = 'Đã có phiên bản mới. Bấm để mở màn hình cập nhật ngay.';
+    data.value = '{"screen":"update"}';
+  } else if (type === 'daily_fact') {
+    title.value = 'Fact động vật hôm nay 🐾';
+    body.value = 'Mở ZooTrek để khám phá những điều thú vị về thế giới động vật.';
+    data.value = '{"screen":"explore"}';
+  } else if (type === 'animal') {
+    title.value = 'Khám phá loài động vật mới 🦁';
+    body.value = 'Có nội dung động vật mới trong ZooTrek. Mở app để xem ngay.';
+    data.value = '{"screen":"home"}';
+  } else {
+    title.value = 'ZooTrek có thông báo mới';
+    body.value = 'Mở ứng dụng để khám phá thêm về thế giới động vật nhé!';
+    data.value = '{"screen":"home"}';
+  }
+}
+
+function pushResetForm() {
+  document.getElementById('push-type').value = 'general';
+  document.getElementById('push-target').value = 'all';
+  document.getElementById('push-user-ids').value = '';
+  pushToggleUserIds();
+  pushApplyTemplate();
+  document.getElementById('push-result').textContent = 'Chưa gửi.';
+}
+
+async function loadPushStats() {
+  syncPushDefaults();
+  const history = document.getElementById('push-history');
+  if (!history || !SUPABASE_URL || !SERVICE_KEY) return;
+  history.innerHTML = '<div class="spinner"></div>';
+  try {
+    const tokens = await sbFetch('user_push_tokens?select=id,enabled,last_seen_at&order=last_seen_at.desc');
+    const enabled = tokens.filter(t => t.enabled !== false).length;
+    document.getElementById('push-token-total').textContent = tokens.length;
+    document.getElementById('push-enabled-total').textContent = enabled;
+    document.getElementById('tab-badge-push').textContent = enabled;
+
+    const notifs = await sbFetch('push_notifications?select=*&order=created_at.desc&limit=10');
+    document.getElementById('push-sent-total').textContent = notifs.length;
+    document.getElementById('push-last-sent').textContent = notifs.length
+      ? new Date(notifs[0].created_at).toLocaleDateString('vi-VN')
+      : '—';
+    renderPushHistory(notifs);
+  } catch (e) {
+    history.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>${escHtml(e.message)}</p></div>`;
+  }
+}
+
+function renderPushHistory(items) {
+  const history = document.getElementById('push-history');
+  if (!items.length) {
+    history.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>Chưa có lịch sử gửi thông báo</p></div>';
+    return;
+  }
+  history.innerHTML = '<div class="push-history">' + items.map(n => {
+    const statusColor = n.status === 'sent' ? 'badge-green' : (n.status === 'failed' ? 'badge-red' : 'badge-amber');
+    const date = new Date(n.created_at).toLocaleString('vi-VN');
+    return `
+      <div class="push-history-item">
+        <h4>${escHtml(n.title || '')}</h4>
+        <p>${escHtml(n.body || '')}</p>
+        <div class="push-history-meta">
+          <span class="badge ${statusColor}">${escHtml(n.status || 'created')}</span>
+          <span>📅 ${date}</span>
+          <span>🎯 ${escHtml(n.target || 'all')}</span>
+          <span>✅ ${n.sent_count || 0}</span>
+          <span>❌ ${n.failed_count || 0}</span>
+        </div>
+      </div>`;
+  }).join('') + '</div>';
+}
+
+async function pushSendNotification() {
+  const btn = document.getElementById('push-send-btn');
+  const result = document.getElementById('push-result');
+  btn.disabled = true;
+  result.textContent = 'Đang gửi...';
+
+  try {
+    const functionUrl = document.getElementById('push-function-url').value.trim();
+    const adminSecret = document.getElementById('push-admin-secret').value.trim();
+    const target = document.getElementById('push-target').value;
+    const userIds = document.getElementById('push-user-ids').value
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    if (!functionUrl) throw new Error('Chưa nhập Supabase Function URL');
+    if (!adminSecret) throw new Error('Chưa nhập Admin Push Secret');
+
+    let data = {};
+    const rawData = document.getElementById('push-data-json').value.trim();
+    if (rawData) data = JSON.parse(rawData);
+
+    const payload = {
+      title: document.getElementById('push-title').value.trim(),
+      body: document.getElementById('push-body').value.trim(),
+      type: document.getElementById('push-type').value,
+      target,
+      user_ids: target === 'users' ? userIds : [],
+      data,
+      created_by: 'aniquest_dashboard'
+    };
+
+    if (!payload.title || !payload.body) throw new Error('Tiêu đề và nội dung không được để trống');
+
+    localStorage.setItem('push_function_url', functionUrl);
+    localStorage.setItem('push_admin_secret', adminSecret);
+
+    const res = await fetch(functionUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-secret': adminSecret,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const text = await res.text();
+    let parsed;
+    try { parsed = JSON.parse(text); } catch (_) { parsed = text; }
+    result.textContent = typeof parsed === 'string' ? parsed : JSON.stringify(parsed, null, 2);
+
+    if (!res.ok) throw new Error(typeof parsed === 'string' ? parsed : (parsed.error || 'Gửi thất bại'));
+
+    showToast('✅ Đã gửi thông báo!', 'green');
+    await loadPushStats();
+  } catch (e) {
+    result.textContent = 'Lỗi: ' + e.message;
+    showToast('❌ ' + e.message, 'red');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ── Reporter chip builder ────────────────────────────────────
+function buildReporterChip(r, keys = {}) {
+  const nameKey    = keys.nameKey    || 'reporter_name';
+  const emailKey   = keys.emailKey   || 'reporter_email';
+  const isAuthKey  = keys.isAuthKey  || 'reporter_user_id';
+
+  const isAuth     = !!r[isAuthKey];
+  const dispName   = r.reporter_display_name || r.user_display_name || r[nameKey];
+  const email      = r.user_email || r[emailKey];
+  const avatarUrl  = r.reporter_avatar_url || r.user_avatar_url;
+
+  if (!dispName && !email) {
+    return `<span style="color:var(--muted)">👤 Ẩn danh</span>`;
+  }
+
+  const avatarHtml = avatarUrl
+    ? `<img class="user-avatar" src="${avatarUrl}" alt="" onerror="this.style.display='none'" />`
+    : `<div class="user-avatar">${(dispName || email || '?')[0].toUpperCase()}</div>`;
+
+  const verifiedHtml = isAuth ? ' <span style="color:var(--primary);font-size:11px">✓</span>' : '';
+  const nameHtml  = dispName ? `<span class="user-name">${escHtml(dispName)}${verifiedHtml}</span>` : '';
+  const emailHtml = email    ? `<span class="user-email">${escHtml(email)}</span>` : '';
+
+  return `<span class="user-chip">${avatarHtml}${nameHtml}${emailHtml}</span>`;
+}
+
+// ── Helpers ──────────────────────────────────────────────────
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function openLightbox(url) {
+  document.getElementById('lightbox-img').src = url;
+  document.getElementById('lightbox').classList.add('show');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('show');
+}
+
+function showToast(msg, type = 'green') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.color = type === 'green' ? 'var(--green)' : 'var(--red)';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>

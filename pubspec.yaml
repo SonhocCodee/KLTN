@@ -40,6 +40,7 @@ dependencies:
   flutter_map: ^7.0.2
   latlong2: ^0.9.1
   just_audio: ^0.9.40
+  video_player: ^2.9.2
   firebase_core: ^4.2.1
   firebase_messaging: ^16.0.4
   connectivity_plus: ^7.1.1
@@ -68,4 +69,3 @@ flutter:
     - assets/icons/
     - assets/translations/language.json
     - shorebird.yaml
-

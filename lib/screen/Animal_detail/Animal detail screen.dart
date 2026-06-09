@@ -21,6 +21,7 @@ import 'widgets/animal_detail_physical.dart';
 import 'widgets/animal_detail_habitat.dart';
 import 'widgets/animal_detail_conservation.dart';
 import 'widgets/animal_detail_taxonomy.dart';
+import 'widgets/animal_detail_video.dart';
 
 import 'widgets/animal_detail_sound.dart';
 import 'widgets/animal_distribution_map.dart';
@@ -51,10 +52,10 @@ class AnimalDetailScreen extends StatefulWidget {
 
 class _AnimalDetailScreenState extends State<AnimalDetailScreen>
     with TickerProviderStateMixin {
-
   final AnimalHomeService _service = AnimalHomeService();
   final FavoriteService _favoriteService = FavoriteService();
-  final GroqTranslationService _translator = GroqTranslationService(); // 👈 thêm
+  final GroqTranslationService _translator =
+      GroqTranslationService(); // 👈 thêm
   final ScrollController _scrollController = ScrollController();
 
   Map<String, dynamic>? _animal;
@@ -72,14 +73,21 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen>
   void initState() {
     super.initState();
     _fadeController = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 600));
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
     _slideController = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 500));
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
     _fadeAnimation = CurvedAnimation(
-        parent: _fadeController, curve: Curves.easeOut);
-    _slideAnimation =
-        Tween<Offset>(begin: const Offset(0, 0.06), end: Offset.zero).animate(
-            CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
+      parent: _fadeController,
+      curve: Curves.easeOut,
+    );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.06),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
     _loadAnimalDetails();
   }
 
@@ -129,10 +137,12 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen>
     final isEnglish = context.read<LocaleProvider>().isEnglish;
     if (!isEnglish) return; // Đang tiếng Việt → không cần dịch
 
-    final missingFunFact =
-        (animal['fun_fact_english'] as String? ?? '').trim().isEmpty;
-    final missingDesc =
-        (animal['description_english'] as String? ?? '').trim().isEmpty;
+    final missingFunFact = (animal['fun_fact_english'] as String? ?? '')
+        .trim()
+        .isEmpty;
+    final missingDesc = (animal['description_english'] as String? ?? '')
+        .trim()
+        .isEmpty;
     if (!missingFunFact && !missingDesc) return; // Đã có đủ bản dịch
 
     // Fire-and-forget: dịch ngầm, cập nhật UI khi xong
@@ -211,11 +221,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen>
 
   void _openReportSheet() {
     if (!mounted || _animal == null) return;
-    showAnimalReportSheet(
-      context,
-      animalId: widget.animalId,
-      animal: _animal!,
-    );
+    showAnimalReportSheet(context, animalId: widget.animalId, animal: _animal!);
   }
 
   void _runAutoActionAfterLogin() {
@@ -263,8 +269,12 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen>
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
-                  isFavoriteAction ? Icons.favorite_rounded : Icons.flag_rounded,
-                  color: isFavoriteAction ? Colors.redAccent : colorScheme.primary,
+                  isFavoriteAction
+                      ? Icons.favorite_rounded
+                      : Icons.flag_rounded,
+                  color: isFavoriteAction
+                      ? Colors.redAccent
+                      : colorScheme.primary,
                   size: 20,
                 ),
               ),
@@ -284,10 +294,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen>
             isFavoriteAction
                 ? 'Vui lòng đăng nhập để thêm loài này vào danh sách yêu thích.'
                 : 'Vui lòng đăng nhập để gửi báo cáo sửa thông tin loài này.',
-            style: TextStyle(
-              color: colorScheme.onSurfaceVariant,
-              height: 1.45,
-            ),
+            style: TextStyle(color: colorScheme.onSurfaceVariant, height: 1.45),
           ),
           actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           actions: [
@@ -301,12 +308,16 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen>
 
                 final ok = await Navigator.of(context).push<bool>(
                   MaterialPageRoute(
-                    settings: const RouteSettings(arguments: {'popAfterLogin': true}),
+                    settings: const RouteSettings(
+                      arguments: {'popAfterLogin': true},
+                    ),
                     builder: (_) => const AuthScreen(),
                   ),
                 );
 
-                if (!mounted || ok != true || !AuthService.isAuthenticatedUser) {
+                if (!mounted ||
+                    ok != true ||
+                    !AuthService.isAuthenticatedUser) {
                   return;
                 }
 
@@ -354,36 +365,48 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           AnimalDetailTitle(
-                              animal: _animal!, category: widget.category),
+                            animal: _animal!,
+                            category: widget.category,
+                          ),
                           AnimalDetailQuickStats(animal: _animal!),
                           AnimalExternalLinks(animal: _animal!),
 
                           // ── Divider ──────────────────────────────────
                           Padding(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 24, vertical: 24),
+                              horizontal: 24,
+                              vertical: 24,
+                            ),
                             child: Row(
                               children: [
                                 Container(
-                                    width: 32,
-                                    height: 2,
-                                    color: colorScheme.primary),
+                                  width: 32,
+                                  height: 2,
+                                  color: colorScheme.primary,
+                                ),
                                 const SizedBox(width: 6),
                                 Expanded(
-                                    child: Container(
-                                        height: 1,
-                                        color: colorScheme.outlineVariant)),
+                                  child: Container(
+                                    height: 1,
+                                    color: colorScheme.outlineVariant,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
 
                           Padding(
-                            padding:
-                            const EdgeInsets.symmetric(horizontal: 24),
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 AnimalDetailDescription(animal: _animal!),
+                                if (AnimalDetailVideo.hasVideo(_animal!)) ...[
+                                  AnimalDetailUtils.buildSectionGap(
+                                    colorScheme,
+                                  ),
+                                  AnimalDetailVideo(animal: _animal!),
+                                ],
                                 AnimalDetailUtils.buildSectionGap(colorScheme),
                                 AnimalDetailCharacteristics(animal: _animal!),
                                 AnimalDetailUtils.buildSectionGap(colorScheme),
@@ -479,17 +502,17 @@ class _FavoriteButton extends StatelessWidget {
         ),
         child: isLoading
             ? Padding(
-          padding: const EdgeInsets.all(10),
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            color: isFavorite ? Colors.white : colorScheme.onSurface,
-          ),
-        )
+                padding: const EdgeInsets.all(10),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: isFavorite ? Colors.white : colorScheme.onSurface,
+                ),
+              )
             : Icon(
-          isFavorite ? Icons.favorite : Icons.favorite_border,
-          color: isFavorite ? Colors.white : colorScheme.onSurface,
-          size: 22,
-        ),
+                isFavorite ? Icons.favorite : Icons.favorite_border,
+                color: isFavorite ? Colors.white : colorScheme.onSurface,
+                size: 22,
+              ),
       ),
     );
   }
