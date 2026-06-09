@@ -7,7 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import '../language/Locale_provider.dart';
-
+import 'animal_ai_chat_screen.dart';
 import 'models/search_smart_models.dart';
 import '../Animal_detail/Animal detail screen.dart';
 import '../home/animal_category_model.dart';
@@ -416,6 +416,13 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
     );
   }
 
+
+  void _openAnimalAiChat() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const AnimalAiChatScreen()),
+    );
+  }
+
   // ── BUILD UI ──────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
@@ -511,28 +518,40 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── Tiêu đề ──
+        // ── Tiêu đề + nút mở chatbot ──
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
-          child: Column(
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                t.tr('Tìm động vật'),
-                style: TextStyle(
-                    fontSize: 34,
-                    fontWeight: FontWeight.w700,
-                    color: colorScheme.onSurface,
-                    letterSpacing: -0.5),
-              ).animate().fadeIn(duration: 350.ms),
-              const SizedBox(height: 4),
-              Text(
-                t.tr('Chọn loài bạn muốn khám phá'),
-                style: TextStyle(
-                    fontSize: 16,
-                    color: colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w400),
-              ).animate().fadeIn(delay: 100.ms),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      t.tr('Tìm động vật'),
+                      style: TextStyle(
+                          fontSize: 34,
+                          fontWeight: FontWeight.w700,
+                          color: colorScheme.onSurface,
+                          letterSpacing: -0.5),
+                    ).animate().fadeIn(duration: 350.ms),
+                    const SizedBox(height: 4),
+                    Text(
+                      t.tr('Chọn loài bạn muốn khám phá'),
+                      style: TextStyle(
+                          fontSize: 16,
+                          color: colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w400),
+                    ).animate().fadeIn(delay: 100.ms),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              _ChatBotTopButton(onTap: _openAnimalAiChat)
+                  .animate()
+                  .fadeIn(delay: 120.ms)
+                  .scale(begin: const Offset(0.85, 0.85)),
             ],
           ),
         ),
@@ -844,6 +863,54 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
           ),
         ),
       ],
+    );
+  }
+}
+
+
+// ════════════════════════════════════════════════════════════
+// WIDGET: Nút mở chatbot AI ở góc trên bên phải
+// ════════════════════════════════════════════════════════════
+class _ChatBotTopButton extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _ChatBotTopButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Tooltip(
+      message: 'Hỏi AI',
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(18),
+          child: Container(
+            width: 54,
+            height: 54,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  colorScheme.primary,
+                  colorScheme.primary.withOpacity(0.78),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: [
+                BoxShadow(
+                  color: colorScheme.primary.withOpacity(0.28),
+                  blurRadius: 16,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Icon(Icons.smart_toy_rounded, color: colorScheme.onPrimary),
+          ),
+        ),
+      ),
     );
   }
 }

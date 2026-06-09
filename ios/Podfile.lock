@@ -3,6 +3,8 @@ PODS:
     - Flutter
   - audio_session (0.0.1):
     - Flutter
+  - connectivity_plus (0.0.1):
+    - Flutter
   - cupertino_native (0.0.1):
     - Flutter
   - Firebase/CoreOnly (12.13.0):
@@ -116,6 +118,7 @@ PODS:
 DEPENDENCIES:
   - app_links (from `.symlinks/plugins/app_links/ios`)
   - audio_session (from `.symlinks/plugins/audio_session/ios`)
+  - connectivity_plus (from `.symlinks/plugins/connectivity_plus/ios`)
   - cupertino_native (from `.symlinks/plugins/cupertino_native/ios`)
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
   - firebase_messaging (from `.symlinks/plugins/firebase_messaging/ios`)
@@ -149,6 +152,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/app_links/ios"
   audio_session:
     :path: ".symlinks/plugins/audio_session/ios"
+  connectivity_plus:
+    :path: ".symlinks/plugins/connectivity_plus/ios"
   cupertino_native:
     :path: ".symlinks/plugins/cupertino_native/ios"
   firebase_core:
@@ -179,6 +184,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   app_links: 3dbc685f76b1693c66a6d9dd1e9ab6f73d97dc0a
   audio_session: 9bb7f6c970f21241b19f5a3658097ae459681ba0
+  connectivity_plus: cb623214f4e1f6ef8fe7403d580fdad517d2f7dd
   cupertino_native: 1db0611c94f9a9ea28433ed16a344dcb996370b5
   Firebase: 7d62445aeabdaea36f7d372f33052fed9a72514f
   firebase_core: 0013f886fbd0b4950865551eaab47784424bfdb5

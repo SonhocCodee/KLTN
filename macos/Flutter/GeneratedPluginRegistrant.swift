@@ -7,6 +7,7 @@ import Foundation
 
 import app_links
 import audio_session
+import connectivity_plus
 import cupertino_native
 import desktop_webview_window
 import file_selector_macos
@@ -24,6 +25,7 @@ import window_to_front
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   AppLinksMacosPlugin.register(with: registry.registrar(forPlugin: "AppLinksMacosPlugin"))
   AudioSessionPlugin.register(with: registry.registrar(forPlugin: "AudioSessionPlugin"))
+  ConnectivityPlusPlugin.register(with: registry.registrar(forPlugin: "ConnectivityPlusPlugin"))
   CupertinoNativePlugin.register(with: registry.registrar(forPlugin: "CupertinoNativePlugin"))
   DesktopWebviewWindowPlugin.register(with: registry.registrar(forPlugin: "DesktopWebviewWindowPlugin"))
   FileSelectorPlugin.register(with: registry.registrar(forPlugin: "FileSelectorPlugin"))
