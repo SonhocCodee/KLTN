@@ -725,6 +725,22 @@ async function sbFetch(path, options = {}) {
   return res.status === 204 ? null : res.json();
 }
 
+async function sbExactCount(path) {
+  const joiner = path.includes('?') ? '&' : '?';
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}${joiner}select=id&limit=1`, {
+    headers: {
+      'apikey': SERVICE_KEY,
+      'Authorization': `Bearer ${SERVICE_KEY}`,
+      'Prefer': 'count=exact',
+    },
+  });
+  if (!res.ok) { const t = await res.text(); throw new Error(`${res.status}: ${t}`); }
+
+  const range = res.headers.get('content-range') || '';
+  const total = Number(range.split('/').pop());
+  return Number.isFinite(total) ? total : 0;
+}
+
 async function loadAll() {
   await Promise.all([loadAnimalReports(), loadFeedbacks(), loadPushStats(), loadVideoStats()]);
 }
@@ -1031,11 +1047,13 @@ async function loadVideoStats() {
   if (!totalEl || !SUPABASE_URL || !SERVICE_KEY) return;
 
   try {
-    const animals = await sbFetch('animals?select=id,video&limit=5000');
-    const withVideo = animals.filter(a => (a.video || '').trim()).length;
-    totalEl.textContent = animals.length;
+    const [totalAnimals, withVideo] = await Promise.all([
+      sbExactCount('animals'),
+      sbExactCount('animals?video=not.is.null&video=neq.'),
+    ]);
+    totalEl.textContent = totalAnimals;
     document.getElementById('video-ready-total').textContent = withVideo;
-    document.getElementById('video-missing-total').textContent = animals.length - withVideo;
+    document.getElementById('video-missing-total').textContent = totalAnimals - withVideo;
     document.getElementById('tab-badge-video').textContent = withVideo;
   } catch (_) {
     totalEl.textContent = '!';
