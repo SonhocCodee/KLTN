@@ -30,12 +30,12 @@ class AnimalDetailScreen extends StatefulWidget {
   final String animalId;
   final AnimalCategory category;
 
-  /// Dùng khi user bấm tim lúc chưa đăng nhập.
-  /// Sau khi đăng nhập xong sẽ quay lại đúng loài này và tự thêm yêu thích.
+  // Dùng khi user bấm tim lúc chưa đăng nhập.
+  // Sau khi đăng nhập xong sẽ quay lại đúng loài này và tự thêm yêu thích.
   final bool autoFavoriteAfterLogin;
 
-  /// Dùng khi user bấm báo cáo lúc chưa đăng nhập.
-  /// Sau khi đăng nhập xong sẽ quay lại đúng loài này và tự mở form báo cáo.
+  // Dùng khi user bấm báo cáo lúc chưa đăng nhập.
+  // Sau khi đăng nhập xong sẽ quay lại đúng loài này và tự mở form báo cáo.
   final bool autoReportAfterLogin;
 
   const AnimalDetailScreen({
@@ -120,7 +120,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen>
         _fadeController.forward();
         _slideController.forward();
 
-        // ── Trigger dịch ngầm nếu đang xem tiếng Anh ─────────────────────
+        // Trigger dịch ngầm nếu đang xem tiếng Anh
         _maybeTranslate(animal);
 
         // Nếu user vừa đăng nhập từ popup tim/báo cáo thì chạy tiếp hành động cũ.
@@ -131,11 +131,11 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen>
     }
   }
 
-  /// Dịch ngầm (không block UI). Nếu dịch thành công → setState để
-  /// AnimalDetailDescription hiển thị bản dịch mới ngay.
+  // Dịch ngầm (không block UI). Nếu dịch thành công -> setState để
+  // AnimalDetailDescription hiển thị bản dịch mới ngay.
   void _maybeTranslate(Map<String, dynamic> animal) {
     final isEnglish = context.read<LocaleProvider>().isEnglish;
-    if (!isEnglish) return; // Đang tiếng Việt → không cần dịch
+    if (!isEnglish) return; // Đang tiếng Việt -> không cần dịch
 
     final missingFunFact = (animal['fun_fact_english'] as String? ?? '')
         .trim()
@@ -371,7 +371,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen>
                           AnimalDetailQuickStats(animal: _animal!),
                           AnimalExternalLinks(animal: _animal!),
 
-                          // ── Divider ──────────────────────────────────
+                          // Divider
                           Padding(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 24,
@@ -415,11 +415,11 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen>
                                 AnimalDetailHabitat(animal: _animal!),
                                 AnimalDetailUtils.buildSectionGap(colorScheme),
 
-                                // ── 🔊 Âm thanh loài ─────────────────────
+                                // 🔊 Âm thanh loài
                                 AnimalDetailSound(animal: _animal!),
                                 AnimalDetailUtils.buildSectionGap(colorScheme),
 
-                                // ── 🗺️ Bản đồ phân bố ────────────────────
+                                // 🗺️ Bản đồ phân bố
                                 AnimalDistributionMap(animal: _animal!),
                                 AnimalDetailUtils.buildSectionGap(colorScheme),
 
@@ -438,14 +438,14 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen>
             ],
           ),
 
-          // ── Floating buttons (back + share/...) ─────────
+          // Floating buttons (back + share/...)
           AnimalDetailFloatingButtons(
             animalId: widget.animalId,
             animal: _animal!,
             onReportTap: _handleReportTap,
           ),
 
-          // ── Nút yêu thích ─────────────────────────────────────────────────
+          // Nút yêu thích
           Positioned(
             bottom: MediaQuery.of(context).padding.bottom + 24,
             right: 24,
@@ -463,7 +463,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen>
 
 enum _ProtectedAction { favorite, report }
 
-// ── Widget nút yêu thích ────────────────────────────────────────────────────
+// Widget nút yêu thích
 
 class _FavoriteButton extends StatelessWidget {
   final bool isFavorite;

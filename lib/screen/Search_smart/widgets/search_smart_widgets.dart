@@ -6,8 +6,7 @@ import '../../language/Locale_provider.dart';
 
 import '../models/search_smart_models.dart';
 
-
-// ── Nút Option trong Quiz ──
+// Nút Option trong Quiz
 class SmartOptionRow extends StatelessWidget {
   final QuestionConfig question;
   final OptionConfig option;
@@ -50,7 +49,11 @@ class SmartOptionRow extends StatelessWidget {
                     ),
                   ),
                 ),
-                Icon(CupertinoIcons.chevron_forward, color: colorScheme.outlineVariant, size: 16),
+                Icon(
+                  CupertinoIcons.chevron_forward,
+                  color: colorScheme.outlineVariant,
+                  size: 16,
+                ),
               ],
             ),
           ),
@@ -62,13 +65,18 @@ class SmartOptionRow extends StatelessWidget {
   }
 }
 
-// ── Card chọn loài động vật ──
+// Card chọn loài động vật
 class SmartTypeCard extends StatelessWidget {
   final AnimalTypeConfig config;
   final int index;
   final VoidCallback onTap;
 
-  const SmartTypeCard({super.key, required this.config, required this.index, required this.onTap});
+  const SmartTypeCard({
+    super.key,
+    required this.config,
+    required this.index,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -76,48 +84,51 @@ class SmartTypeCard extends StatelessWidget {
     final t = context.watch<LocaleProvider>();
 
     return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: [
-            BoxShadow(
-              color: colorScheme.shadow.withOpacity(0.06),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+          onTap: onTap,
+          child: Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: [
+                BoxShadow(
+                  color: colorScheme.shadow.withOpacity(0.06),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(config.emoji, style: const TextStyle(fontSize: 48)),
-            const SizedBox(height: 8),
-            Text(
-              t.tr(config.nameVi),
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w600,
-                color: colorScheme.onSurface,
-              ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(config.emoji, style: const TextStyle(fontSize: 48)),
+                const SizedBox(height: 8),
+                Text(
+                  t.tr(config.nameVi),
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  config.nameEn,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 2),
-            Text(
-              config.nameEn,
-              style: TextStyle(
-                fontSize: 13,
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      ),
-    ).animate().fadeIn(delay: (60 * index).ms, duration: 350.ms).scale(begin: const Offset(0.92, 0.92), delay: (60 * index).ms);
+          ),
+        )
+        .animate()
+        .fadeIn(delay: (60 * index).ms, duration: 350.ms)
+        .scale(begin: const Offset(0.92, 0.92), delay: (60 * index).ms);
   }
 }
 
-// ── Card Kết quả ──
+// Card Kết quả
 class SmartResultCard extends StatelessWidget {
   final Map<String, dynamic> animal;
   final int index;
@@ -137,94 +148,110 @@ class SmartResultCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: colorScheme.shadow.withOpacity(0.07),
-              blurRadius: 10,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              flex: 3,
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                child: animal['image_url'] != null
-                    ? Image.network(
-                  animal['image_url'],
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  errorBuilder: (_, __, ___) => _emojiPlaceholder(colorScheme),
-                )
-                    : _emojiPlaceholder(colorScheme),
-              ),
-            ),
-            Expanded(
-              flex: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      animal['name_vietnamese'] ?? animal['name_english'] ?? '—',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: colorScheme.onSurface,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (animal['scientific_name'] != null) ...[
-                      const SizedBox(height: 3),
-                      Text(
-                        animal['scientific_name'],
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontStyle: FontStyle.italic,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ],
+          onTap: onTap,
+          child: Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: colorScheme.shadow.withOpacity(0.07),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
-      ),
-    ).animate().fadeIn(delay: (50 * index).ms, duration: 350.ms).scale(begin: const Offset(0.88, 0.88), delay: (50 * index).ms);
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(16),
+                    ),
+                    child: animal['image_url'] != null
+                        ? Image.network(
+                            animal['image_url'],
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            errorBuilder: (_, __, ___) =>
+                                _emojiPlaceholder(colorScheme),
+                          )
+                        : _emojiPlaceholder(colorScheme),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          animal['name_vietnamese'] ??
+                              animal['name_english'] ??
+                              '—',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: colorScheme.onSurface,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (animal['scientific_name'] != null) ...[
+                          const SizedBox(height: 3),
+                          Text(
+                            animal['scientific_name'],
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontStyle: FontStyle.italic,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        )
+        .animate()
+        .fadeIn(delay: (50 * index).ms, duration: 350.ms)
+        .scale(begin: const Offset(0.88, 0.88), delay: (50 * index).ms);
   }
 
   Widget _emojiPlaceholder(ColorScheme colorScheme) {
     return Container(
       color: colorScheme.surfaceContainer,
       child: Center(
-        child: Text(selectedConfig?.emoji ?? '🐾', style: const TextStyle(fontSize: 48)),
+        child: Text(
+          selectedConfig?.emoji ?? '🐾',
+          style: const TextStyle(fontSize: 48),
+        ),
       ),
     );
   }
 }
 
-// ── Thanh Navigation Bar iOS Style ──
+// Thanh Navigation Bar iOS Style
 class SmartNavBar extends StatelessWidget {
   final Widget leading;
   final Widget title;
   final Widget trailing;
 
-  const SmartNavBar({super.key, required this.leading, required this.title, required this.trailing});
+  const SmartNavBar({
+    super.key,
+    required this.leading,
+    required this.title,
+    required this.trailing,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -243,7 +270,7 @@ class SmartNavBar extends StatelessWidget {
   }
 }
 
-// ── Loading Indicator ──
+// Loading Indicator
 class SmartLoadingView extends StatelessWidget {
   const SmartLoadingView({super.key});
 
@@ -267,7 +294,7 @@ class SmartLoadingView extends StatelessWidget {
   }
 }
 
-// ── Màn hình không có kết quả ──
+// Màn hình không có kết quả
 class SmartNoResultsView extends StatelessWidget {
   final VoidCallback onRetry;
   const SmartNoResultsView({super.key, required this.onRetry});

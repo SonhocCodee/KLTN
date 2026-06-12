@@ -12,22 +12,13 @@ import 'package:provider/provider.dart';
 import '../../services/animal_home_service.dart';
 import '../Animal_detail/Animal detail screen.dart';
 import '../language/Locale_provider.dart';
-import '../profile/Profile page.dart';
 import '../update/update_screen.dart';
 import 'animal_category_model.dart';
 import 'models/animal_suggestion.dart';
 
-enum _HomeCategoryFilter {
-  all,
-  fourLegs,
-  fish,
-  twoLegs,
-}
+enum _HomeCategoryFilter { all, fourLegs, fish, twoLegs }
 
-
-// ═══════════════════════════════════════════════════════
-// SERVICE TÌM KIẾM
-// ═══════════════════════════════════════════════════════
+// Service tìm kiếm
 class AnimalSearchService {
   final _client = Supabase.instance.client;
 
@@ -49,10 +40,16 @@ class AnimalSearchService {
 
       final qLower = q.toLowerCase();
       results.sort((a, b) {
-        final aScore = a.nameVi.toLowerCase().startsWith(qLower) ? 0
-            : a.nameEn.toLowerCase().startsWith(qLower) ? 1 : 2;
-        final bScore = b.nameVi.toLowerCase().startsWith(qLower) ? 0
-            : b.nameEn.toLowerCase().startsWith(qLower) ? 1 : 2;
+        final aScore = a.nameVi.toLowerCase().startsWith(qLower)
+            ? 0
+            : a.nameEn.toLowerCase().startsWith(qLower)
+            ? 1
+            : 2;
+        final bScore = b.nameVi.toLowerCase().startsWith(qLower)
+            ? 0
+            : b.nameEn.toLowerCase().startsWith(qLower)
+            ? 1
+            : 2;
         if (aScore != bScore) return aScore - bScore;
         return a.nameVi.compareTo(b.nameVi);
       });
@@ -64,9 +61,7 @@ class AnimalSearchService {
   }
 }
 
-// ═══════════════════════════════════════════════════════
-// HOME SCREEN
-// ═══════════════════════════════════════════════════════
+// Home screen
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -83,7 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _sortAZ = false; // false = mặc định, true = A-Z
   _HomeCategoryFilter _categoryFilter = _HomeCategoryFilter.all;
 
-  // --- Search State ---
+  // Search State
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocus = FocusNode();
   List<AnimalSuggestion> _suggestions = [];
@@ -117,7 +112,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  // --- Logic Cập nhật OTA ---
+  // Logic Cập nhật OTA
   Future<void> _checkForUpdate() async {
     try {
       final updater = ShorebirdUpdater();
@@ -134,8 +129,7 @@ class _HomeScreenState extends State<HomeScreen> {
           _showJustUpdatedDialog(t);
         }
       }
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   void _showJustUpdatedDialog(LocaleProvider t) {
@@ -154,7 +148,7 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── Header ──
+              // Header
               Row(
                 children: [
                   Container(
@@ -163,23 +157,32 @@ class _HomeScreenState extends State<HomeScreen> {
                       color: Colors.green.withOpacity(0.12),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.check_circle_rounded,
-                        color: Colors.green, size: 26),
+                    child: const Icon(
+                      Icons.check_circle_rounded,
+                      color: Colors.green,
+                      size: 26,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(t.tr('Đã cập nhật thành công! ✨'),
-                            style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w800,
-                                color: colorScheme.onSurface)),
-                        Text('${t.tr('Phiên bản')} ${latest.version} • ${latest.date}',
-                            style: TextStyle(
-                                fontSize: 12,
-                                color: colorScheme.onSurfaceVariant)),
+                        Text(
+                          t.tr('Đã cập nhật thành công! ✨'),
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: colorScheme.onSurface,
+                          ),
+                        ),
+                        Text(
+                          '${t.tr('Phiên bản')} ${latest.version} • ${latest.date}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -190,14 +193,17 @@ class _HomeScreenState extends State<HomeScreen> {
               Divider(color: colorScheme.outlineVariant),
               const SizedBox(height: 10),
 
-              Text(t.tr('Có gì mới?'),
-                  style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: colorScheme.primary)),
+              Text(
+                t.tr('Có gì mới?'),
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: colorScheme.primary,
+                ),
+              ),
               const SizedBox(height: 10),
 
-              // ── Danh sách thay đổi ──
+              // Danh sách thay đổi
               ...latest.items.map((item) => _ChangelogItemInline(item: item)),
 
               const SizedBox(height: 20),
@@ -208,11 +214,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: FilledButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                  child: Text(t.tr('Tuyệt vời! 🎉'),
-                      style: const TextStyle(
-                          fontSize: 15, fontWeight: FontWeight.w600)),
+                  child: Text(
+                    t.tr('Tuyệt vời! 🎉'),
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -226,13 +237,13 @@ class _HomeScreenState extends State<HomeScreen> {
     final fallbackData = AnimalCategory.getEnabledCategories()
         .map(
           (cat) => AnimalCategoryData(
-        category: cat,
+            category: cat,
 
-        // Offline vẫn mở được card.
-        // Dùng totalExpected vì đây là số hardcode sẵn trong AnimalCategory.
-        count: cat.totalExpected,
-      ),
-    )
+            // Offline vẫn mở được card.
+            // Dùng totalExpected vì đây là số hardcode sẵn trong AnimalCategory.
+            count: cat.totalExpected,
+          ),
+        )
         .toList();
 
     // Hiện danh mục cứng ngay lập tức, không chờ mạng.
@@ -245,9 +256,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Sau đó nếu có mạng thì cập nhật count thật từ Supabase.
     try {
-      final counts = await _service
-          .getAnimalCounts()
-          .timeout(const Duration(seconds: 4));
+      final counts = await _service.getAnimalCounts().timeout(
+        const Duration(seconds: 4),
+      );
 
       final data = AnimalCategory.getEnabledCategories().map((category) {
         final dbCount = counts[category.id];
@@ -276,7 +287,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // --- Logic Search ---
+  // Logic Search
   void _onSearchChanged(String value) {
     _debounce?.cancel();
     if (value.trim().length < 2) {
@@ -313,17 +324,15 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     final category = AnimalCategory.getEnabledCategories().firstWhere(
-          (c) => c.id.toLowerCase().contains(suggestion.animalType.toLowerCase()),
+      (c) => c.id.toLowerCase().contains(suggestion.animalType.toLowerCase()),
       orElse: () => AnimalCategory.getEnabledCategories().first,
     );
 
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => AnimalDetailScreen(
-          animalId: suggestion.id,
-          category: category,
-        ),
+        builder: (_) =>
+            AnimalDetailScreen(animalId: suggestion.id, category: category),
       ),
     );
   }
@@ -403,13 +412,17 @@ class _HomeScreenState extends State<HomeScreen> {
     return false;
   }
 
-
   String _getShortDesc(String id, LocaleProvider t) {
-    if (id.contains('fish')) return t.tr('Thế giới dưới nước huyền bí với muôn loài kỳ thú.');
-    if (id.contains('dog ')) return t.tr('Người bạn trung thành và đáng yêu nhất của bé.');
-    if (id.contains('cat')) return t.tr('Những người bạn nhỏ thích cuộn tròn và làm nũng.');
-    if (id.contains('bird')) return t.tr('Những nhạc sĩ của bầu trời với tiếng hót líu lo.');
-    if (id.contains('insect')) return t.tr('Thế giới tí hon đầy những điều kỳ diệu.');
+    if (id.contains('fish'))
+      return t.tr('Thế giới dưới nước huyền bí với muôn loài kỳ thú.');
+    if (id.contains('dog '))
+      return t.tr('Người bạn trung thành và đáng yêu nhất của bé.');
+    if (id.contains('cat'))
+      return t.tr('Những người bạn nhỏ thích cuộn tròn và làm nũng.');
+    if (id.contains('bird'))
+      return t.tr('Những nhạc sĩ của bầu trời với tiếng hót líu lo.');
+    if (id.contains('insect'))
+      return t.tr('Thế giới tí hon đầy những điều kỳ diệu.');
     return t.tr('Cùng khám phá những điều thú vị về bạn này nhé!');
   }
 
@@ -442,144 +455,152 @@ class _HomeScreenState extends State<HomeScreen> {
             SafeArea(
               bottom: false,
               child: _isLoading
-                  ? Center(child: CircularProgressIndicator(color: colorScheme.primary))
-                  : CustomScrollView(
-                physics: const BouncingScrollPhysics(),
-                slivers: [
-                  // --- TOP BAR & SEARCH BOX ---
-                  SliverToBoxAdapter(
-                    child: HomeTopBar(
-                      onProfileTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const ProfilePage(),
-                          ),
-                        );
-                      },
-                      searchBox: HomeSearchBox(
-                        searchController: _searchController,
-                        searchFocus: _searchFocus,
-                        suggestions: _suggestions,
-                        showSuggestions: _showSuggestions,
-                        isSearching: _isSearching,
-                        onSearchChanged: _onSearchChanged,
-                        onSuggestionTap: _onSuggestionTap,
-                        onClearSearch: _clearSearch,
+                  ? Center(
+                      child: CircularProgressIndicator(
+                        color: colorScheme.primary,
                       ),
-                    ),
-                  ),
-
-                  // --- LỜI CHÀO ---
-                  SliverToBoxAdapter(
-                    child: _buildWelcomeText(colorScheme, t),
-                  ),
-
-                  // --- QUICK ACCESS (Vòng tròn Lottie) ---
-                  SliverToBoxAdapter(
-                    child: HomeQuickAccess(categoryData: _categoryData),
-                  ),
-
-                  // --- BỘ LỌC ---
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            t.tr('Danh sách loài'),
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: Theme.of(context).colorScheme.onSurface,
+                    )
+                  : CustomScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      slivers: [
+                        // Top bar & search box
+                        SliverToBoxAdapter(
+                          child: HomeTopBar(
+                            searchBox: HomeSearchBox(
+                              searchController: _searchController,
+                              searchFocus: _searchFocus,
+                              suggestions: _suggestions,
+                              showSuggestions: _showSuggestions,
+                              isSearching: _isSearching,
+                              onSearchChanged: _onSearchChanged,
+                              onSuggestionTap: _onSuggestionTap,
+                              onClearSearch: _clearSearch,
                             ),
                           ),
-                          const SizedBox(height: 10),
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            physics: const BouncingScrollPhysics(),
-                            child: Row(
+                        ),
+
+                        // Lời chào
+                        SliverToBoxAdapter(
+                          child: _buildWelcomeText(colorScheme, t),
+                        ),
+
+                        // QUICK ACCESS (Vòng tròn Lottie)
+                        SliverToBoxAdapter(
+                          child: HomeQuickAccess(categoryData: _categoryData),
+                        ),
+
+                        // Bộ lọc
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _FilterChip(
-                                  label: t.tr('Mặc định'),
-                                  icon: Icons.dashboard_rounded,
-                                  selected: !_sortAZ &&
-                                      _categoryFilter == _HomeCategoryFilter.all,
-                                  onTap: () => setState(() {
-                                    _sortAZ = false;
-                                    _categoryFilter = _HomeCategoryFilter.all;
-                                  }),
+                                Text(
+                                  t.tr('Danh sách loài'),
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurface,
+                                  ),
                                 ),
-                                const SizedBox(width: 8),
-                                _FilterChip(
-                                  label: 'A - Z',
-                                  icon: Icons.sort_by_alpha_rounded,
-                                  selected: _sortAZ,
-                                  onTap: () => setState(() => _sortAZ = !_sortAZ),
-                                ),
-                                const SizedBox(width: 8),
-                                _FilterChip(
-                                  label: t.tr('4 chân'),
-                                  icon: Icons.pets_rounded,
-                                  selected:
-                                      _categoryFilter == _HomeCategoryFilter.fourLegs,
-                                  onTap: () => setState(() {
-                                    _categoryFilter =
-                                        _categoryFilter == _HomeCategoryFilter.fourLegs
-                                            ? _HomeCategoryFilter.all
-                                            : _HomeCategoryFilter.fourLegs;
-                                  }),
-                                ),
-                                const SizedBox(width: 8),
-                                _FilterChip(
-                                  label: t.tr('Cá'),
-                                  icon: Icons.water_rounded,
-                                  selected:
-                                      _categoryFilter == _HomeCategoryFilter.fish,
-                                  onTap: () => setState(() {
-                                    _categoryFilter =
-                                        _categoryFilter == _HomeCategoryFilter.fish
-                                            ? _HomeCategoryFilter.all
-                                            : _HomeCategoryFilter.fish;
-                                  }),
-                                ),
-                                const SizedBox(width: 8),
-                                _FilterChip(
-                                  label: t.tr('2 chân'),
-                                  icon: Icons.flutter_dash_rounded,
-                                  selected:
-                                      _categoryFilter == _HomeCategoryFilter.twoLegs,
-                                  onTap: () => setState(() {
-                                    _categoryFilter =
-                                        _categoryFilter == _HomeCategoryFilter.twoLegs
-                                            ? _HomeCategoryFilter.all
-                                            : _HomeCategoryFilter.twoLegs;
-                                  }),
+                                const SizedBox(height: 10),
+                                SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  physics: const BouncingScrollPhysics(),
+                                  child: Row(
+                                    children: [
+                                      _FilterChip(
+                                        label: t.tr('Mặc định'),
+                                        icon: Icons.dashboard_rounded,
+                                        selected:
+                                            !_sortAZ &&
+                                            _categoryFilter ==
+                                                _HomeCategoryFilter.all,
+                                        onTap: () => setState(() {
+                                          _sortAZ = false;
+                                          _categoryFilter =
+                                              _HomeCategoryFilter.all;
+                                        }),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      _FilterChip(
+                                        label: 'A - Z',
+                                        icon: Icons.sort_by_alpha_rounded,
+                                        selected: _sortAZ,
+                                        onTap: () =>
+                                            setState(() => _sortAZ = !_sortAZ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      _FilterChip(
+                                        label: t.tr('4 chân'),
+                                        icon: Icons.pets_rounded,
+                                        selected:
+                                            _categoryFilter ==
+                                            _HomeCategoryFilter.fourLegs,
+                                        onTap: () => setState(() {
+                                          _categoryFilter =
+                                              _categoryFilter ==
+                                                  _HomeCategoryFilter.fourLegs
+                                              ? _HomeCategoryFilter.all
+                                              : _HomeCategoryFilter.fourLegs;
+                                        }),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      _FilterChip(
+                                        label: t.tr('Cá'),
+                                        icon: Icons.water_rounded,
+                                        selected:
+                                            _categoryFilter ==
+                                            _HomeCategoryFilter.fish,
+                                        onTap: () => setState(() {
+                                          _categoryFilter =
+                                              _categoryFilter ==
+                                                  _HomeCategoryFilter.fish
+                                              ? _HomeCategoryFilter.all
+                                              : _HomeCategoryFilter.fish;
+                                        }),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      _FilterChip(
+                                        label: t.tr('2 chân'),
+                                        icon: Icons.flutter_dash_rounded,
+                                        selected:
+                                            _categoryFilter ==
+                                            _HomeCategoryFilter.twoLegs,
+                                        onTap: () => setState(() {
+                                          _categoryFilter =
+                                              _categoryFilter ==
+                                                  _HomeCategoryFilter.twoLegs
+                                              ? _HomeCategoryFilter.all
+                                              : _HomeCategoryFilter.twoLegs;
+                                        }),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // --- DANH SÁCH THẺ ĐỘNG VẬT ---
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(16, 10, 16, 100),
-                    sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                            (context, index) => HomeAnimalSection(
-                          data: _displayedCategoryData[index],
-                          getShortDesc: (id) => _getShortDesc(id, t),
                         ),
-                        childCount: _displayedCategoryData.length,
-                      ),
+
+                        // Danh sách thẻ động vật
+                        SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(16, 10, 16, 100),
+                          sliver: SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) => HomeAnimalSection(
+                                data: _displayedCategoryData[index],
+                                getShortDesc: (id) => _getShortDesc(id, t),
+                              ),
+                              childCount: _displayedCategoryData.length,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
             ),
           ],
         ),
@@ -593,25 +614,29 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(t.tr('Xin chào'),
-              style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w900,
-                  color: colorScheme.onSurface)),
-          Text(t.tr('Hôm nay bạn muốn xem loài nào?'),
-              style: TextStyle(
-                  fontSize: 16,
-                  color: colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w500)),
+          Text(
+            t.tr('Xin chào'),
+            style: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.w900,
+              color: colorScheme.onSurface,
+            ),
+          ),
+          Text(
+            t.tr('Hôm nay bạn muốn xem loài nào?'),
+            style: TextStyle(
+              fontSize: 16,
+              color: colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ],
       ),
     );
   }
 }
 
-// ═══════════════════════════════════════════════════════
-// FILTER CHIP WIDGET
-// ═══════════════════════════════════════════════════════
+// Filter chip widget
 class _FilterChip extends StatelessWidget {
   final String label;
   final IconData? icon;
@@ -634,7 +659,9 @@ class _FilterChip extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
         decoration: BoxDecoration(
-          color: selected ? colorScheme.primary : colorScheme.surfaceContainerHighest,
+          color: selected
+              ? colorScheme.primary
+              : colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: selected ? colorScheme.primary : colorScheme.outlineVariant,
@@ -645,8 +672,13 @@ class _FilterChip extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (icon != null) ...[
-              Icon(icon, size: 14,
-                  color: selected ? colorScheme.onPrimary : colorScheme.onSurfaceVariant),
+              Icon(
+                icon,
+                size: 14,
+                color: selected
+                    ? colorScheme.onPrimary
+                    : colorScheme.onSurfaceVariant,
+              ),
               const SizedBox(width: 4),
             ],
             Text(
@@ -654,7 +686,9 @@ class _FilterChip extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: selected ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
+                color: selected
+                    ? colorScheme.onPrimary
+                    : colorScheme.onSurfaceVariant,
               ),
             ),
           ],
@@ -664,9 +698,7 @@ class _FilterChip extends StatelessWidget {
   }
 }
 
-// ═══════════════════════════════════════════════════════
-// HELPER: 1 dòng changelog dùng trong dialog home
-// ═══════════════════════════════════════════════════════
+// 1 dòng changelog dùng trong dialog home
 class _ChangelogItemInline extends StatelessWidget {
   final ChangelogItem item;
   const _ChangelogItemInline({required this.item});
@@ -679,13 +711,25 @@ class _ChangelogItemInline extends StatelessWidget {
     String tag;
     switch (item.type) {
       case ChangelogType.newFeature:
-        color = Colors.green; icon = Icons.add_circle_rounded; tag = t.tr('Mới'); break;
+        color = Colors.green;
+        icon = Icons.add_circle_rounded;
+        tag = t.tr('Mới');
+        break;
       case ChangelogType.fix:
-        color = Colors.red; icon = Icons.bug_report_rounded; tag = t.tr('Fix'); break;
+        color = Colors.red;
+        icon = Icons.bug_report_rounded;
+        tag = t.tr('Fix');
+        break;
       case ChangelogType.improve:
-        color = Colors.blue; icon = Icons.trending_up_rounded; tag = t.tr('Cải thiện'); break;
+        color = Colors.blue;
+        icon = Icons.trending_up_rounded;
+        tag = t.tr('Cải thiện');
+        break;
       case ChangelogType.remove:
-        color = Colors.grey; icon = Icons.remove_circle_rounded; tag = t.tr('Xóa'); break;
+        color = Colors.grey;
+        icon = Icons.remove_circle_rounded;
+        tag = t.tr('Xóa');
+        break;
     }
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -700,17 +744,25 @@ class _ChangelogItemInline extends StatelessWidget {
               color: color.withOpacity(0.12),
               borderRadius: BorderRadius.circular(4),
             ),
-            child: Text(tag,
-                style: TextStyle(
-                    fontSize: 10, fontWeight: FontWeight.w700, color: color)),
+            child: Text(
+              tag,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: color,
+              ),
+            ),
           ),
           const SizedBox(width: 6),
           Expanded(
-            child: Text(t.tr(item.text),
-                style: TextStyle(
-                    fontSize: 13,
-                    color: Theme.of(context).colorScheme.onSurface,
-                    height: 1.4)),
+            child: Text(
+              t.tr(item.text),
+              style: TextStyle(
+                fontSize: 13,
+                color: Theme.of(context).colorScheme.onSurface,
+                height: 1.4,
+              ),
+            ),
           ),
         ],
       ),
@@ -718,9 +770,7 @@ class _ChangelogItemInline extends StatelessWidget {
   }
 }
 
-// ═══════════════════════════════════════════════════════
-// PAINTER VẼ NỀN
-// ═══════════════════════════════════════════════════════
+// Painter vẽ nền
 class _PatternPainter extends CustomPainter {
   final ColorScheme colorScheme;
 

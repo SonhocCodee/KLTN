@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../language/Locale_provider.dart';
-import '../../home/animal_category_model.dart'; // Chỉnh đường dẫn nếu cần
+import '../../home/animal_category_model.dart';
 
 class BreedListHeader extends StatelessWidget {
   final AnimalCategory category;
@@ -28,7 +28,7 @@ class BreedListHeader extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: colorScheme.shadow.withOpacity(0.05),
+                  color: colorScheme.shadow.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -41,7 +41,11 @@ class BreedListHeader extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 child: Padding(
                   padding: const EdgeInsets.all(12),
-                  child: Icon(Icons.arrow_back, size: 24, color: colorScheme.onSurface),
+                  child: Icon(
+                    Icons.arrow_back,
+                    size: 24,
+                    color: colorScheme.onSurface,
+                  ),
                 ),
               ),
             ),
@@ -53,10 +57,9 @@ class BreedListHeader extends StatelessWidget {
               gradient: LinearGradient(colors: category.gradient),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(
-              category.icon,
-              color: Colors.white,
-              size: 24,
+            child: Text(
+              category.emoji,
+              style: const TextStyle(fontSize: 24, height: 1),
             ),
           ),
           const SizedBox(width: 12),

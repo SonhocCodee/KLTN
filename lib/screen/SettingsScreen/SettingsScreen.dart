@@ -10,9 +10,9 @@ import 'package:kltn_app/screen/welcome/welcome_screen.dart';
 
 import '../auth/auth_screen.dart';
 import '../auth/auth_service.dart';
+import '../common/main_page_header.dart';
 import '../language/Locale_provider.dart';
 import '../update/update_screen.dart';
-import 'widgets/settings_animated_header.dart';
 import 'widgets/settings_appearance_options.dart';
 import 'widgets/settings_content_options.dart';
 import 'widgets/settings_notification_options.dart';
@@ -27,17 +27,12 @@ class AnimalSettingsScreen extends StatefulWidget {
   State<AnimalSettingsScreen> createState() => _AnimalSettingsScreenState();
 }
 
-class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
-    with SingleTickerProviderStateMixin {
-
-  // ❌ Bỏ selectedUnit — giờ UnitProvider quản lý
+class _AnimalSettingsScreenState extends State<AnimalSettingsScreen> {
+  // ❌ Bỏ selectedUnit - giờ UnitProvider quản lý
   bool dailyAnimalNotif = true;
-  bool streakNotif      = true;
+  bool streakNotif = true;
 
   String _appVersionText = 'Đang tải...';
-
-  late AnimationController _animController;
-  late Animation<double>   _scaleAnimation;
 
   final Color primaryGreen = const Color(0xFF2E7D32);
   final Color accentOrange = const Color(0xFFEF6C00);
@@ -50,15 +45,6 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
   @override
   void initState() {
     super.initState();
-
-    _animController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    )..repeat(reverse: true);
-
-    _scaleAnimation = Tween<double>(begin: 0.9, end: 1.1).animate(
-      CurvedAnimation(parent: _animController, curve: Curves.easeInOut),
-    );
 
     _authSub = AuthService.authStateStream.listen((_) {
       if (mounted) setState(() {});
@@ -80,7 +66,8 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
       if (mounted) {
         setState(() {
           if (status == UpdateStatus.outdated) {
-            _appVersionText = '$baseVersion (Có bản cập nhật mới! cạp nhật đi ! )';
+            _appVersionText =
+                '$baseVersion (Có bản cập nhật mới! cạp nhật đi ! )';
           } else if (currentPatch != null) {
             _appVersionText = '$baseVersion (Patch ${currentPatch.number})';
           } else {
@@ -94,8 +81,11 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(context.read<LocaleProvider>().tr(
-                  'Đã tải xong bản cập nhật! Vui lòng mở lại app để áp dụng.')),
+              content: Text(
+                context.read<LocaleProvider>().tr(
+                  'Đã tải xong bản cập nhật! Vui lòng mở lại app để áp dụng.',
+                ),
+              ),
               duration: const Duration(seconds: 5),
             ),
           );
@@ -107,12 +97,12 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
   }
 
   Future<void> _loadNotifState() async {
-    final daily  = await _notifService.isDailyEnabled();
+    final daily = await _notifService.isDailyEnabled();
     final streak = await _notifService.isStreakEnabled();
     if (mounted) {
       setState(() {
         dailyAnimalNotif = daily;
-        streakNotif      = streak;
+        streakNotif = streak;
       });
     }
   }
@@ -120,7 +110,6 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
   @override
   void dispose() {
     _authSub?.cancel();
-    _animController.dispose();
     super.dispose();
   }
 
@@ -141,22 +130,28 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(t.tr('Đăng xuất'),
-            style: const TextStyle(fontWeight: FontWeight.bold)),
-        content: Text(t.tr(
-            'Bạn có chắc chắn muốn đăng xuất khỏi tài khoản này không?')),
+        title: Text(
+          t.tr('Đăng xuất'),
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          t.tr('Bạn có chắc chắn muốn đăng xuất khỏi tài khoản này không?'),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text(t.tr('Hủy'),
-                style: const TextStyle(color: Colors.grey)),
+            child: Text(
+              t.tr('Hủy'),
+              style: const TextStyle(color: Colors.grey),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             onPressed: () => Navigator.pop(context, true),
             child: Text(t.tr('Đăng xuất')),
@@ -170,7 +165,7 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
       if (context.mounted) {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const WelcomeScreen()),
-              (route) => false,
+          (route) => false,
         );
       }
     }
@@ -228,108 +223,93 @@ class _AnimalSettingsScreenState extends State<AnimalSettingsScreen>
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final t           = context.watch<LocaleProvider>();
+    final t = context.watch<LocaleProvider>();
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text(
-          t.tr('Cài đặt'),
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: primaryGreen,
-            fontSize: 22,
-          ),
-        ),
-        centerTitle: true,
-        iconTheme: IconThemeData(color: primaryGreen),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-        children: [
-          SettingsAnimatedHeader(
-            scaleAnimation: _scaleAnimation,
-            accentOrange: accentOrange,
-          ),
-          const SizedBox(height: 20),
+      backgroundColor: colorScheme.surface,
+      body: SafeArea(
+        bottom: false,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 110),
+          children: [
+            MainPageHeader(
+              title: 'Cài đặt',
+              highlightedText: '',
+              padding: const EdgeInsets.fromLTRB(8, 20, 8, 0),
+            ),
+            const SizedBox(height: 22),
 
-          SettingsAppearanceOptions(
-            primaryGreen: primaryGreen,
-            accentOrange: accentOrange,
-          ),
+            SettingsAppearanceOptions(
+              primaryGreen: primaryGreen,
+              accentOrange: accentOrange,
+            ),
 
-          const SizedBox(height: 24),
+            const SizedBox(height: 24),
 
-          // ✅ Bỏ selectedUnit + onUnitChanged — widget tự đọc UnitProvider
-          SettingsContentOptions(
-            primaryGreen: primaryGreen,
-            accentOrange: accentOrange,
-          ),
+            // Widget tự đọc UnitProvider.
+            SettingsContentOptions(
+              primaryGreen: primaryGreen,
+              accentOrange: accentOrange,
+            ),
 
-          const SizedBox(height: 24),
-          SettingsNotificationOptions(
-            dailyAnimalNotif: dailyAnimalNotif,
-            streakNotif: streakNotif,
-            onDailyChanged: (val) => setState(() => dailyAnimalNotif = val),
-            onStreakChanged: (val) => setState(() => streakNotif = val),
-            primaryGreen: primaryGreen,
-            accentOrange: accentOrange,
-          ),
+            const SizedBox(height: 24),
+            SettingsNotificationOptions(
+              dailyAnimalNotif: dailyAnimalNotif,
+              streakNotif: streakNotif,
+              onDailyChanged: (val) => setState(() => dailyAnimalNotif = val),
+              onStreakChanged: (val) => setState(() => streakNotif = val),
+              primaryGreen: primaryGreen,
+              accentOrange: accentOrange,
+            ),
 
-          const SizedBox(height: 24),
-          SettingsInfoOptions(primaryGreen: primaryGreen),
+            const SizedBox(height: 24),
+            SettingsInfoOptions(primaryGreen: primaryGreen),
 
-          const SizedBox(height: 32),
+            const SizedBox(height: 32),
 
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            child: OutlinedButton.icon(
-              style: OutlinedButton.styleFrom(
-                foregroundColor: colorScheme.primary,
-                side: BorderSide(color: colorScheme.primary),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: colorScheme.primary,
+                  side: BorderSide(color: colorScheme.primary),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                icon: const Icon(Icons.system_update_alt_rounded),
+                label: Text(
+                  t.tr('Kiểm tra cập nhật'),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const UpdateScreen()),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 20),
+            _buildAuthButton(context: context, t: t, colorScheme: colorScheme),
+            const SizedBox(height: 28),
+            Center(
+              child: Text(
+                '${t.tr('Phiên bản')} $_appVersionText\n${t.tr('Động Vật Bách Khoa Toàn Thư')}',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: colorScheme.onSurfaceVariant,
+                  fontSize: 13,
+                  height: 1.5,
                 ),
               ),
-              icon: const Icon(Icons.system_update_alt_rounded),
-              label: Text(
-                t.tr('Kiểm tra cập nhật'),
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const UpdateScreen()),
-                );
-              },
             ),
-          ),
-
-          const SizedBox(height: 12),
-
-          _buildAuthButton(
-            context: context,
-            t: t,
-            colorScheme: colorScheme,
-          ),
-
-          const SizedBox(height: 32),
-
-          Center(
-            child: Text(
-              '${t.tr('Phiên bản')} $_appVersionText\n${t.tr('Động Vật Bách Khoa Toàn Thư')}',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: colorScheme.onSurfaceVariant,
-                fontSize: 13,
-                height: 1.5,
-              ),
-            ),
-          ),
-          const SizedBox(height: 100),
-        ],
+          ],
+        ),
       ),
     );
   }

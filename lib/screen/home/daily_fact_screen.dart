@@ -14,9 +14,7 @@ import '../Animal_detail/Animal detail screen.dart';
 import '../language/Locale_provider.dart';
 import 'animal_category_model.dart';
 
-// ════════════════════════════════════════════════════════
-// MODEL
-// ════════════════════════════════════════════════════════
+// Model
 class _DailyAnimal {
   final String id;
   final String animalType;
@@ -24,14 +22,14 @@ class _DailyAnimal {
   final String nameEn;
   final String scientificName;
   final String descriptionVi; // description_short (VI)
-  final String descriptionEn; // description_english (EN) — có thể rỗng
+  final String descriptionEn; // description_english (EN) - có thể rỗng
   final List<String> factsVi; // facts tiếng Việt
   final List<String> factsEn; // facts tiếng Anh
   final String funFactVi;
   final String funFactEn;
   final String imageUrl;
 
-  /// Ảnh đã lưu local dạng base64 để khi mất mạng vẫn hiển thị được ảnh fact.
+  // Ảnh đã lưu local dạng base64 để khi mất mạng vẫn hiển thị được ảnh fact.
   final String imageBytesBase64;
 
   const _DailyAnimal({
@@ -50,10 +48,7 @@ class _DailyAnimal {
     this.imageBytesBase64 = '',
   });
 
-  _DailyAnimal copyWith({
-    String? imageUrl,
-    String? imageBytesBase64,
-  }) {
+  _DailyAnimal copyWith({String? imageUrl, String? imageBytesBase64}) {
     return _DailyAnimal(
       id: id,
       animalType: animalType,
@@ -72,9 +67,7 @@ class _DailyAnimal {
   }
 }
 
-// ════════════════════════════════════════════════════════
-// SCREEN
-// ════════════════════════════════════════════════════════
+// Screen
 class DailyFactScreen extends StatefulWidget {
   const DailyFactScreen({super.key});
 
@@ -131,9 +124,7 @@ class _DailyFactScreenState extends State<DailyFactScreen>
     super.dispose();
   }
 
-  // ════════════════════════════════════════════════════════
-  // LOAD
-  // ════════════════════════════════════════════════════════
+  // Load
   Future<void> _load(LocaleProvider t) async {
     if (!mounted) return;
     setState(() {
@@ -160,16 +151,22 @@ class _DailyFactScreenState extends State<DailyFactScreen>
       }
 
       final origUrl = (row['image_url'] as String?) ?? '';
-      final imageUrl = await _resolveImage(today, row['id'].toString(), origUrl);
+      final imageUrl = await _resolveImage(
+        today,
+        row['id'].toString(),
+        origUrl,
+      );
       final imageBytesBase64 = await _cacheImageBytesForOffline(
         today: today,
         animalId: row['id'].toString(),
         imageUrl: imageUrl,
       );
 
-      final animal = _buildAnimal(row, imageUrl, t).copyWith(
-        imageBytesBase64: imageBytesBase64,
-      );
+      final animal = _buildAnimal(
+        row,
+        imageUrl,
+        t,
+      ).copyWith(imageBytesBase64: imageBytesBase64);
 
       await _saveLocalCache(today, animal);
       _show(animal);
@@ -203,9 +200,7 @@ class _DailyFactScreenState extends State<DailyFactScreen>
     _anim.forward(from: 0);
   }
 
-  // ════════════════════════════════════════════════════════
-  // RANDOM ANIMAL
-  // ════════════════════════════════════════════════════════
+  // Random animal
   Future<Map<String, dynamic>?> _randomAnimal(String today) async {
     final seed = today.replaceAll('-', '').hashCode;
     final rng = Random(seed);
@@ -236,9 +231,7 @@ class _DailyFactScreenState extends State<DailyFactScreen>
     return rows.isNotEmpty ? rows.first : null;
   }
 
-  // ════════════════════════════════════════════════════════
-  // ẢNH
-  // ════════════════════════════════════════════════════════
+  // Ảnh
   Future<String> _resolveImage(
     String today,
     String animalId,
@@ -300,18 +293,19 @@ class _DailyFactScreenState extends State<DailyFactScreen>
         return null;
       }
 
-      final req = http.MultipartRequest(
-        'POST',
-        Uri.parse('https://clipdrop-api.co/uncrop/v1'),
-      )
-        ..headers['x-api-key'] = _clipDropKey
-        ..files.add(
-          http.MultipartFile.fromBytes(
-            'image_file',
-            imgRes.bodyBytes,
-            filename: 'animal.jpg',
-          ),
-        );
+      final req =
+          http.MultipartRequest(
+              'POST',
+              Uri.parse('https://clipdrop-api.co/uncrop/v1'),
+            )
+            ..headers['x-api-key'] = _clipDropKey
+            ..files.add(
+              http.MultipartFile.fromBytes(
+                'image_file',
+                imgRes.bodyBytes,
+                filename: 'animal.jpg',
+              ),
+            );
 
       // Mục tiêu: biến ảnh ngang/lệch thành nền dọc dễ dùng cho màn hình điện thoại.
       req.fields['extend_up'] = '900';
@@ -374,7 +368,7 @@ class _DailyFactScreenState extends State<DailyFactScreen>
     }
   }
 
-  /// Lưu ảnh thật xuống SharedPreferences dạng base64 để offline vẫn xem được.
+  // Lưu ảnh thật xuống SharedPreferences dạng base64 để offline vẫn xem được.
   Future<String> _cacheImageBytesForOffline({
     required String today,
     required String animalId,
@@ -404,7 +398,9 @@ class _DailyFactScreenState extends State<DailyFactScreen>
 
       final b64 = base64Encode(res.bodyBytes);
       await prefs.setString(key, b64);
-      debugPrint('✅ [LocalImgCache] Đã lưu ảnh offline: ${res.bodyBytes.length} bytes');
+      debugPrint(
+        '✅ [LocalImgCache] Đã lưu ảnh offline: ${res.bodyBytes.length} bytes',
+      );
       return b64;
     } catch (e) {
       debugPrint('⚠️ [LocalImgCache] Không cache được ảnh: $e');
@@ -412,15 +408,13 @@ class _DailyFactScreenState extends State<DailyFactScreen>
     }
   }
 
-  // ════════════════════════════════════════════════════════
-  // BUILD MODEL — tách facts VI / EN riêng
-  // ════════════════════════════════════════════════════════
+  // BUILD MODEL - tách facts VI / EN riêng
   _DailyAnimal _buildAnimal(
     Map<String, dynamic> a,
     String imageUrl,
     LocaleProvider t,
   ) {
-    // ── Facts tiếng Việt ──
+    // Facts tiếng Việt
     final factsVi = <String>[];
     final w = a['weight_avg_kg'];
     final l = a['length_avg_m'];
@@ -442,7 +436,7 @@ class _DailyFactScreenState extends State<DailyFactScreen>
     final consVi = _mapConservation(a['conservation_status'] as String?, false);
     if (consVi != null) factsVi.add(consVi);
 
-    // ── Facts tiếng Anh ──
+    // Facts tiếng Anh
     final factsEn = <String>[];
     if (w != null) factsEn.add('⚖️ Weight: ${_fmt(w)} kg');
     if (l != null) {
@@ -474,9 +468,7 @@ class _DailyFactScreenState extends State<DailyFactScreen>
     );
   }
 
-  // ════════════════════════════════════════════════════════
-  // LOCAL CACHE
-  // ════════════════════════════════════════════════════════
+  // Local cache
   Future<_DailyAnimal?> _readLocalCache(
     String today, {
     bool allowStale = false,
@@ -547,9 +539,7 @@ class _DailyFactScreenState extends State<DailyFactScreen>
     }
   }
 
-  // ════════════════════════════════════════════════════════
-  // HELPERS
-  // ════════════════════════════════════════════════════════
+  // Hàm phụ trợ
   static String _todayStr() => DateTime.now().toIso8601String().split('T')[0];
 
   String _fmt(dynamic v) {
@@ -564,7 +554,7 @@ class _DailyFactScreenState extends State<DailyFactScreen>
     return cm > 200 ? '${m.toStringAsFixed(1)} m' : '$cm cm';
   }
 
-  // isEnglish=true → trả tiếng Anh, false → tiếng Việt
+  // isEnglish=true -> trả tiếng Anh, false -> tiếng Việt
   String? _mapDiet(String? d, bool isEnglish) {
     if (d == null) return null;
     const vi = {
@@ -623,24 +613,23 @@ class _DailyFactScreenState extends State<DailyFactScreen>
     final category = _categoryForAnimal(a);
     if (category == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.read<LocaleProvider>().tr('Không tìm thấy danh mục loài'))),
+        SnackBar(
+          content: Text(
+            context.read<LocaleProvider>().tr('Không tìm thấy danh mục loài'),
+          ),
+        ),
       );
       return;
     }
 
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => AnimalDetailScreen(
-          animalId: a.id,
-          category: category,
-        ),
+        builder: (_) => AnimalDetailScreen(animalId: a.id, category: category),
       ),
     );
   }
 
-  // ════════════════════════════════════════════════════════
   // UI
-  // ════════════════════════════════════════════════════════
   @override
   Widget build(BuildContext context) {
     final t = context.watch<LocaleProvider>();
@@ -696,8 +685,10 @@ class _DailyFactScreenState extends State<DailyFactScreen>
     final a = _animal!;
     final isEn = t.isEnglish;
 
-    // ── Chọn nội dung theo ngôn ngữ ──────────────────────
-    final displayName = isEn ? (a.nameEn.isNotEmpty ? a.nameEn : a.nameVi) : a.nameVi;
+    // Chọn nội dung theo ngôn ngữ
+    final displayName = isEn
+        ? (a.nameEn.isNotEmpty ? a.nameEn : a.nameVi)
+        : a.nameVi;
     final subName = isEn ? a.nameVi : a.nameEn; // dòng phụ nhỏ
 
     final description = isEn
@@ -714,13 +705,10 @@ class _DailyFactScreenState extends State<DailyFactScreen>
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // ── ẢNH NỀN — ưu tiên ảnh local base64 khi có ─────────────
-          _buildBackground(
-            a.imageUrl,
-            imageBytesBase64: a.imageBytesBase64,
-          ),
+          // ẢNH NỀN - ưu tiên ảnh local base64 khi có
+          _buildBackground(a.imageUrl, imageBytesBase64: a.imageBytesBase64),
 
-          // ── GRADIENT ─────────────────────────────────────
+          // Gradient
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -736,7 +724,7 @@ class _DailyFactScreenState extends State<DailyFactScreen>
             ),
           ),
 
-          // ── NỘI DUNG ─────────────────────────────────────
+          // Nội dung
           SafeArea(
             child: FadeTransition(
               opacity: _fadeAnim,
@@ -855,7 +843,7 @@ class _DailyFactScreenState extends State<DailyFactScreen>
                               ),
                             ],
 
-                            // Mô tả — luôn hiển thị đầy đủ, không còn dấu "...".
+                            // Mô tả - luôn hiển thị đầy đủ, không còn dấu "...".
                             if (description.isNotEmpty) ...[
                               const SizedBox(height: 14),
                               Text(
@@ -870,35 +858,38 @@ class _DailyFactScreenState extends State<DailyFactScreen>
 
                             // Facts
                             const SizedBox(height: 16),
-                            ...facts.take(4).map(
-                              (fact) => Padding(
-                                padding: const EdgeInsets.only(bottom: 7),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Padding(
-                                      padding: EdgeInsets.only(top: 1),
-                                      child: Icon(
-                                        Icons.auto_awesome,
-                                        size: 12,
-                                        color: Colors.orange,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: Text(
-                                        fact,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 13.5,
-                                          height: 1.4,
+                            ...facts
+                                .take(4)
+                                .map(
+                                  (fact) => Padding(
+                                    padding: const EdgeInsets.only(bottom: 7),
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        const Padding(
+                                          padding: EdgeInsets.only(top: 1),
+                                          child: Icon(
+                                            Icons.auto_awesome,
+                                            size: 12,
+                                            color: Colors.orange,
+                                          ),
                                         ),
-                                      ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: Text(
+                                            fact,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 13.5,
+                                              height: 1.4,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ],
+                                  ),
                                 ),
-                              ),
-                            ),
 
                             // Fun fact
                             if (funFact.isNotEmpty) ...[
@@ -924,7 +915,6 @@ class _DailyFactScreenState extends State<DailyFactScreen>
                                         fontStyle: FontStyle.italic,
                                         height: 1.4,
                                       ),
-
                                     ),
                                   ),
                                 ],
@@ -941,7 +931,9 @@ class _DailyFactScreenState extends State<DailyFactScreen>
                                 style: FilledButton.styleFrom(
                                   backgroundColor: Colors.white,
                                   foregroundColor: Colors.black87,
-                                  padding: const EdgeInsets.symmetric(vertical: 13),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 13,
+                                  ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(18),
                                   ),
@@ -1021,7 +1013,7 @@ class _DailyFactScreenState extends State<DailyFactScreen>
     );
   }
 
-  // ── Ảnh nền: ưu tiên ảnh local khi có, fallback sang network URL ─────
+  // Ảnh nền: ưu tiên ảnh local khi có, dự phòng sang network URL
   Widget _buildBackground(String url, {String imageBytesBase64 = ''}) {
     if (imageBytesBase64.isNotEmpty) {
       try {
@@ -1069,18 +1061,18 @@ class _DailyFactScreenState extends State<DailyFactScreen>
   }
 
   String _monthEn(int month) => const [
-        '',
-        'January',
-        'February',
-        'March',
-        'April',
-        'May',
-        'June',
-        'July',
-        'August',
-        'September',
-        'October',
-        'November',
-        'December',
-      ][month];
+    '',
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ][month];
 }

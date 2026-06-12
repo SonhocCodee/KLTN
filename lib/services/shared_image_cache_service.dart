@@ -2,16 +2,16 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:typed_data';
 
 class SharedImageCacheService {
-  // ✅ FIX: Dùng getter thay vì static final
-  // static final chạy ngay khi class được load → crash vì Supabase chưa init
+  // Dùng getter thay vì static final
+  // static final chạy ngay khi class được load -> crash vì Supabase chưa init
   // getter chỉ gọi Supabase.instance.client khi hàm thực sự được gọi
   static SupabaseClient get _supabase => Supabase.instance.client;
 
   static const String _table = 'daily_animal_image_cache';
   static const String _bucket = 'animal-images';
 
-  /// Lấy URL ảnh đã extend từ shared cache (Supabase)
-  /// Trả về null nếu chưa có cache hôm nay
+  // Lấy URL ảnh đã extend từ shared cache (Supabase)
+  // Trả về null nếu chưa có cache hôm nay
   static Future<String?> getSharedCachedImage(String originalImageUrl) async {
     final today = _todayString();
 
@@ -37,7 +37,7 @@ class SharedImageCacheService {
     }
   }
 
-  /// Upload ảnh lên Supabase Storage và lưu URL vào DB
+  // Upload ảnh lên Supabase Storage và lưu URL vào DB
   static Future<String?> uploadAndSaveSharedCache({
     required String originalImageUrl,
     required Uint8List imageBytes,
@@ -46,21 +46,26 @@ class SharedImageCacheService {
     final today = _todayString();
 
     try {
-      final fileName = 'daily_${today}_${animalName.replaceAll(' ', '_').toLowerCase()}.png';
+      final fileName =
+          'daily_${today}_${animalName.replaceAll(' ', '_').toLowerCase()}.png';
       final storagePath = 'extended/$fileName';
 
       print('📤 [SharedCache] Uploading to Supabase Storage: $storagePath');
 
-      await _supabase.storage.from(_bucket).uploadBinary(
-        storagePath,
-        imageBytes,
-        fileOptions: const FileOptions(
-          contentType: 'image/png',
-          upsert: true,
-        ),
-      );
+      await _supabase.storage
+          .from(_bucket)
+          .uploadBinary(
+            storagePath,
+            imageBytes,
+            fileOptions: const FileOptions(
+              contentType: 'image/png',
+              upsert: true,
+            ),
+          );
 
-      final publicUrl = _supabase.storage.from(_bucket).getPublicUrl(storagePath);
+      final publicUrl = _supabase.storage
+          .from(_bucket)
+          .getPublicUrl(storagePath);
       print('✅ [SharedCache] Upload thành công: $publicUrl');
 
       await _supabase.from(_table).upsert({

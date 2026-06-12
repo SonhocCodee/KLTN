@@ -40,9 +40,9 @@ class _FactSwipePageState extends State<FactSwipePage>
     super.initState();
     final service = context.read<ExploreService>();
 
-    // FIX: Bắt đầu từ fact chưa đọc, không phải readCount
-    // readCount là số fact đã đọc → ta muốn tiếp tục từ đó
-    // Nhưng KHÔNG gọi markFactRead ở đây — chỉ gọi khi user thực sự xem card
+    // Bắt đầu từ fact chưa đọc, không phải readCount
+    // readCount là số fact đã đọc -> ta muốn tiếp tục từ đó
+    // Nhưng KHÔNG gọi markFactRead ở đây - chỉ gọi khi user thực sự xem card
     _currentIndex = service.readCount.clamp(0, 9);
     _pageController = PageController(initialPage: _currentIndex);
 
@@ -53,7 +53,7 @@ class _FactSwipePageState extends State<FactSwipePage>
     _fadeAnim = CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOut);
     _fadeCtrl.forward();
 
-    // FIX: Dùng addPostFrameCallback để đánh dấu card hiện tại SAU khi render
+    // Dùng addPostFrameCallback để đánh dấu card hiện tại SAU khi render
     // Chỉ đánh dấu nếu đây là card chưa từng đọc (service tự check)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // markFactRead tự bỏ qua nếu index đã có trong set
@@ -70,7 +70,7 @@ class _FactSwipePageState extends State<FactSwipePage>
 
   void _onPageChanged(int index) {
     setState(() => _currentIndex = index);
-    // FIX: markFactRead dùng Set nên gọi nhiều lần cùng index không sao
+    // markFactRead dùng Set nên gọi nhiều lần cùng index không sao
     context.read<ExploreService>().markFactRead(index);
   }
 
@@ -119,8 +119,8 @@ class _FactSwipePageState extends State<FactSwipePage>
 
   @override
   Widget build(BuildContext context) {
-    final service    = context.watch<ExploreService>();
-    final animals    = service.dailyAnimals;
+    final service = context.watch<ExploreService>();
+    final animals = service.dailyAnimals;
     final colorScheme = Theme.of(context).colorScheme;
 
     if (animals.isEmpty) {

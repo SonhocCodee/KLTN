@@ -1,11 +1,8 @@
-// File: services/extended_animal_image.dart
-//
 // Widget hiển thị ảnh động vật với flow:
-//  1. Check SharedImageCacheService (Supabase Storage) → dùng nếu có
-//  2. Tải ảnh gốc → gọi ClipDrop extend
-//  3. Upload kết quả lên Supabase Storage (SharedImageCacheService)
-//  4. Người dùng tiếp theo đọc thẳng từ Supabase → không cần gọi ClipDrop nữa
-//
+// 1. Kiểm tra SharedImageCacheService (Supabase Storage) -> dùng nếu có
+// 2. Tải ảnh gốc -> gọi ClipDrop extend
+// 3. Upload kết quả lên Supabase Storage (SharedImageCacheService)
+// 4. Người dùng tiếp theo đọc thẳng từ Supabase -> không cần gọi ClipDrop nữa
 // Lưu ý: Base64 từ ClipDrop KHÔNG được lưu SharedPreferences (quá lớn).
 // Thay vào đó upload lên Supabase Storage và lưu public URL.
 
@@ -35,7 +32,7 @@ class ExtendedAnimalImage extends StatefulWidget {
 }
 
 class _ExtendedAnimalImageState extends State<ExtendedAnimalImage> {
-  String? _displayImageUrl;   // URL hoặc 'data:image/...' base64
+  String? _displayImageUrl; // URL hoặc 'data:image/...' base64
   bool _isProcessing = true;
   bool _isExtended = false;
   String? _usedService;
@@ -54,9 +51,7 @@ class _ExtendedAnimalImageState extends State<ExtendedAnimalImage> {
     }
   }
 
-  // ─────────────────────────────────────────────────────────────
-  // LOGIC CHÍNH
-  // ─────────────────────────────────────────────────────────────
+  // Luồng xử lý chính
   Future<void> _loadImage() async {
     if (!mounted) return;
     setState(() {
@@ -68,7 +63,7 @@ class _ExtendedAnimalImageState extends State<ExtendedAnimalImage> {
     print('🖼️ [ExtImage] Loading: ${widget.animalName}');
 
     try {
-      // ── BƯỚC 1: Check Supabase shared cache (URL công khai) ──
+      // Kiểm tra Supabase shared cache (URL công khai)
       final sharedUrl = await SharedImageCacheService.getSharedCachedImage(
         widget.originalImageUrl,
       );
@@ -79,13 +74,13 @@ class _ExtendedAnimalImageState extends State<ExtendedAnimalImage> {
         return;
       }
 
-      // ── BƯỚC 2: Nếu URL là data URI (đã extended trước đó) ──
+      // Nếu URL là data URI (đã extended trước đó)
       if (widget.originalImageUrl.startsWith('data:image')) {
         _setDisplay(widget.originalImageUrl, 'local_base64', extended: true);
         return;
       }
 
-      // ── BƯỚC 3: Gọi ClipDrop ──
+      // Gọi ClipDrop
       print('🚀 [ExtImage] Gọi ClipDrop API...');
       final clipDropResult = await ClipDropImageService.extendAnimalImage(
         originalImageUrl: widget.originalImageUrl,
@@ -105,17 +100,16 @@ class _ExtendedAnimalImageState extends State<ExtendedAnimalImage> {
         return;
       }
 
-      // ── BƯỚC 4: Fallback ảnh gốc ──
+      // Dự phòng ảnh gốc
       print('⚠️ [ExtImage] Fallback về ảnh gốc');
       _setDisplay(widget.originalImageUrl, 'original', extended: false);
-
     } catch (e) {
       print('❌ [ExtImage] Error: $e');
       _setDisplay(widget.originalImageUrl, 'original', extended: false);
     }
   }
 
-  /// Upload ảnh lên Supabase Storage và lưu URL vào shared cache
+  // Upload ảnh lên Supabase Storage và lưu URL vào shared cache
   Future<void> _uploadToSharedCache(Uint8List bytes) async {
     try {
       final publicUrl = await SharedImageCacheService.uploadAndSaveSharedCache(
@@ -147,9 +141,7 @@ class _ExtendedAnimalImageState extends State<ExtendedAnimalImage> {
     });
   }
 
-  // ─────────────────────────────────────────────────────────────
-  // BUILD UI
-  // ─────────────────────────────────────────────────────────────
+  // Dựng giao diện
   @override
   Widget build(BuildContext context) {
     if (_isProcessing) {
@@ -184,12 +176,9 @@ class _ExtendedAnimalImageState extends State<ExtendedAnimalImage> {
           Positioned.fill(
             child: Container(color: Colors.black.withOpacity(0.05)),
           ),
-
       ],
     );
   }
-
-
 
   Widget _buildLoading() {
     return Container(
@@ -219,14 +208,18 @@ class _ExtendedAnimalImageState extends State<ExtendedAnimalImage> {
           children: [
             const Icon(Icons.broken_image, color: Colors.white38, size: 56),
             const SizedBox(height: 12),
-            const Text('Không tải được ảnh',
-                style: TextStyle(color: Colors.white54)),
+            const Text(
+              'Không tải được ảnh',
+              style: TextStyle(color: Colors.white54),
+            ),
             const SizedBox(height: 12),
             TextButton.icon(
               onPressed: _loadImage,
               icon: const Icon(Icons.refresh, color: Colors.white),
-              label: const Text('Thử lại',
-                  style: TextStyle(color: Colors.white)),
+              label: const Text(
+                'Thử lại',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         ),

@@ -24,14 +24,14 @@ class AnimalDetailQuickStats extends StatelessWidget {
     if (weightAvg != null && (weightAvg as num) > 0)
       stats.add({
         'emoji': '⚖️',
-        'value': u.formatWeight(weightAvg),   // kg ↔ lbs
+        'value': u.formatWeight(weightAvg), // kg ↔ lbs
         'label': t.tr('Cân nặng'),
       });
 
     if (heightAvg != null && (heightAvg as num) > 0)
       stats.add({
         'emoji': '📏',
-        'value': u.formatHeight(heightAvg),   // m ↔ ft
+        'value': u.formatHeight(heightAvg), // m ↔ ft
         'label': t.tr('Chiều cao'),
       });
 
@@ -45,7 +45,7 @@ class AnimalDetailQuickStats extends StatelessWidget {
     if (maxSpeed != null && (maxSpeed as num) > 0)
       stats.add({
         'emoji': '💨',
-        'value': u.formatSpeed(maxSpeed),     // km/h ↔ mph
+        'value': u.formatSpeed(maxSpeed), // km/h ↔ mph
         'label': t.tr('Tốc độ tối đa'),
       });
 
@@ -83,7 +83,11 @@ class AnimalDetailQuickStats extends StatelessWidget {
   }
 
   Widget _buildStatTile(
-      String emoji, String value, String label, ColorScheme colorScheme) {
+    String emoji,
+    String value,
+    String label,
+    ColorScheme colorScheme,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 6),
       decoration: BoxDecoration(
@@ -98,18 +102,20 @@ class AnimalDetailQuickStats extends StatelessWidget {
           Text(
             value,
             style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w800,
-                color: colorScheme.onSurface),
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+              color: colorScheme.onSurface,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 2),
           Text(
             label,
             style: TextStyle(
-                fontSize: 10,
-                color: colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w500),
+              fontSize: 10,
+              color: colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w500,
+            ),
             textAlign: TextAlign.center,
           ),
         ],

@@ -4,26 +4,20 @@ import 'package:kltn_app/screen/welcome/widgets/animated_icon.dart';
 import 'dart:math' as math;
 import 'onboarding_page.dart';
 
-/// Widget hiển thị nội dung chính của một trang onboarding
-///
-/// Bao gồm 3 phần chính:
-/// 1. Icon động với animation xoay và scale
-/// 2. Title + Subtitle với gradient text và fade in
-/// 3. Description trong container bo tròn với glass effect
-///
-/// Tất cả đều có animation riêng khi trang được hiển thị
+// Widget hiển thị nội dung chính của một trang onboarding
+// Bao gồm 3 phần chính:
+// 1. Icon động với animation xoay và scale
+// 2. Title + Subtitle với gradient text và fade in
+// 3. Description trong container bo tròn với glass effect
+// Tất cả đều có animation riêng khi trang được hiển thị
 class PageContent extends StatelessWidget {
-  /// Dữ liệu của trang (title, description, colors, etc.)
+  // Dữ liệu của trang (title, description, colors, etc.)
   final OnboardingPage page;
 
-  /// Chỉ số trang (để truyền cho PulseAnimatedIcon)
+  // Chỉ số trang (để truyền cho PulseAnimatedIcon)
   final int index;
 
-  const PageContent({
-    super.key,
-    required this.page,
-    required this.index,
-  });
+  const PageContent({super.key, required this.page, required this.index});
 
   @override
   Widget build(BuildContext context) {
@@ -32,29 +26,28 @@ class PageContent extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // ===== PHẦN 1: ICON ĐỘNG =====
+          // Phần 1: icon động
           _buildAnimatedIcon(),
 
           const SizedBox(height: 48),
 
-          // ===== PHẦN 2: TITLE VÀ SUBTITLE =====
+          // Phần 2: title và subtitle
           _buildTitleSection(),
 
           const SizedBox(height: 24),
 
-          // ===== PHẦN 3: DESCRIPTION =====
+          // Phần 3: description
           _buildDescriptionBox(),
         ],
       ),
     );
   }
 
-  /// Build icon với animation xoay và phóng to
-  ///
-  /// Animation:
-  /// - Scale từ 0 -> 1 (hiệu ứng phóng to)
-  /// - Rotate 4 vòng trong quá trình phóng to
-  /// - ElasticOut curve tạo hiệu ứng nảy đàn hồi
+  // Dựng giao diện icon với animation xoay và phóng to
+  // Animation:
+  // Scale từ 0 -> 1 (hiệu ứng phóng to)
+  // Rotate 4 vòng trong quá trình phóng to
+  // ElasticOut curve tạo hiệu ứng nảy đàn hồi
   Widget _buildAnimatedIcon() {
     return TweenAnimationBuilder<double>(
       duration: const Duration(milliseconds: 100),
@@ -77,17 +70,15 @@ class PageContent extends StatelessWidget {
     );
   }
 
-  /// Build phần title và subtitle
-  ///
-  /// Title:
-  /// - ShaderMask để tạo gradient text
-  /// - Font size lớn (36), bold (w900)
-  /// - Shadow để tạo chiều sâu
-  ///
-  /// Subtitle:
-  /// - Font nhỏ hơn (14), mỏng hơn
-  /// - Màu đen mờ, letter spacing rộng
-  /// - Fade in sau title
+  // Dựng giao diện phần title và subtitle
+  // Title:
+  // ShaderMask để tạo gradient text
+  // Font size lớn (36), bold (w900)
+  // Shadow để tạo chiều sâu
+  // Subtitle:
+  // Font nhỏ hơn (14), mỏng hơn
+  // Màu đen mờ, letter spacing rộng
+  // Fade in sau title
   Widget _buildTitleSection() {
     return TweenAnimationBuilder<double>(
       duration: const Duration(milliseconds: 800),
@@ -144,10 +135,7 @@ class PageContent extends StatelessWidget {
             tween: Tween(begin: 0.0, end: 1.0),
             curve: Curves.easeOut,
             builder: (context, value, child) {
-              return Opacity(
-                opacity: value,
-                child: child,
-              );
+              return Opacity(opacity: value, child: child);
             },
             child: Text(
               page.subtitle,
@@ -165,16 +153,14 @@ class PageContent extends StatelessWidget {
     );
   }
 
-  /// Build phần mô tả trong container bo tròn
-  ///
-  /// Glass morphism effect:
-  /// - Background trắng mờ (opacity 0.35)
-  /// - Border trắng nhạt
-  /// - Shadow mềm phía dưới
-  /// - Bo góc tròn 36px
-  ///
-  /// Animation:
-  /// - Fade in + slide up giống title
+  // Dựng giao diện phần mô tả trong container bo tròn
+  // Glass morphism effect:
+  // Background trắng mờ (opacity 0.35)
+  // Border trắng nhạt
+  // Shadow mềm phía dưới
+  // Bo góc tròn 36px
+  // Animation:
+  // Fade in + slide up giống title
   Widget _buildDescriptionBox() {
     return TweenAnimationBuilder<double>(
       duration: const Duration(milliseconds: 800),
@@ -197,10 +183,7 @@ class PageContent extends StatelessWidget {
           borderRadius: BorderRadius.circular(36),
 
           // Border nhẹ
-          border: Border.all(
-            color: Colors.white.withOpacity(0.3),
-            width: 1,
-          ),
+          border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
 
           // Shadow mềm
           boxShadow: [

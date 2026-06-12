@@ -17,10 +17,10 @@ class ProfilePage extends StatefulWidget {
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
-// Khai báo RouteObserver global — đăng ký trong MaterialApp:
+// Khai báo RouteObserver global - đăng ký trong MaterialApp:
 // navigatorObservers: [profileRouteObserver]
 final RouteObserver<ModalRoute<void>> profileRouteObserver =
-RouteObserver<ModalRoute<void>>();
+    RouteObserver<ModalRoute<void>>();
 
 class _ProfilePageState extends State<ProfilePage>
     with SingleTickerProviderStateMixin, RouteAware {
@@ -42,7 +42,7 @@ class _ProfilePageState extends State<ProfilePage>
   int _totalSpecies = 0;
   DateTime? _lastPlayed;
 
-  // Reports — gộp 3 bảng
+  // Reports - gộp 3 bảng
   List<Map<String, dynamic>> _allReports = [];
   bool _isLoadingReports = true;
 
@@ -97,13 +97,13 @@ class _ProfilePageState extends State<ProfilePage>
     super.dispose();
   }
 
-  /// Gọi khi user bấm back từ màn hình khác quay về Profile
+  // Gọi khi user bấm back từ màn hình khác quay về Profile
   @override
   void didPopNext() {
     _loadFavorites();
   }
 
-  // ── Load profile ──────────────────────────────────────────────────────────
+  // Tải profile
 
   Future<void> _loadProfile() async {
     final userId = _supabase.auth.currentUser?.id;
@@ -151,7 +151,7 @@ class _ProfilePageState extends State<ProfilePage>
     }
   }
 
-  // ── Load favorites ────────────────────────────────────────────────────────
+  // Tải favorites
 
   Future<void> _loadFavorites() async {
     if (!_isAuthenticated) {
@@ -169,7 +169,7 @@ class _ProfilePageState extends State<ProfilePage>
       // Lấy danh sách animal_id yêu thích
       final favRows = await _favoriteService.getFavorites();
 
-      // Load chi tiết từng con song song (giới hạn 20 để tránh quá tải)
+      // Tải chi tiết từng con song song (giới hạn 20 để tránh quá tải)
       final limited = favRows.take(20).toList();
       final details = await Future.wait(
         limited.map((row) => _animalService.getAnimalById(row['animal_id'])),
@@ -203,12 +203,11 @@ class _ProfilePageState extends State<ProfilePage>
   Future<void> _removeFavorite(String animalId) async {
     await _favoriteService.removeFavorite(animalId);
     setState(() {
-      _favoriteAnimals
-          .removeWhere((a) => a['_animal_id'] == animalId);
+      _favoriteAnimals.removeWhere((a) => a['_animal_id'] == animalId);
     });
   }
 
-  // ── Load reports ──────────────────────────────────────────────────────────
+  // Tải reports
 
   Future<void> _loadReports() async {
     final userId = _supabase.auth.currentUser?.id;
@@ -232,7 +231,8 @@ class _ProfilePageState extends State<ProfilePage>
         _supabase
             .from('animal_reports')
             .select(
-            'id, note, status, admin_note, created_at, suggested_name_vietnamese')
+              'id, note, status, admin_note, created_at, suggested_name_vietnamese',
+            )
             .eq('reporter_user_id', userId)
             .order('created_at', ascending: false),
         _supabase
@@ -242,39 +242,46 @@ class _ProfilePageState extends State<ProfilePage>
             .order('created_at', ascending: false),
       ]);
 
-      final quizReports = (results[0] as List).map((r) => {
-        ...Map<String, dynamic>.from(r),
-        '_source': _srcQuiz,
-        '_title': _reportTypeLabel(r['report_type'] ?? ''),
-        '_subtitle': r['note'] ?? '',
-      }).toList();
+      final quizReports = (results[0] as List)
+          .map(
+            (r) => {
+              ...Map<String, dynamic>.from(r),
+              '_source': _srcQuiz,
+              '_title': _reportTypeLabel(r['report_type'] ?? ''),
+              '_subtitle': r['note'] ?? '',
+            },
+          )
+          .toList();
 
-      final animalReports = (results[1] as List).map((r) => {
-        ...Map<String, dynamic>.from(r),
-        '_source': _srcAnimal,
-        '_title': 'Báo cáo loài: ${r['suggested_name_vietnamese'] ?? ''}',
-        '_subtitle': r['note'] ?? '',
-      }).toList();
+      final animalReports = (results[1] as List)
+          .map(
+            (r) => {
+              ...Map<String, dynamic>.from(r),
+              '_source': _srcAnimal,
+              '_title': 'Báo cáo loài: ${r['suggested_name_vietnamese'] ?? ''}',
+              '_subtitle': r['note'] ?? '',
+            },
+          )
+          .toList();
 
-      final feedbackReports = (results[2] as List).map((r) => {
-        ...Map<String, dynamic>.from(r),
-        '_source': _srcFeedback,
-        'report_type': r['type'] ?? '',
-        '_title': _feedbackTypeLabel(r['type'] ?? ''),
-        '_subtitle': r['description'] ?? '',
-      }).toList();
+      final feedbackReports = (results[2] as List)
+          .map(
+            (r) => {
+              ...Map<String, dynamic>.from(r),
+              '_source': _srcFeedback,
+              'report_type': r['type'] ?? '',
+              '_title': _feedbackTypeLabel(r['type'] ?? ''),
+              '_subtitle': r['description'] ?? '',
+            },
+          )
+          .toList();
 
-      final all = [
-        ...quizReports,
-        ...animalReports,
-        ...feedbackReports,
-      ]..sort((a, b) {
-        final aTime =
-            DateTime.tryParse(a['created_at'] ?? '') ?? DateTime(0);
-        final bTime =
-            DateTime.tryParse(b['created_at'] ?? '') ?? DateTime(0);
-        return bTime.compareTo(aTime);
-      });
+      final all = [...quizReports, ...animalReports, ...feedbackReports]
+        ..sort((a, b) {
+          final aTime = DateTime.tryParse(a['created_at'] ?? '') ?? DateTime(0);
+          final bTime = DateTime.tryParse(b['created_at'] ?? '') ?? DateTime(0);
+          return bTime.compareTo(aTime);
+        });
 
       if (mounted) {
         setState(() {
@@ -290,7 +297,7 @@ class _ProfilePageState extends State<ProfilePage>
     }
   }
 
-  // ── Avatar upload (đã fix) ────────────────────────────────────────────────
+  // Avatar upload (đã fix)
 
   Future<void> _pickAndUploadAvatar() async {
     final picker = ImagePicker();
@@ -312,15 +319,14 @@ class _ProfilePageState extends State<ProfilePage>
       // Dùng tên cố định per-user để overwrite (upsert: true)
       final filePath = 'avatars/$userId.$ext';
 
-      await _supabase.storage.from('user-avatars').upload(
-        filePath,
-        file,
-        fileOptions: const FileOptions(upsert: true),
-      );
+      await _supabase.storage
+          .from('user-avatars')
+          .upload(filePath, file, fileOptions: const FileOptions(upsert: true));
 
-      // FIX: lấy public URL sạch để lưu DB
-      final publicUrl =
-      _supabase.storage.from('user-avatars').getPublicUrl(filePath);
+      // lấy public URL sạch để lưu DB
+      final publicUrl = _supabase.storage
+          .from('user-avatars')
+          .getPublicUrl(filePath);
 
       // Lưu URL sạch vào DB (không kèm cache-buster)
       await _supabase.from('user_profiles').upsert({
@@ -344,7 +350,7 @@ class _ProfilePageState extends State<ProfilePage>
     }
   }
 
-  // ── Save display name ─────────────────────────────────────────────────────
+  // Save display name
 
   Future<void> _saveDisplayName() async {
     final userId = _supabase.auth.currentUser?.id;
@@ -376,8 +382,7 @@ class _ProfilePageState extends State<ProfilePage>
 
   void _showSnack(String msg) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(msg)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
   List<Map<String, dynamic>> get _pendingReports =>
@@ -387,7 +392,7 @@ class _ProfilePageState extends State<ProfilePage>
   List<Map<String, dynamic>> get _rejectedReports =>
       _allReports.where((r) => r['status'] == 'rejected').toList();
 
-  // ── Build ─────────────────────────────────────────────────────────────────
+  // Dựng giao diện
 
   @override
   Widget build(BuildContext context) {
@@ -402,20 +407,17 @@ class _ProfilePageState extends State<ProfilePage>
       body: _isLoadingProfile
           ? const Center(child: CircularProgressIndicator())
           : CustomScrollView(
-        slivers: [
-          _buildSliverAppBar(colorScheme),
-          SliverToBoxAdapter(
-              child: _buildStatsSection(colorScheme)),
-          SliverToBoxAdapter(
-              child: _buildFavoritesSection(colorScheme)),
-          SliverToBoxAdapter(
-              child: _buildReportsSection(colorScheme)),
-        ],
-      ),
+              slivers: [
+                _buildSliverAppBar(colorScheme),
+                SliverToBoxAdapter(child: _buildStatsSection(colorScheme)),
+                SliverToBoxAdapter(child: _buildFavoritesSection(colorScheme)),
+                SliverToBoxAdapter(child: _buildReportsSection(colorScheme)),
+              ],
+            ),
     );
   }
 
-  // ── Màn hình chưa đăng nhập ───────────────────────────────────────────────
+  // Màn hình chưa đăng nhập
   Widget _buildNotLoggedIn(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -478,10 +480,7 @@ class _ProfilePageState extends State<ProfilePage>
                     ),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [
-                          Color(0xFFFBBF24),
-                          Color(0xFFF97316),
-                        ],
+                        colors: [Color(0xFFFBBF24), Color(0xFFF97316)],
                       ),
                       borderRadius: BorderRadius.circular(36),
                       boxShadow: [
@@ -510,7 +509,7 @@ class _ProfilePageState extends State<ProfilePage>
     );
   }
 
-  // ── AppBar ────────────────────────────────────────────────────────────────
+  // AppBar
 
   Widget _buildSliverAppBar(ColorScheme colorScheme) {
     return SliverAppBar(
@@ -523,10 +522,7 @@ class _ProfilePageState extends State<ProfilePage>
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
-                colorScheme.primaryContainer,
-                colorScheme.surface,
-              ],
+              colors: [colorScheme.primaryContainer, colorScheme.surface],
             ),
           ),
           child: SafeArea(
@@ -545,23 +541,27 @@ class _ProfilePageState extends State<ProfilePage>
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
-                              color: colorScheme.primary, width: 3),
+                            color: colorScheme.primary,
+                            width: 3,
+                          ),
                           color: colorScheme.surfaceContainerHighest,
                         ),
                         child: ClipOval(
                           child: _isUploadingAvatar
                               ? const Center(
-                              child: CircularProgressIndicator(
-                                  strokeWidth: 2))
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
                               : _avatarUrl != null
                               ? Image.network(
-                            _avatarUrl!,
-                            fit: BoxFit.cover,
-                            // evict cache cũ khi URL thay đổi
-                            key: ValueKey(_avatarUrl),
-                            errorBuilder: (_, __, ___) =>
-                                _defaultAvatar(colorScheme),
-                          )
+                                  _avatarUrl!,
+                                  fit: BoxFit.cover,
+                                  // evict cache cũ khi URL thay đổi
+                                  key: ValueKey(_avatarUrl),
+                                  errorBuilder: (_, __, ___) =>
+                                      _defaultAvatar(colorScheme),
+                                )
                               : _defaultAvatar(colorScheme),
                         ),
                       ),
@@ -572,95 +572,105 @@ class _ProfilePageState extends State<ProfilePage>
                         color: colorScheme.primary,
                         shape: BoxShape.circle,
                         border: Border.all(
-                            color: colorScheme.surface, width: 2),
+                          color: colorScheme.surface,
+                          width: 2,
+                        ),
                       ),
-                      child: Icon(Icons.camera_alt,
-                          size: 14, color: colorScheme.onPrimary),
+                      child: Icon(
+                        Icons.camera_alt,
+                        size: 14,
+                        color: colorScheme.onPrimary,
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
                 _isEditingName
                     ? Padding(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 48),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _nameController,
-                          autofocus: true,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: colorScheme.onSurface),
-                          decoration: InputDecoration(
-                            isDense: true,
-                            contentPadding:
-                            const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 4),
-                            border: OutlineInputBorder(
-                              borderRadius:
-                              BorderRadius.circular(8),
+                        padding: const EdgeInsets.symmetric(horizontal: 48),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: _nameController,
+                                autofocus: true,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.onSurface,
+                                ),
+                                decoration: InputDecoration(
+                                  isDense: true,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
+                            const SizedBox(width: 8),
+                            _isSavingName
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : IconButton(
+                                    onPressed: _saveDisplayName,
+                                    icon: Icon(
+                                      Icons.check,
+                                      color: colorScheme.primary,
+                                    ),
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                  ),
+                            IconButton(
+                              onPressed: () => setState(() {
+                                _isEditingName = false;
+                                _nameController.text = _displayName;
+                              }),
+                              icon: Icon(Icons.close, color: colorScheme.error),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      _isSavingName
-                          ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                              strokeWidth: 2))
-                          : IconButton(
-                        onPressed: _saveDisplayName,
-                        icon: Icon(Icons.check,
-                            color: colorScheme.primary),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
-                      IconButton(
-                        onPressed: () => setState(() {
-                          _isEditingName = false;
-                          _nameController.text = _displayName;
-                        }),
-                        icon: Icon(Icons.close,
-                            color: colorScheme.error),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
-                    ],
-                  ),
-                )
+                      )
                     : GestureDetector(
-                  onTap: () =>
-                      setState(() => _isEditingName = true),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        _displayName,
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onSurface,
+                        onTap: () => setState(() => _isEditingName = true),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              _displayName,
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.onSurface,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Icon(
+                              Icons.edit,
+                              size: 16,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 6),
-                      Icon(Icons.edit,
-                          size: 16,
-                          color: colorScheme.onSurfaceVariant),
-                    ],
-                  ),
-                ),
                 const SizedBox(height: 4),
                 Text(
                   _supabase.auth.currentUser?.email ?? '',
                   style: TextStyle(
-                      fontSize: 13,
-                      color: colorScheme.onSurfaceVariant),
+                    fontSize: 13,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -671,23 +681,25 @@ class _ProfilePageState extends State<ProfilePage>
   }
 
   Widget _defaultAvatar(ColorScheme colorScheme) {
-    final initials =
-    _displayName.isNotEmpty ? _displayName[0].toUpperCase() : '?';
+    final initials = _displayName.isNotEmpty
+        ? _displayName[0].toUpperCase()
+        : '?';
     return Container(
       color: colorScheme.primaryContainer,
       child: Center(
         child: Text(
           initials,
           style: TextStyle(
-              fontSize: 36,
-              fontWeight: FontWeight.bold,
-              color: colorScheme.onPrimaryContainer),
+            fontSize: 36,
+            fontWeight: FontWeight.bold,
+            color: colorScheme.onPrimaryContainer,
+          ),
         ),
       ),
     );
   }
 
-  // ── Stats ─────────────────────────────────────────────────────────────────
+  // Stats
 
   Widget _buildStatsSection(ColorScheme colorScheme) {
     final lastPlayedStr = _lastPlayed != null
@@ -701,49 +713,60 @@ class _ProfilePageState extends State<ProfilePage>
         children: [
           Padding(
             padding: const EdgeInsets.only(bottom: 12, top: 8),
-            child: Text('Thống kê',
-                style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface)),
+            child: Text(
+              'Thống kê',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface,
+              ),
+            ),
           ),
           Row(
             children: [
               Expanded(
-                  child: _statCard(
-                      icon: Icons.local_fire_department,
-                      iconColor: Colors.orange,
-                      label: 'Chuỗi ngày',
-                      value: '$_streakDays ngày',
-                      colorScheme: colorScheme)),
+                child: _statCard(
+                  icon: Icons.local_fire_department,
+                  iconColor: Colors.orange,
+                  label: 'Chuỗi ngày',
+                  value: '$_streakDays ngày',
+                  colorScheme: colorScheme,
+                ),
+              ),
               const SizedBox(width: 10),
               Expanded(
-                  child: _statCard(
-                      icon: Icons.lightbulb_outline,
-                      iconColor: Colors.amber,
-                      label: 'Fact khám phá',
-                      value: '$_totalFacts',
-                      colorScheme: colorScheme)),
+                child: _statCard(
+                  icon: Icons.lightbulb_outline,
+                  iconColor: Colors.amber,
+                  label: 'Fact khám phá',
+                  value: '$_totalFacts',
+                  colorScheme: colorScheme,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 10),
           Row(
             children: [
               Expanded(
-                  child: _statCard(
-                      icon: Icons.pets,
-                      iconColor: colorScheme.primary,
-                      label: 'Loài đã biết',
-                      value: '$_totalSpecies',
-                      colorScheme: colorScheme)),
+                child: _statCard(
+                  icon: Icons.pets,
+                  iconColor: colorScheme.primary,
+                  label: 'Loài đã biết',
+                  value: '$_totalSpecies',
+                  colorScheme: colorScheme,
+                ),
+              ),
               const SizedBox(width: 10),
               Expanded(
-                  child: _statCard(
-                      icon: Icons.calendar_today_outlined,
-                      iconColor: Colors.teal,
-                      label: 'Chơi gần nhất',
-                      value: lastPlayedStr,
-                      colorScheme: colorScheme)),
+                child: _statCard(
+                  icon: Icons.calendar_today_outlined,
+                  iconColor: Colors.teal,
+                  label: 'Chơi gần nhất',
+                  value: lastPlayedStr,
+                  colorScheme: colorScheme,
+                ),
+              ),
             ],
           ),
         ],
@@ -779,15 +802,21 @@ class _ProfilePageState extends State<ProfilePage>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(value,
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                        color: colorScheme.onSurface)),
-                Text(label,
-                    style: TextStyle(
-                        fontSize: 11,
-                        color: colorScheme.onSurfaceVariant)),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
               ],
             ),
           ),
@@ -796,7 +825,7 @@ class _ProfilePageState extends State<ProfilePage>
     );
   }
 
-  // ── Favorites ─────────────────────────────────────────────────────────────
+  // Favorites
 
   Widget _buildFavoritesSection(ColorScheme colorScheme) {
     return Padding(
@@ -811,16 +840,19 @@ class _ProfilePageState extends State<ProfilePage>
               Text(
                 'Loài yêu thích',
                 style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface),
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface,
+                ),
               ),
               if (!_isLoadingFavorites && _favoriteAnimals.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(left: 6),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 7, vertical: 2),
+                      horizontal: 7,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.red.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(20),
@@ -828,9 +860,10 @@ class _ProfilePageState extends State<ProfilePage>
                     child: Text(
                       '${_favoriteAnimals.length}',
                       style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.red.shade400,
-                          fontWeight: FontWeight.w600),
+                        fontSize: 12,
+                        color: Colors.red.shade400,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
@@ -839,10 +872,11 @@ class _ProfilePageState extends State<ProfilePage>
           const SizedBox(height: 10),
           if (_isLoadingFavorites)
             const Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 24),
-                  child: CircularProgressIndicator(),
-                ))
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 24),
+                child: CircularProgressIndicator(),
+              ),
+            )
           else if (_favoriteAnimals.isEmpty)
             Container(
               width: double.infinity,
@@ -850,25 +884,30 @@ class _ProfilePageState extends State<ProfilePage>
               decoration: BoxDecoration(
                 color: colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                    color: colorScheme.outlineVariant, width: 1),
+                border: Border.all(color: colorScheme.outlineVariant, width: 1),
               ),
               child: Column(
                 children: [
-                  Icon(Icons.favorite_border,
-                      size: 36, color: colorScheme.outlineVariant),
+                  Icon(
+                    Icons.favorite_border,
+                    size: 36,
+                    color: colorScheme.outlineVariant,
+                  ),
                   const SizedBox(height: 8),
                   Text(
                     'Chưa có loài yêu thích nào',
                     style: TextStyle(
-                        color: colorScheme.onSurfaceVariant,
-                        fontSize: 13),
+                      color: colorScheme.onSurfaceVariant,
+                      fontSize: 13,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     'Nhấn ❤️ trên trang chi tiết loài để thêm',
                     style: TextStyle(
-                        color: colorScheme.outlineVariant, fontSize: 12),
+                      color: colorScheme.outlineVariant,
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),
@@ -892,18 +931,22 @@ class _ProfilePageState extends State<ProfilePage>
   }
 
   Widget _favoriteAnimalCard(
-      Map<String, dynamic> animal, ColorScheme colorScheme) {
+    Map<String, dynamic> animal,
+    ColorScheme colorScheme,
+  ) {
     final imageUrl = animal['image_url'] as String? ?? '';
-    final name = animal['name_vietnamese'] as String? ??
+    final name =
+        animal['name_vietnamese'] as String? ??
         animal['name'] as String? ??
         'Không rõ';
     final animalId = animal['_animal_id'] as String;
 
     return GestureDetector(
       onTap: () {
-        // Lấy category từ data animal, fallback về category mặc định nếu không tìm thấy
+        // Lấy category từ data animal, dự phòng về category mặc định nếu không tìm thấy
         final categoryId = animal['category_id'] as String? ?? '';
-        final category = AnimalCategory.getById(categoryId) ??
+        final category =
+            AnimalCategory.getById(categoryId) ??
             AnimalCategory(
               id: categoryId,
               nameVi: 'Động vật',
@@ -918,10 +961,8 @@ class _ProfilePageState extends State<ProfilePage>
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => AnimalDetailScreen(
-              animalId: animalId,
-              category: category,
-            ),
+            builder: (_) =>
+                AnimalDetailScreen(animalId: animalId, category: category),
           ),
         );
       },
@@ -938,16 +979,17 @@ class _ProfilePageState extends State<ProfilePage>
               children: [
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(14)),
+                    top: Radius.circular(14),
+                  ),
                   child: imageUrl.isNotEmpty
                       ? Image.network(
-                    imageUrl,
-                    height: 96,
-                    width: 120,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) =>
-                        _imagePlaceholder(colorScheme),
-                  )
+                          imageUrl,
+                          height: 96,
+                          width: 120,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) =>
+                              _imagePlaceholder(colorScheme),
+                        )
                       : _imagePlaceholder(colorScheme),
                 ),
                 Padding(
@@ -955,9 +997,10 @@ class _ProfilePageState extends State<ProfilePage>
                   child: Text(
                     name,
                     style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: colorScheme.onSurface),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: colorScheme.onSurface,
+                    ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -976,8 +1019,7 @@ class _ProfilePageState extends State<ProfilePage>
                     color: Colors.black.withOpacity(0.45),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.close,
-                      size: 12, color: Colors.white),
+                  child: const Icon(Icons.close, size: 12, color: Colors.white),
                 ),
               ),
             ),
@@ -992,12 +1034,15 @@ class _ProfilePageState extends State<ProfilePage>
       height: 96,
       width: 120,
       color: colorScheme.primaryContainer,
-      child: Icon(Icons.pets,
-          size: 32, color: colorScheme.onPrimaryContainer.withOpacity(0.4)),
+      child: Icon(
+        Icons.pets,
+        size: 32,
+        color: colorScheme.onPrimaryContainer.withOpacity(0.4),
+      ),
     );
   }
 
-  // ── Reports ───────────────────────────────────────────────────────────────
+  // Reports
 
   Widget _buildReportsSection(ColorScheme colorScheme) {
     return Padding(
@@ -1005,11 +1050,14 @@ class _ProfilePageState extends State<ProfilePage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Báo cáo của tôi',
-              style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onSurface)),
+          Text(
+            'Báo cáo của tôi',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
+            ),
+          ),
           const SizedBox(height: 10),
           TabBar(
             controller: _tabController,
@@ -1032,14 +1080,14 @@ class _ProfilePageState extends State<ProfilePage>
             child: _isLoadingReports
                 ? const Center(child: CircularProgressIndicator())
                 : TabBarView(
-              controller: _tabController,
-              children: [
-                _buildReportList(_allReports, colorScheme),
-                _buildReportList(_pendingReports, colorScheme),
-                _buildReportList(_approvedReports, colorScheme),
-                _buildReportList(_rejectedReports, colorScheme),
-              ],
-            ),
+                    controller: _tabController,
+                    children: [
+                      _buildReportList(_allReports, colorScheme),
+                      _buildReportList(_pendingReports, colorScheme),
+                      _buildReportList(_approvedReports, colorScheme),
+                      _buildReportList(_rejectedReports, colorScheme),
+                    ],
+                  ),
           ),
         ],
       ),
@@ -1047,18 +1095,27 @@ class _ProfilePageState extends State<ProfilePage>
   }
 
   Widget _buildReportList(
-      List<Map<String, dynamic>> reports, ColorScheme colorScheme) {
+    List<Map<String, dynamic>> reports,
+    ColorScheme colorScheme,
+  ) {
     if (reports.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.inbox_outlined,
-                size: 40, color: colorScheme.outlineVariant),
+            Icon(
+              Icons.inbox_outlined,
+              size: 40,
+              color: colorScheme.outlineVariant,
+            ),
             const SizedBox(height: 8),
-            Text('Không có báo cáo nào',
-                style: TextStyle(
-                    color: colorScheme.onSurfaceVariant, fontSize: 13)),
+            Text(
+              'Không có báo cáo nào',
+              style: TextStyle(
+                color: colorScheme.onSurfaceVariant,
+                fontSize: 13,
+              ),
+            ),
           ],
         ),
       );
@@ -1068,8 +1125,7 @@ class _ProfilePageState extends State<ProfilePage>
       physics: const ClampingScrollPhysics(),
       itemCount: reports.length,
       separatorBuilder: (_, __) => const SizedBox(height: 8),
-      itemBuilder: (context, index) =>
-          _reportCard(reports[index], colorScheme),
+      itemBuilder: (context, index) => _reportCard(reports[index], colorScheme),
     );
   }
 
@@ -1080,8 +1136,7 @@ class _ProfilePageState extends State<ProfilePage>
     final source = r['_source'] as String? ?? '';
     final adminNote = r['admin_note'] as String? ?? '';
     final createdAt = r['created_at'] != null
-        ? DateFormat('dd/MM/yyyy HH:mm')
-        .format(DateTime.parse(r['created_at']))
+        ? DateFormat('dd/MM/yyyy HH:mm').format(DateTime.parse(r['created_at']))
         : '';
 
     Color statusColor;
@@ -1146,7 +1201,9 @@ class _ProfilePageState extends State<ProfilePage>
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 7, vertical: 3),
+                        horizontal: 7,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
                         color: sourceColor.withOpacity(0.12),
                         borderRadius: BorderRadius.circular(6),
@@ -1156,11 +1213,14 @@ class _ProfilePageState extends State<ProfilePage>
                         children: [
                           Icon(sourceIcon, size: 11, color: sourceColor),
                           const SizedBox(width: 3),
-                          Text(sourceLabel,
-                              style: TextStyle(
-                                  fontSize: 11,
-                                  color: sourceColor,
-                                  fontWeight: FontWeight.w600)),
+                          Text(
+                            sourceLabel,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: sourceColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -1169,69 +1229,91 @@ class _ProfilePageState extends State<ProfilePage>
                       child: Text(
                         title,
                         style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                            color: colorScheme.onSurface),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                          color: colorScheme.onSurface,
+                        ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     const SizedBox(width: 6),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 9, vertical: 3),
+                        horizontal: 9,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
                         color: statusColor.withOpacity(0.12),
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: Text(statusLabel,
-                          style: TextStyle(
-                              fontSize: 12,
-                              color: statusColor,
-                              fontWeight: FontWeight.w600)),
+                      child: Text(
+                        statusLabel,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: statusColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   ],
                 ),
                 if (subtitle.isNotEmpty) ...[
                   const SizedBox(height: 6),
-                  Text(subtitle,
-                      style: TextStyle(
-                          fontSize: 13,
-                          color: colorScheme.onSurfaceVariant),
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ],
                 if (status == 'rejected' && adminNote.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 8),
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.red.withOpacity(0.07),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                          color: Colors.red.withOpacity(0.2), width: 1),
+                        color: Colors.red.withOpacity(0.2),
+                        width: 1,
+                      ),
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.info_outline,
-                            size: 14, color: Colors.red.shade400),
+                        Icon(
+                          Icons.info_outline,
+                          size: 14,
+                          color: Colors.red.shade400,
+                        ),
                         const SizedBox(width: 6),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Lý do từ chối',
-                                  style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.red.shade400)),
+                              Text(
+                                'Lý do từ chối',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.red.shade400,
+                                ),
+                              ),
                               const SizedBox(height: 2),
-                              Text(adminNote,
-                                  style: TextStyle(
-                                      fontSize: 13,
-                                      color: colorScheme.onSurface)),
+                              Text(
+                                adminNote,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: colorScheme.onSurface,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -1240,10 +1322,13 @@ class _ProfilePageState extends State<ProfilePage>
                   ),
                 ],
                 const SizedBox(height: 6),
-                Text(createdAt,
-                    style: TextStyle(
-                        fontSize: 12,
-                        color: colorScheme.outlineVariant)),
+                Text(
+                  createdAt,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: colorScheme.outlineVariant,
+                  ),
+                ),
               ],
             ),
           ),

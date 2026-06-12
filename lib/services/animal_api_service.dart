@@ -3,67 +3,112 @@ import 'package:http/http.dart' as http;
 import '../screen/models/animal_data.dart';
 
 class AnimalApiService {
-  // ─────────────────────────────────────────────
-  // API KEYS
-  // ─────────────────────────────────────────────
+  // Khóa API
   static const String _ninjasBaseUrl = 'https://api.api-ninjas.com/v1/animals';
-  static const String _ninjasApiKey = '6Iuf5OY4tyKp0LzSqwLhIwEE4eCzRcXa9teNFT7m';
+  static const String _ninjasApiKey =
+      '6Iuf5OY4tyKp0LzSqwLhIwEE4eCzRcXa9teNFT7m';
 
   static const String _pixabayUrl = 'https://pixabay.com/api/';
   static const String _pixabayKey = 'Y54250368-3e02b997bbfb975c685ca2fbc';
 
-  // Groq — miễn phí, nhanh, đăng ký tại console.groq.com
-  static const String _groqUrl = 'https://api.groq.com/openai/v1/chat/completions';
-  static const String _groqKey = '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'; // Thay bằng key thật
+  // Groq - miễn phí, nhanh, đăng ký tại console.groq.com
+  static const String _groqUrl =
+      'https://api.groq.com/openai/v1/chat/completions';
+  static const String _groqKey =
+      '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'; // Thay bằng key thật
 
-  // Supabase shared cache
+  // Cache chung trên Supabase
   static const String _supabaseUrl = 'https://dnvlqnixommhjqwpflmw.supabase.co';
   static const String _supabaseKey =
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRudmxxbml4b21taGpxd3BmbG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzE1MDEsImV4cCI6MjA4NTkwNzUwMX0.sz5oI5lhecJ0DCJNByI3CIHFICHh2PBt5FHnrMfmDaE';
 
-  // ─────────────────────────────────────────────
-  // DANH SÁCH 60 CON — không lặp trong 60 ngày
-  // ─────────────────────────────────────────────
+  // DANH SÁCH 60 CON - không lặp trong 60 ngày
   static const List<String> _animalNames = [
-    'cheetah', 'snow leopard', 'clouded leopard', 'serval', 'caracal',
-    'ocelot', 'fishing cat', 'sand cat', 'pallas cat', 'margay',
-    'african elephant', 'asian elephant', 'giraffe', 'okapi', 'tapir',
-    'rhinoceros', 'hippopotamus', 'capybara', 'giant otter', 'wolverine',
-    'honey badger', 'binturong', 'fossa', 'aardvark', 'pangolin',
-    'platypus', 'echidna', 'axolotl', 'olm', 'komodo dragon',
-    'gila monster', 'basilisk lizard', 'frilled lizard', 'secretary bird',
-    'shoebill', 'harpy eagle', 'kakapo', 'cassowary', 'lyrebird',
-    'bowerbird', 'hoatzin', 'kiwi', 'narwhal', 'beluga whale',
-    'dugong', 'manatee', 'goblin shark', 'whale shark', 'hammerhead shark',
-    'manta ray', 'leafy sea dragon', 'mantis shrimp', 'horseshoe crab',
-    'nautilus', 'mimic octopus', 'giant pacific octopus', 'lion',
-    'tiger', 'gorilla', 'wolf',
+    'cheetah',
+    'snow leopard',
+    'clouded leopard',
+    'serval',
+    'caracal',
+    'ocelot',
+    'fishing cat',
+    'sand cat',
+    'pallas cat',
+    'margay',
+    'african elephant',
+    'asian elephant',
+    'giraffe',
+    'okapi',
+    'tapir',
+    'rhinoceros',
+    'hippopotamus',
+    'capybara',
+    'giant otter',
+    'wolverine',
+    'honey badger',
+    'binturong',
+    'fossa',
+    'aardvark',
+    'pangolin',
+    'platypus',
+    'echidna',
+    'axolotl',
+    'olm',
+    'komodo dragon',
+    'gila monster',
+    'basilisk lizard',
+    'frilled lizard',
+    'secretary bird',
+    'shoebill',
+    'harpy eagle',
+    'kakapo',
+    'cassowary',
+    'lyrebird',
+    'bowerbird',
+    'hoatzin',
+    'kiwi',
+    'narwhal',
+    'beluga whale',
+    'dugong',
+    'manatee',
+    'goblin shark',
+    'whale shark',
+    'hammerhead shark',
+    'manta ray',
+    'leafy sea dragon',
+    'mantis shrimp',
+    'horseshoe crab',
+    'nautilus',
+    'mimic octopus',
+    'giant pacific octopus',
+    'lion',
+    'tiger',
+    'gorilla',
+    'wolf',
   ];
 
-  // seed theo ngày → cùng ngày = cùng con, không đổi khi rebuild widget
+  // seed theo ngày -> cùng ngày = cùng con, không đổi khi rebuild widget
   static String getAnimalOfTheDay() {
-    final daysSinceEpoch =
-        DateTime.now().difference(DateTime(2024, 1, 1)).inDays;
+    final daysSinceEpoch = DateTime.now()
+        .difference(DateTime(2024, 1, 1))
+        .inDays;
     final hash = (daysSinceEpoch * 2654435761) & 0x7FFFFFFF;
     return _animalNames[hash % _animalNames.length];
   }
 
-  // ─────────────────────────────────────────────
-  // PUBLIC: Lấy con vật hôm nay (check cache trước)
-  // ─────────────────────────────────────────────
+  // Lấy con vật hôm nay (kiểm tra cache trước)
   Future<AnimalData?> getTodayAnimal() async {
     final animalName = getAnimalOfTheDay();
     final today = _todayString();
     print('📅 Hôm nay ($today): $animalName');
 
-    // 1. Check Supabase shared cache
+    // 1. Kiểm tra Supabase shared cache
     final cached = await _getSharedCache(today, animalName);
     if (cached != null) {
       print('✅ [Cache] Dùng data từ Supabase');
       return cached;
     }
 
-    // 2. Chưa có → người đầu tiên fetch + lưu cho mọi người sau
+    // 2. Chưa có -> người đầu tiên fetch + lưu cho mọi người sau
     print('🚀 [First user today] Fetching fresh data...');
     final fresh = await _fetchFreshData(animalName);
     if (fresh != null) {
@@ -77,12 +122,10 @@ class AnimalApiService {
     return _fetchFreshData(animalName);
   }
 
-  // ─────────────────────────────────────────────
-  // FETCH MỚI: Ninjas + Pixabay + Groq
-  // ─────────────────────────────────────────────
+  // Lấy dữ liệu mới từ Ninjas, Pixabay và Groq
   Future<AnimalData?> _fetchFreshData(String animalName) async {
     try {
-      // Bước 1: API Ninjas
+      // API Ninjas
       final response = await http.get(
         Uri.parse('$_ninjasBaseUrl?name=$animalName'),
         headers: {'X-Api-Key': _ninjasApiKey},
@@ -92,20 +135,20 @@ class AnimalApiService {
       final List<dynamic> list = json.decode(response.body);
       if (list.isEmpty) return null;
 
-      // FIX LỖI "final": dùng var để có thể gán lại
+      // Dùng var vì dữ liệu còn được chuẩn hóa thêm bên dưới.
       var raw = Map<String, dynamic>.from(list[0]);
 
-      // Bước 2: Fix mph → km/h
+      // Đổi tốc độ từ mph sang km/h
       raw = _convertSpeedsToKmh(raw);
 
-      // Bước 3: Việt hóa địa danh
+      // Việt hóa địa danh
       raw = _localizeLocations(raw);
 
-      // Bước 4: Ảnh Pixabay
+      // Ảnh Pixabay
       final imageUrl = await _fetchPixabayImage(animalName);
       raw['custom_image_url'] = imageUrl;
 
-      // Bước 5: Groq generate mô tả độc đáo
+      // Groq generate mô tả độc đáo
       final description = await _generateDescriptionWithGroq(animalName, raw);
       raw['ai_description'] = description;
 
@@ -116,12 +159,11 @@ class AnimalApiService {
     }
   }
 
-  // ─────────────────────────────────────────────
-  // GROQ — miễn phí, thay Claude
-  // Đăng ký: console.groq.com → API Keys → Create key
-  // ─────────────────────────────────────────────
+  // Gọi Groq để viết mô tả ngắn cho từng loài.
   Future<String?> _generateDescriptionWithGroq(
-      String animalName, Map<String, dynamic> rawData) async {
+    String animalName,
+    Map<String, dynamic> rawData,
+  ) async {
     if (_groqKey == 'YOUR_GROQ_API_KEY') {
       print('⚠️ Chưa điền Groq API key');
       return null;
@@ -159,7 +201,7 @@ class AnimalApiService {
             {
               'role': 'system',
               'content':
-              'Bạn là chuyên gia động vật học. Viết mô tả ngắn, hấp dẫn bằng tiếng Việt.'
+                  'Bạn là chuyên gia động vật học. Viết mô tả ngắn, hấp dẫn bằng tiếng Việt.',
             },
             {'role': 'user', 'content': prompt},
           ],
@@ -181,9 +223,7 @@ class AnimalApiService {
     }
   }
 
-  // ─────────────────────────────────────────────
-  // Fix mph → km/h
-  // ─────────────────────────────────────────────
+  // Đổi tốc độ từ mph sang km/h
   Map<String, dynamic> _convertSpeedsToKmh(Map<String, dynamic> raw) {
     final result = Map<String, dynamic>.from(raw);
     final chars = result['characteristics'] as Map<String, dynamic>?;
@@ -192,7 +232,8 @@ class AnimalApiService {
     final speed = chars['top_speed'];
     if (speed is String && speed.toLowerCase().contains('mph')) {
       final mph = double.tryParse(
-          speed.toLowerCase().replaceAll('mph', '').trim());
+        speed.toLowerCase().replaceAll('mph', '').trim(),
+      );
       if (mph != null) {
         final kmh = (mph * 1.60934).round();
         chars['top_speed'] = '$kmh km/h';
@@ -202,10 +243,8 @@ class AnimalApiService {
     return result;
   }
 
-  // ─────────────────────────────────────────────
-  // Việt hóa địa danh — sort dài trước để tránh replace một phần
+  // Việt hóa địa danh - sort dài trước để tránh replace một phần
   // (vd: "Sub-Saharan Africa" phải replace trước "Africa")
-  // ─────────────────────────────────────────────
   static const Map<String, String> _locationMap = {
     'Sub-Saharan Africa': 'châu Phi cận Sahara',
     'North Africa': 'Bắc Phi',
@@ -246,9 +285,7 @@ class AnimalApiService {
     return json.decode(str);
   }
 
-  // ─────────────────────────────────────────────
-  // Pixabay
-  // ─────────────────────────────────────────────
+  // Lấy ảnh từ Pixabay
   Future<String?> _fetchPixabayImage(String query) async {
     try {
       final encodedQuery = Uri.encodeComponent('$query animal wildlife');
@@ -268,17 +305,17 @@ class AnimalApiService {
     return null;
   }
 
-  // ─────────────────────────────────────────────
-  // Supabase shared cache
-  // ─────────────────────────────────────────────
+  // Cache chung trên Supabase
   Future<AnimalData?> _getSharedCache(String date, String animalName) async {
     try {
       final response = await http.get(
-        Uri.parse('$_supabaseUrl/rest/v1/daily_animal_cache'
-            '?cache_date=eq.$date'
-            '&animal_name=eq.$animalName'
-            '&select=*'
-            '&limit=1'),
+        Uri.parse(
+          '$_supabaseUrl/rest/v1/daily_animal_cache'
+          '?cache_date=eq.$date'
+          '&animal_name=eq.$animalName'
+          '&select=*'
+          '&limit=1',
+        ),
         headers: {
           'apikey': _supabaseKey,
           'Authorization': 'Bearer $_supabaseKey',
@@ -295,7 +332,10 @@ class AnimalApiService {
   }
 
   Future<void> _saveSharedCache(
-      String date, String animalName, AnimalData data) async {
+    String date,
+    String animalName,
+    AnimalData data,
+  ) async {
     try {
       await http.post(
         Uri.parse('$_supabaseUrl/rest/v1/daily_animal_cache'),
@@ -305,10 +345,7 @@ class AnimalApiService {
           'Content-Type': 'application/json',
           'Prefer': 'resolution=ignore-duplicates',
         },
-        body: json.encode({
-          'cache_date': date,
-          ...data.toCacheJson(),
-        }),
+        body: json.encode({'cache_date': date, ...data.toCacheJson()}),
       );
       print('💾 [Cache] Đã lưu Supabase');
     } catch (e) {
@@ -319,4 +356,3 @@ class AnimalApiService {
   static String _todayString() =>
       DateTime.now().toIso8601String().split('T')[0];
 }
-

@@ -31,7 +31,8 @@ class IdentifyView extends StatefulWidget {
   State<IdentifyView> createState() => _IdentifyViewState();
 }
 
-class _IdentifyViewState extends State<IdentifyView> with SingleTickerProviderStateMixin {
+class _IdentifyViewState extends State<IdentifyView>
+    with SingleTickerProviderStateMixin {
   late AnimationController _cardAnimCtrl;
   late Animation<double> _cardFadeAnim;
   late Animation<Offset> _cardSlideAnim;
@@ -43,11 +44,14 @@ class _IdentifyViewState extends State<IdentifyView> with SingleTickerProviderSt
       vsync: this,
       duration: const Duration(milliseconds: 600),
     );
-    _cardFadeAnim = CurvedAnimation(parent: _cardAnimCtrl, curve: Curves.easeOut);
-    _cardSlideAnim = Tween<Offset>(
-      begin: const Offset(0, 0.4),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _cardAnimCtrl, curve: Curves.easeOutBack));
+    _cardFadeAnim = CurvedAnimation(
+      parent: _cardAnimCtrl,
+      curve: Curves.easeOut,
+    );
+    _cardSlideAnim =
+        Tween<Offset>(begin: const Offset(0, 0.4), end: Offset.zero).animate(
+          CurvedAnimation(parent: _cardAnimCtrl, curve: Curves.easeOutBack),
+        );
   }
 
   @override
@@ -56,7 +60,7 @@ class _IdentifyViewState extends State<IdentifyView> with SingleTickerProviderSt
     super.dispose();
   }
 
-  /// Callback sau khi phân tích xong (cả thành công lẫn NOT_ANIMAL đều cần animate)
+  // Callback sau khi phân tích xong (cả thành công lẫn NOT_ANIMAL đều cần animate)
   void _onSearchDone() {
     _cardAnimCtrl.forward(from: 0);
   }
@@ -77,9 +81,14 @@ class _IdentifyViewState extends State<IdentifyView> with SingleTickerProviderSt
   AnimalCategory _buildCatCategory(LocaleProvider t) {
     return AnimalCategory.getById('cat') ??
         AnimalCategory(
-          id: 'cat', nameVi: t.tr('Mèo'), nameEn: 'Cat',
-          icon: Icons.pets, gradient: [const Color(0xFFEC4899), const Color(0xFFDB2777)],
-          imageAssetPath: 'assets/animals/cat.jpg', totalExpected: 73, animalType: 'cat',
+          id: 'cat',
+          nameVi: t.tr('Mèo'),
+          nameEn: 'Cat',
+          icon: Icons.pets,
+          gradient: [const Color(0xFFEC4899), const Color(0xFFDB2777)],
+          imageAssetPath: 'assets/animals/cat.jpg',
+          totalExpected: 73,
+          animalType: 'cat',
         );
   }
 
@@ -124,7 +133,8 @@ class _IdentifyViewState extends State<IdentifyView> with SingleTickerProviderSt
                           service: service,
                           fadeAnim: _cardFadeAnim,
                           slideAnim: _cardSlideAnim,
-                          onOpenDetail: () => _openDetail(service.resultAnimalId, t),
+                          onOpenDetail: () =>
+                              _openDetail(service.resultAnimalId, t),
                         ),
                       ],
                     ),

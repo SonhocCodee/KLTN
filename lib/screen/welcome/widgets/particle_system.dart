@@ -34,19 +34,21 @@ class _ParticleSystemState extends State<ParticleSystem>
 
   void _initParticles() {
     for (int i = 0; i < widget.particleCount; i++) {
-      _particles.add(Particle(
-        x: _random.nextDouble(),
-        y: _random.nextDouble(),
-        // Kích thước ngẫu nhiên
-        size: 4 + _random.nextDouble() * 6,
-        // Bay xiên xiên nhẹ nhàng
-        speedX: (_random.nextDouble() - 0.5) * 0.01,
-        // Bay từ dưới lên
-        speedY: -_random.nextDouble() * 0.005,
-        // Góc xoay ngẫu nhiên cho tự nhiên
-        rotation: _random.nextDouble() * 2 * pi,
-        opacity: 0.1 + _random.nextDouble() * 0.3,
-      ));
+      _particles.add(
+        Particle(
+          x: _random.nextDouble(),
+          y: _random.nextDouble(),
+          // Kích thước ngẫu nhiên
+          size: 4 + _random.nextDouble() * 6,
+          // Bay xiên xiên nhẹ nhàng
+          speedX: (_random.nextDouble() - 0.5) * 0.01,
+          // Bay từ dưới lên
+          speedY: -_random.nextDouble() * 0.005,
+          // Góc xoay ngẫu nhiên cho tự nhiên
+          rotation: _random.nextDouble() * 2 * pi,
+          opacity: 0.1 + _random.nextDouble() * 0.3,
+        ),
+      );
     }
   }
 
@@ -62,10 +64,7 @@ class _ParticleSystemState extends State<ParticleSystem>
       animation: _controller,
       builder: (context, child) {
         return CustomPaint(
-          painter: PawPrintPainter(
-            particles: _particles,
-            color: widget.color,
-          ),
+          painter: PawPrintPainter(particles: _particles, color: widget.color),
           child: Container(),
         );
       },
@@ -106,15 +105,12 @@ class Particle {
   }
 }
 
-// --- HỌA SĨ VẼ DẤU CHÂN THÚ ---
+// Họa sĩ vẽ dấu chân thú
 class PawPrintPainter extends CustomPainter {
   final List<Particle> particles;
   final Color color;
 
-  PawPrintPainter({
-    required this.particles,
-    required this.color,
-  });
+  PawPrintPainter({required this.particles, required this.color});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -139,14 +135,18 @@ class PawPrintPainter extends CustomPainter {
       // 3. Vẽ Dấu Chân (Gồm 1 đệm to + 3 ngón nhỏ)
       double r = particle.size;
 
-      // - Đệm thịt chính (Hình tròn to ở dưới)
+      // Đệm thịt chính (Hình tròn to ở dưới)
       // Vẽ hơi dẹt một chút (Oval) cho giống thật
       canvas.drawOval(
-          Rect.fromCenter(center: const Offset(0, 0), width: r * 2.2, height: r * 1.8),
-          paint
+        Rect.fromCenter(
+          center: const Offset(0, 0),
+          width: r * 2.2,
+          height: r * 1.8,
+        ),
+        paint,
       );
 
-      // - 3 Ngón chân (3 hình tròn nhỏ ở trên)
+      // 3 Ngón chân (3 hình tròn nhỏ ở trên)
       double toeSize = r * 0.7; // Kích thước ngón
       double toeDist = r * 1.4; // Khoảng cách từ tâm đệm lên ngón
 

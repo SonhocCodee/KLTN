@@ -1,8 +1,6 @@
-// ============================================================
 // Supabase Edge Function: send-push
 // Gửi push notification qua Firebase Cloud Messaging HTTP v1.
 // Không cần firebase-admin, chạy được trên Deno Edge Functions.
-// ============================================================
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.6';
 import { SignJWT, importPKCS8 } from 'npm:jose@5.9.6';
@@ -254,7 +252,7 @@ async function sendToFcm(args: {
   };
 
   const res = await fetch(
-    `https://fcm.googleapis.com/v1/projects/${args.projectId}/messages:send`,
+    `https: // fcm.googleapis.com/v1/projects/${args.projectId}/messages:send`,
     {
       method: 'POST',
       headers: {

@@ -16,9 +16,9 @@ class SettingsAppearanceOptions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme    = Theme.of(context).colorScheme;
-    final themeProvider  = context.watch<ThemeProvider>();
-    final t              = context.watch<LocaleProvider>();
+    final colorScheme = Theme.of(context).colorScheme;
+    final themeProvider = context.watch<ThemeProvider>();
+    final t = context.watch<LocaleProvider>();
 
     return Column(
       children: [
@@ -29,7 +29,7 @@ class SettingsAppearanceOptions extends StatelessWidget {
         ),
         SettingsCard(
           children: [
-            // ── Dark mode ──
+            // Dark mode
             SettingsSwitchTile(
               title: t.tr('Chế độ tối (Dark Mode)'),
               icon: Icons.dark_mode_rounded,
@@ -40,7 +40,7 @@ class SettingsAppearanceOptions extends StatelessWidget {
             ),
             const SettingsDivider(),
 
-            // ── Ngôn ngữ ──
+            // Ngôn ngữ
             ListTile(
               leading: Icon(Icons.language_rounded, color: primaryGreen),
               title: Text(
@@ -53,7 +53,9 @@ class SettingsAppearanceOptions extends StatelessWidget {
               trailing: DropdownButton<String>(
                 value: t.isEnglish ? 'English' : 'Tiếng Việt',
                 underline: const SizedBox(),
-                items: ['Tiếng Việt', 'English'].map<DropdownMenuItem<String>>((String val) {
+                items: ['Tiếng Việt', 'English'].map<DropdownMenuItem<String>>((
+                  String val,
+                ) {
                   return DropdownMenuItem<String>(
                     value: val,
                     child: Text(
@@ -76,7 +78,7 @@ class SettingsAppearanceOptions extends StatelessWidget {
             ),
             const SettingsDivider(),
 
-            // ── Cỡ chữ ──
+            // Cỡ chữ
             _FontSizeTile(
               primaryGreen: primaryGreen,
               accentOrange: accentOrange,
@@ -88,30 +90,25 @@ class SettingsAppearanceOptions extends StatelessWidget {
   }
 }
 
-// ── Font size tile ────────────────────────────────────────────────────────────
+// Font size tile
 class _FontSizeTile extends StatelessWidget {
   final Color primaryGreen;
   final Color accentOrange;
 
-  const _FontSizeTile({
-    required this.primaryGreen,
-    required this.accentOrange,
-  });
+  const _FontSizeTile({required this.primaryGreen, required this.accentOrange});
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme   = Theme.of(context).colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
     final themeProvider = context.watch<ThemeProvider>();
-    final t             = context.watch<LocaleProvider>();
-    final currentStep   = themeProvider.currentFontStep;
+    final t = context.watch<LocaleProvider>();
+    final currentStep = themeProvider.currentFontStep;
 
-    final labels = [
-      t.tr('Nhỏ'),
-      t.tr('Bình thường'),
-      t.tr('Lớn'),
-    ];
+    final labels = [t.tr('Nhỏ'), t.tr('Bình thường'), t.tr('Lớn')];
 
-    final previewText = t.tr('Sư tử (Panthera leo) là một trong những đại miêu thuộc họ Mèo. Khác với phần lớn các loài họ Mèo khác, sư tử là loài có tính xã hội cao, sống tập trung thành các bầy đàn.');
+    final previewText = t.tr(
+      'Sư tử (Panthera leo) là một trong những đại miêu thuộc họ Mèo. Khác với phần lớn các loài họ Mèo khác, sư tử là loài có tính xã hội cao, sống tập trung thành các bầy đàn.',
+    );
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
@@ -132,7 +129,10 @@ class _FontSizeTile extends StatelessWidget {
               ),
               const Spacer(),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: accentOrange.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(20),
@@ -184,8 +184,12 @@ class _FontSizeTile extends StatelessWidget {
                     labels[i],
                     style: TextStyle(
                       fontSize: 12,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                      color: isSelected ? accentOrange : colorScheme.onSurfaceVariant,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                      color: isSelected
+                          ? accentOrange
+                          : colorScheme.onSurfaceVariant,
                     ),
                   ),
                 );

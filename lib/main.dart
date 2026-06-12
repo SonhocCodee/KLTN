@@ -22,9 +22,7 @@ import 'services/push_notification_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   await ScreenUtil.ensureScreenSize();
 
@@ -38,8 +36,7 @@ void main() async {
   );
   await PushNotificationService.instance.init();
 
-
-  // Load trạng thái guest từ SharedPreferences trước khi runApp
+  // Tải trạng thái guest từ SharedPreferences trước khi runApp
   await AuthService.init();
 
   await NotificationService().init();
@@ -67,6 +64,7 @@ void main() async {
     ),
   );
 }
+
 class AniQuestApp extends StatelessWidget {
   const AniQuestApp({super.key});
 

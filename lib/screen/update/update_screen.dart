@@ -4,9 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:shorebird_code_push/shorebird_code_push.dart';
 
-// ════════════════════════════════════════════════════════════
 // MODEL: Thông tin 1 bản cập nhật
-// ════════════════════════════════════════════════════════════
 class ChangelogEntry {
   final String version;
   final String date;
@@ -30,10 +28,7 @@ class ChangelogItem {
 
 enum ChangelogType { newFeature, fix, improve, remove }
 
-// ════════════════════════════════════════════════════════════
-// DỮ LIỆU CHANGELOG — cập nhật tại đây mỗi khi release patch
-// ════════════════════════════════════════════════════════════
-
+// DỮ LIỆU CHANGELOG - cập nhật tại đây mỗi khi release patch
 
 const List<ChangelogEntry> kChangelog = [
   ChangelogEntry(
@@ -48,19 +43,26 @@ const List<ChangelogEntry> kChangelog = [
     version: '1.0.0+3.1',
     date: '05/05/2026',
     title: 'Bản cập nhật mới nhất',
-    items: [
-      ChangelogItem(type: ChangelogType.fix, text: 'Sửa lỗi trắng icon'),
-    ],
+    items: [ChangelogItem(type: ChangelogType.fix, text: 'Sửa lỗi trắng icon')],
   ),
   ChangelogEntry(
     version: '1.0.0+3',
     date: '05/05/2026',
     title: 'Bản cập nhật mới nhất',
     items: [
-      ChangelogItem(type: ChangelogType.newFeature, text: 'Update chức năng thông báo'),
+      ChangelogItem(
+        type: ChangelogType.newFeature,
+        text: 'Update chức năng thông báo',
+      ),
 
-      ChangelogItem(type: ChangelogType.newFeature, text: 'Cập nhật Tính năng yêu thích'),
-      ChangelogItem(type: ChangelogType.improve, text: 'Cải thiện tốc độ tải danh sách loài'),
+      ChangelogItem(
+        type: ChangelogType.newFeature,
+        text: 'Cập nhật Tính năng yêu thích',
+      ),
+      ChangelogItem(
+        type: ChangelogType.improve,
+        text: 'Cải thiện tốc độ tải danh sách loài',
+      ),
       ChangelogItem(type: ChangelogType.fix, text: 'Sửa lỗi tồn đọng'),
     ],
   ),
@@ -69,13 +71,32 @@ const List<ChangelogEntry> kChangelog = [
     date: '05/05/2026',
     title: 'Bản cập nhật mới nhất',
     items: [
-      ChangelogItem(type: ChangelogType.newFeature, text: 'Thêm trang profile, thông tin các góp ý, báo cáo của bạn sẽ hiển thị ở đó'),
+      ChangelogItem(
+        type: ChangelogType.newFeature,
+        text:
+            'Thêm trang profile, thông tin các góp ý, báo cáo của bạn sẽ hiển thị ở đó',
+      ),
 
-      ChangelogItem(type: ChangelogType.newFeature, text: 'Thêm bộ lọc A-Z trên trang chủ'),
-      ChangelogItem(type: ChangelogType.newFeature, text: 'Xem chi tiết loài ngay từ kết quả tìm kiếm'),
-      ChangelogItem(type: ChangelogType.improve, text: 'Cải thiện tốc độ tải danh sách loài'),
-      ChangelogItem(type: ChangelogType.improve, text: 'Giao diện trang hồ sơ mượt mà hơn'),
-      ChangelogItem(type: ChangelogType.fix, text: 'Sửa lỗi không tải được báo cáo quiz'),
+      ChangelogItem(
+        type: ChangelogType.newFeature,
+        text: 'Thêm bộ lọc A-Z trên trang chủ',
+      ),
+      ChangelogItem(
+        type: ChangelogType.newFeature,
+        text: 'Xem chi tiết loài ngay từ kết quả tìm kiếm',
+      ),
+      ChangelogItem(
+        type: ChangelogType.improve,
+        text: 'Cải thiện tốc độ tải danh sách loài',
+      ),
+      ChangelogItem(
+        type: ChangelogType.improve,
+        text: 'Giao diện trang hồ sơ mượt mà hơn',
+      ),
+      ChangelogItem(
+        type: ChangelogType.fix,
+        text: 'Sửa lỗi không tải được báo cáo quiz',
+      ),
     ],
   ),
   ChangelogEntry(
@@ -83,17 +104,27 @@ const List<ChangelogEntry> kChangelog = [
     date: '01/04/2026',
     title: 'Phiên bản đầu tiên',
     items: [
-      ChangelogItem(type: ChangelogType.newFeature, text: 'Ra mắt ứng dụng Động Vật Bách Khoa Toàn Thư'),
-      ChangelogItem(type: ChangelogType.newFeature, text: 'Duyệt danh sách các loài động vật'),
-      ChangelogItem(type: ChangelogType.newFeature, text: 'Hệ thống Quiz nhận biết loài'),
-      ChangelogItem(type: ChangelogType.newFeature, text: 'Trang hồ sơ và thống kê cá nhân'),
+      ChangelogItem(
+        type: ChangelogType.newFeature,
+        text: 'Ra mắt ứng dụng Động Vật Bách Khoa Toàn Thư',
+      ),
+      ChangelogItem(
+        type: ChangelogType.newFeature,
+        text: 'Duyệt danh sách các loài động vật',
+      ),
+      ChangelogItem(
+        type: ChangelogType.newFeature,
+        text: 'Hệ thống Quiz nhận biết loài',
+      ),
+      ChangelogItem(
+        type: ChangelogType.newFeature,
+        text: 'Trang hồ sơ và thống kê cá nhân',
+      ),
     ],
   ),
 ];
 
-// ════════════════════════════════════════════════════════════
-// UPDATE SCREEN
-// ════════════════════════════════════════════════════════════
+// Update screen
 class UpdateScreen extends StatefulWidget {
   const UpdateScreen({super.key});
 
@@ -109,7 +140,10 @@ class _UpdateScreenState extends State<UpdateScreen> {
   String _errorMsg = '';
 
   Future<void> _checkAndUpdate() async {
-    setState(() { _status = 'checking'; _errorMsg = ''; });
+    setState(() {
+      _status = 'checking';
+      _errorMsg = '';
+    });
 
     try {
       final updateStatus = await _updater.checkForUpdate().timeout(
@@ -121,11 +155,14 @@ class _UpdateScreenState extends State<UpdateScreen> {
       if (updateStatus == UpdateStatus.outdated) {
         setState(() => _status = 'available');
       } else {
-        // upToDate, unavailable, hoặc timeout → đều là "mới nhất"
+        // upToDate, unavailable, hoặc timeout -> đều là "mới nhất"
         setState(() => _status = 'upToDate');
       }
     } catch (e) {
-      if (mounted) setState(() { _status = 'upToDate'; }); // lỗi mạng → coi như mới nhất
+      if (mounted)
+        setState(() {
+          _status = 'upToDate';
+        }); // lỗi mạng -> coi như mới nhất
     }
   }
 
@@ -135,16 +172,20 @@ class _UpdateScreenState extends State<UpdateScreen> {
       await _updater.update();
       if (mounted) setState(() => _status = 'done');
     } catch (e) {
-      if (mounted) setState(() {
-        _status = 'error';
-        _errorMsg = 'Tải thất bại. Vui lòng thử lại sau.';
-      });
+      if (mounted)
+        setState(() {
+          _status = 'error';
+          _errorMsg = 'Tải thất bại. Vui lòng thử lại sau.';
+        });
     }
   }
 
-  void _reset() => setState(() { _status = 'idle'; _errorMsg = ''; });
+  void _reset() => setState(() {
+    _status = 'idle';
+    _errorMsg = '';
+  });
 
-  // ── BUILD ────────────────────────────────────────────────
+  // Build
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -167,7 +208,7 @@ class _UpdateScreenState extends State<UpdateScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
         children: [
-          // ── Banner trạng thái update ──
+          // Banner trạng thái update
           _UpdateStatusBanner(
             status: _status,
             errorMsg: _errorMsg,
@@ -178,7 +219,7 @@ class _UpdateScreenState extends State<UpdateScreen> {
 
           const SizedBox(height: 28),
 
-          // ── Tiêu đề changelog ──
+          // Tiêu đề changelog
           Row(
             children: [
               Container(
@@ -203,9 +244,9 @@ class _UpdateScreenState extends State<UpdateScreen> {
 
           const SizedBox(height: 16),
 
-          // ── Danh sách changelog ──
+          // Danh sách changelog
           ...kChangelog.asMap().entries.map(
-                (entry) => _ChangelogCard(
+            (entry) => _ChangelogCard(
               entry: entry.value,
               index: entry.key,
               isLatest: entry.key == 0,
@@ -217,9 +258,7 @@ class _UpdateScreenState extends State<UpdateScreen> {
   }
 }
 
-// ════════════════════════════════════════════════════════════
 // WIDGET: Banner trạng thái cập nhật
-// ════════════════════════════════════════════════════════════
 class _UpdateStatusBanner extends StatelessWidget {
   final String status;
   final String errorMsg;
@@ -247,7 +286,7 @@ class _UpdateStatusBanner extends StatelessWidget {
 
   Widget _buildContent(BuildContext context, ColorScheme colorScheme) {
     switch (status) {
-    // ── Chưa kiểm tra ──
+      // Chưa kiểm tra
       case 'idle':
         return _BannerCard(
           key: const ValueKey('idle'),
@@ -264,7 +303,7 @@ class _UpdateStatusBanner extends StatelessWidget {
           ),
         );
 
-    // ── Đang kiểm tra ──
+      // Đang kiểm tra
       case 'checking':
         return _BannerCard(
           key: const ValueKey('checking'),
@@ -276,7 +315,7 @@ class _UpdateStatusBanner extends StatelessWidget {
           child: const LinearProgressIndicator(),
         );
 
-    // ── Đã cập nhật ──
+      // Đã cập nhật
       case 'upToDate':
         return _BannerCard(
           key: const ValueKey('upToDate'),
@@ -293,7 +332,7 @@ class _UpdateStatusBanner extends StatelessWidget {
           ),
         );
 
-    // ── Có bản mới ──
+      // Có bản mới
       case 'available':
         return _BannerCard(
           key: const ValueKey('available'),
@@ -310,7 +349,7 @@ class _UpdateStatusBanner extends StatelessWidget {
           ),
         );
 
-    // ── Đang tải ──
+      // Đang tải
       case 'downloading':
         return _BannerCard(
           key: const ValueKey('downloading'),
@@ -319,12 +358,10 @@ class _UpdateStatusBanner extends StatelessWidget {
           bgColor: Colors.blue.withOpacity(0.1),
           title: 'Đang tải bản cập nhật...',
           subtitle: 'Vui lòng không tắt ứng dụng',
-          child: const LinearProgressIndicator(
-            color: Colors.blue,
-          ),
+          child: const LinearProgressIndicator(color: Colors.blue),
         );
 
-    // ── Tải xong → nút khởi động lại ──
+      // Tải xong -> nút khởi động lại
       case 'done':
         return _BannerCard(
           key: const ValueKey('done'),
@@ -341,7 +378,7 @@ class _UpdateStatusBanner extends StatelessWidget {
           ),
         );
 
-    // ── Lỗi ──
+      // Lỗi
       case 'error':
         return _BannerCard(
           key: const ValueKey('error'),
@@ -364,7 +401,7 @@ class _UpdateStatusBanner extends StatelessWidget {
   }
 }
 
-// ── Container chung cho banner ──
+// Container chung cho banner
 class _BannerCard extends StatelessWidget {
   final Widget child;
   final IconData icon;
@@ -392,10 +429,7 @@ class _BannerCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: iconColor.withOpacity(0.2),
-          width: 1.5,
-        ),
+        border: Border.all(color: iconColor.withOpacity(0.2), width: 1.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -415,16 +449,22 @@ class _BannerCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title,
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: colorScheme.onSurface)),
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
                     const SizedBox(height: 3),
-                    Text(subtitle,
-                        style: TextStyle(
-                            fontSize: 13,
-                            color: colorScheme.onSurfaceVariant)),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -438,7 +478,7 @@ class _BannerCard extends StatelessWidget {
   }
 }
 
-// ── Nút hành động ──
+// Nút hành động
 class _ActionButton extends StatelessWidget {
   final String label;
   final IconData icon;
@@ -459,20 +499,23 @@ class _ActionButton extends StatelessWidget {
       child: FilledButton.icon(
         onPressed: onTap,
         icon: Icon(icon, size: 18),
-        label: Text(label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+        label: Text(
+          label,
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+        ),
         style: FilledButton.styleFrom(
           backgroundColor: color,
           padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       ),
     );
   }
 }
 
-// ════════════════════════════════════════════════════════════
 // WIDGET: Card 1 phiên bản trong changelog
-// ════════════════════════════════════════════════════════════
 class _ChangelogCard extends StatelessWidget {
   final ChangelogEntry entry;
   final int index;
@@ -489,97 +532,111 @@ class _ChangelogCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(18),
-        border: isLatest
-            ? Border.all(color: colorScheme.primary.withOpacity(0.4), width: 1.5)
-            : null,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ── Header phiên bản ──
-          Container(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-            decoration: BoxDecoration(
-              color: isLatest
-                  ? colorScheme.primary.withOpacity(0.08)
-                  : colorScheme.surfaceContainer,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  isLatest ? Icons.star_rounded : Icons.history_rounded,
-                  color: isLatest ? colorScheme.primary : colorScheme.onSurfaceVariant,
-                  size: 20,
+          margin: const EdgeInsets.only(bottom: 16),
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(18),
+            border: isLatest
+                ? Border.all(
+                    color: colorScheme.primary.withOpacity(0.4),
+                    width: 1.5,
+                  )
+                : null,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header phiên bản
+              Container(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                decoration: BoxDecoration(
+                  color: isLatest
+                      ? colorScheme.primary.withOpacity(0.08)
+                      : colorScheme.surfaceContainer,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(18),
+                  ),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        entry.title,
+                child: Row(
+                  children: [
+                    Icon(
+                      isLatest ? Icons.star_rounded : Icons.history_rounded,
+                      color: isLatest
+                          ? colorScheme.primary
+                          : colorScheme.onSurfaceVariant,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            entry.title,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: isLatest
+                                  ? colorScheme.primary
+                                  : colorScheme.onSurface,
+                            ),
+                          ),
+                          Text(
+                            entry.date,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Badge phiên bản
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isLatest
+                            ? colorScheme.primary
+                            : colorScheme.outline.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        entry.version,
                         style: TextStyle(
-                          fontSize: 15,
+                          fontSize: 12,
                           fontWeight: FontWeight.w700,
                           color: isLatest
-                              ? colorScheme.primary
-                              : colorScheme.onSurface,
+                              ? colorScheme.onPrimary
+                              : colorScheme.onSurfaceVariant,
                         ),
                       ),
-                      Text(
-                        entry.date,
-                        style: TextStyle(
-                            fontSize: 12,
-                            color: colorScheme.onSurfaceVariant),
-                      ),
-                    ],
-                  ),
-                ),
-                // Badge phiên bản
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: isLatest
-                        ? colorScheme.primary
-                        : colorScheme.outline.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    entry.version,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: isLatest
-                          ? colorScheme.onPrimary
-                          : colorScheme.onSurfaceVariant,
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
 
-          // ── Danh sách thay đổi ──
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-            child: Column(
-              children: entry.items
-                  .map((item) => _ChangelogItemRow(item: item))
-                  .toList(),
-            ),
+              // Danh sách thay đổi
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                child: Column(
+                  children: entry.items
+                      .map((item) => _ChangelogItemRow(item: item))
+                      .toList(),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-    ).animate().fadeIn(delay: (80 * index).ms, duration: 400.ms).slideY(begin: 0.05);
+        )
+        .animate()
+        .fadeIn(delay: (80 * index).ms, duration: 400.ms)
+        .slideY(begin: 0.05);
   }
 }
 
-// ── 1 dòng thay đổi ──
+// 1 dòng thay đổi
 class _ChangelogItemRow extends StatelessWidget {
   final ChangelogItem item;
 
@@ -632,9 +689,10 @@ class _ChangelogItemRow extends StatelessWidget {
             child: Text(
               tag,
               style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: dotColor),
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: dotColor,
+              ),
             ),
           ),
           const SizedBox(width: 8),
@@ -642,9 +700,10 @@ class _ChangelogItemRow extends StatelessWidget {
             child: Text(
               item.text,
               style: TextStyle(
-                  fontSize: 13,
-                  color: colorScheme.onSurface,
-                  height: 1.4),
+                fontSize: 13,
+                color: colorScheme.onSurface,
+                height: 1.4,
+              ),
             ),
           ),
         ],

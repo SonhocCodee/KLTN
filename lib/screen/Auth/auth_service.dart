@@ -8,22 +8,22 @@ class AuthService {
 
   static User? get currentUser => _client.auth.currentUser;
 
-  /// Có session Supabase hay không.
-  /// Lưu ý: guest mode không được tính là user thật để dùng Profile/Quiz.
+  // Có session Supabase hay không.
+  // Lưu ý: guest mode không được tính là user thật để dùng Profile/Quiz.
   static bool get isLoggedIn => currentUser != null;
 
-  /// User thật để dùng các tính năng cần tài khoản.
+  // User thật để dùng các tính năng cần tài khoản.
   static bool get isAuthenticatedUser => currentUser != null && !_isGuest;
 
   static Stream<AuthState> get authStateStream =>
       _client.auth.onAuthStateChange;
 
-  // ── Guest Mode (persist qua SharedPreferences) ───────────────
+  // Guest Mode (persist qua SharedPreferences)
   static bool _isGuest = false;
 
   static bool get isGuest => _isGuest;
 
-  /// Gọi trong main() trước runApp để load trạng thái guest
+  // Gọi trong main() trước runApp để load trạng thái guest
   static Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
     _isGuest = prefs.getBool(_guestKey) ?? false;
@@ -44,7 +44,7 @@ class AuthService {
     await prefs.setBool(_guestKey, true);
   }
 
-  /// Gọi ngay sau khi đăng nhập thành công để thoát guest mode.
+  // Gọi ngay sau khi đăng nhập thành công để thoát guest mode.
   static Future<void> markLoggedIn() async {
     _isGuest = false;
     final prefs = await SharedPreferences.getInstance();
@@ -53,7 +53,7 @@ class AuthService {
 
   static Future<void> _clearGuestMode() => markLoggedIn();
 
-  // ── Email + Password ─────────────────────────────────────
+  // Email + Password
   static Future<AuthResponse> signUpWithEmail({
     required String email,
     required String password,
@@ -82,7 +82,7 @@ class AuthService {
     return res;
   }
 
-  // ── Google Sign-In ───────────────────────────────────────
+  // Google Sign-In
   static Future<bool> signInWithGoogle() async {
     final res = await _client.auth.getOAuthSignInUrl(
       provider: OAuthProvider.google,
@@ -100,13 +100,13 @@ class AuthService {
     return true;
   }
 
-  // ── Sign Out ─────────────────────────────────────────────
+  // Sign Out
   static Future<void> signOut() async {
     await _clearGuestMode();
     await _client.auth.signOut();
   }
 
-  // ── User Profile ─────────────────────────────────────────
+  // User Profile
   static Future<Map<String, dynamic>?> getProfile() async {
     final uid = currentUser?.id;
     if (uid == null || _isGuest) return null;
@@ -135,7 +135,7 @@ class AuthService {
     });
   }
 
-  // ── Quiz Progress ────────────────────────────────────────
+  // Quiz Progress
   static Future<Map<String, dynamic>?> getTodayQuiz() async {
     final uid = currentUser?.id;
     if (uid == null || _isGuest) return null;

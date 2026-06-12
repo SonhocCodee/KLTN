@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Cache persist cho sound + map data của từng loài.
-/// Singleton — dùng chung toàn app.
+// Cache persist cho sound + map data của từng loài.
+// Singleton - dùng chung toàn app.
 class AnimalApiCacheService {
   AnimalApiCacheService._();
   static final AnimalApiCacheService instance = AnimalApiCacheService._();
@@ -16,7 +16,7 @@ class AnimalApiCacheService {
   static const _mapPrefix = 'map_';
   static const _mapCountPrefix = 'mapcount_';
 
-  // ── SOUND ────────────────────────────────────────────────────────────────
+  // Sound
 
   Future<List<Map<String, dynamic>>?> getSounds(String animalId) async {
     // 1. Memory
@@ -38,21 +38,24 @@ class AnimalApiCacheService {
   }
 
   Future<void> saveSounds(
-      String animalId, List<Map<String, dynamic>> sounds) async {
+    String animalId,
+    List<Map<String, dynamic>> sounds,
+  ) async {
     _soundCache[animalId] = sounds;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('$_soundPrefix$animalId', jsonEncode(sounds));
   }
 
-  // ── MAP ──────────────────────────────────────────────────────────────────
+  // Map
 
   Future<({List<Map<String, double>> points, int count})?> getMap(
-      String animalId) async {
+    String animalId,
+  ) async {
     // 1. Memory
     if (_mapCache.containsKey(animalId)) {
       return (
-      points: _mapCache[animalId]!,
-      count: _mapCountCache[animalId] ?? 0,
+        points: _mapCache[animalId]!,
+        count: _mapCountCache[animalId] ?? 0,
       );
     }
 
@@ -64,8 +67,13 @@ class AnimalApiCacheService {
     try {
       final decoded = jsonDecode(raw) as List;
       final points = decoded
-          .map((e) => Map<String, double>.from(
-          (e as Map).map((k, v) => MapEntry(k as String, (v as num).toDouble()))))
+          .map(
+            (e) => Map<String, double>.from(
+              (e as Map).map(
+                (k, v) => MapEntry(k as String, (v as num).toDouble()),
+              ),
+            ),
+          )
           .toList();
       final count = prefs.getInt('$_mapCountPrefix$animalId') ?? 0;
 
@@ -78,7 +86,10 @@ class AnimalApiCacheService {
   }
 
   Future<void> saveMap(
-      String animalId, List<Map<String, double>> points, int count) async {
+    String animalId,
+    List<Map<String, double>> points,
+    int count,
+  ) async {
     _mapCache[animalId] = points;
     _mapCountCache[animalId] = count;
 
@@ -87,18 +98,21 @@ class AnimalApiCacheService {
     await prefs.setInt('$_mapCountPrefix$animalId', count);
   }
 
-  // ── CLEAR (nếu cần) ──────────────────────────────────────────────────────
+  // CLEAR (nếu cần)
 
   Future<void> clearAll() async {
     _soundCache.clear();
     _mapCache.clear();
     _mapCountCache.clear();
     final prefs = await SharedPreferences.getInstance();
-    final keys = prefs.getKeys()
-        .where((k) =>
-    k.startsWith(_soundPrefix) ||
-        k.startsWith(_mapPrefix) ||
-        k.startsWith(_mapCountPrefix))
+    final keys = prefs
+        .getKeys()
+        .where(
+          (k) =>
+              k.startsWith(_soundPrefix) ||
+              k.startsWith(_mapPrefix) ||
+              k.startsWith(_mapCountPrefix),
+        )
         .toList();
     for (final k in keys) await prefs.remove(k);
   }

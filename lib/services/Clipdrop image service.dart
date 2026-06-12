@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-/// Service xử lý ảnh qua ClipDrop Uncrop API
-/// Đã sửa lỗi tham số target_width/height gây lỗi 400
+// Service xử lý ảnh qua ClipDrop Uncrop API
+// Đã sửa lỗi tham số target_width/height gây lỗi 400
 class ClipDropImageService {
   // 🔑 API KEY CỦA BẠN (Đã điền sẵn)
-  static const String _apiKey = '7025151cda06e32fd33057885c49b51d5fd770cf7444d0537de31853e32f1182c9a034f88b2c28f5105fb8be84e5ee99';
+  static const String _apiKey =
+      '7025151cda06e32fd33057885c49b51d5fd770cf7444d0537de31853e32f1182c9a034f88b2c28f5105fb8be84e5ee99';
 
   // ClipDrop Uncrop API endpoint
   static const String _uncropUrl = 'https://clipdrop-api.co/uncrop/v1';
@@ -23,34 +24,32 @@ class ClipDropImageService {
     }
 
     try {
-      // ==========================================
-      // BƯỚC 1: Download ảnh gốc từ URL
-      // ==========================================
+      // Download ảnh gốc từ URL
       print('📥 [ClipDrop] Downloading original image...');
 
       final imageResponse = await http.get(Uri.parse(originalImageUrl));
 
       if (imageResponse.statusCode != 200) {
-        print('❌ [ClipDrop] Failed to download image: ${imageResponse.statusCode}');
+        print(
+          '❌ [ClipDrop] Failed to download image: ${imageResponse.statusCode}',
+        );
         return null;
       }
 
       final imageBytes = imageResponse.bodyBytes;
 
-      // ==========================================
-      // BƯỚC 2: Gọi ClipDrop Uncrop API
-      // ==========================================
+      // Gọi ClipDrop Uncrop API
       print('🚀 [ClipDrop] Calling Uncrop API...');
 
       var request = http.MultipartRequest('POST', Uri.parse(_uncropUrl));
       request.headers['x-api-key'] = _apiKey;
 
       request.files.add(
-          http.MultipartFile.fromBytes(
-              'image_file',
-              imageBytes,
-              filename: 'original.jpg'
-          )
+        http.MultipartFile.fromBytes(
+          'image_file',
+          imageBytes,
+          filename: 'original.jpg',
+        ),
       );
 
       // 🛠️ QUAN TRỌNG: Sửa lỗi 400 tại đây
@@ -64,9 +63,7 @@ class ClipDropImageService {
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
 
-      // ==========================================
-      // BƯỚC 3: Xử lý kết quả
-      // ==========================================
+      // Xử lý kết quả
 
       if (response.statusCode == 200) {
         print('✅ [ClipDrop] Thành công! Đã nhận ảnh.');
@@ -78,7 +75,6 @@ class ClipDropImageService {
         print('   Body: ${response.body}');
         return null;
       }
-
     } catch (e) {
       print('❌ [ClipDrop] Exception: $e');
       return null;

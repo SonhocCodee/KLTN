@@ -13,9 +13,9 @@ class AnimalDetailDescription extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final t = context.watch<LocaleProvider>();
 
-    // ── Description ─────────────────────────────────────────────────────────
-    // Ưu tiên: [EN] description_english → fallback description_short (tiếng Việt)
-    //          [VI] description_short
+    // Description
+    // Ưu tiên: [EN] description_english -> dự phòng description_short (tiếng Việt)
+    // [VI] description_short
     final String description;
     if (t.isEnglish) {
       final en = (animal['description_english'] as String? ?? '').trim();
@@ -30,9 +30,9 @@ class AnimalDetailDescription extends StatelessWidget {
         ? description
         : AnimalDetailUtils.generateDescription(animal, t);
 
-    // ── Fun fact ─────────────────────────────────────────────────────────────
-    // Ưu tiên: [EN] fun_fact_english → fallback fun_fact_vietnamese
-    //          [VI] fun_fact_vietnamese
+    // Fun fact
+    // Ưu tiên: [EN] fun_fact_english -> dự phòng fun_fact_vietnamese
+    // [VI] fun_fact_vietnamese
     final String funFact;
     if (t.isEnglish) {
       final en = (animal['fun_fact_english'] as String? ?? '').trim();
@@ -47,7 +47,10 @@ class AnimalDetailDescription extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AnimalDetailUtils.buildSectionTitle(
-            t.tr('Giới thiệu'), '📖', colorScheme),
+          t.tr('Giới thiệu'),
+          '📖',
+          colorScheme,
+        ),
         const SizedBox(height: 14),
 
         // Description
@@ -71,7 +74,9 @@ class AnimalDetailDescription extends StatelessWidget {
               color: colorScheme.secondaryContainer,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                  color: colorScheme.secondary.withOpacity(0.3), width: 1),
+                color: colorScheme.secondary.withOpacity(0.3),
+                width: 1,
+              ),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,

@@ -9,7 +9,7 @@ import 'package:http/http.dart' as http;
 
 import '../../../core/app_env.dart';
 
-// ── Model lịch sử tìm kiếm ────────────────────────────────────────────────
+// Model lịch sử tìm kiếm
 class SearchHistoryItem {
   final int id;
   final DateTime createdAt;
@@ -46,7 +46,7 @@ class SearchHistoryItem {
 }
 
 class IdentifyService extends ChangeNotifier {
-  // ── API Keys & Endpoints từ env ────────────────────────────────
+  // API Keys & Endpoints từ env
   static const _geminiApiKey = AppEnv.geminiApiKey;
   static const _geminiUrl = AppEnv.geminiUrl;
 
@@ -69,7 +69,7 @@ class IdentifyService extends ChangeNotifier {
       'NAMEVI===[Vietnamese name, e.g. Mèo Anh lông ngắn]\n'
       'TYLE===[confidence integer 0-100]';
 
-  // ── State Variables ───────────────────────────────────────────────────────
+  // State Variables
   final ImagePicker _picker = ImagePicker();
   bool isAnalyzing = false;
   File? selectedImage;
@@ -84,17 +84,19 @@ class IdentifyService extends ChangeNotifier {
   // Trạng thái ảnh không hợp lệ (không phải động vật)
   bool isNotAnimal = false;
 
-  // ── Lịch sử tìm kiếm ─────────────────────────────────────────────────────
+  // Lịch sử tìm kiếm
   List<SearchHistoryItem> historyItems = [];
   bool isLoadingHistory = false;
 
   Interpreter? _interpreter;
   List<String> _labels = [];
 
-  // ── Initialize Local Model ────────────────────────────────────────────────
+  // Khởi tạoialize Local Model
   Future<void> loadModel() async {
     try {
-      _interpreter = await Interpreter.fromAsset('assets/cat_classifier.tflite');
+      _interpreter = await Interpreter.fromAsset(
+        'assets/cat_classifier.tflite',
+      );
       final raw = await rootBundle.loadString('assets/labels.txt');
       _labels = raw.trim().split('\n');
     } catch (e) {
@@ -108,7 +110,7 @@ class IdentifyService extends ChangeNotifier {
     super.dispose();
   }
 
-  // ── Core Actions ──────────────────────────────────────────────────────────
+  // Core Actions
   Future<void> pickImage(ImageSource source) async {
     if (isAnalyzing) return;
     try {
@@ -143,7 +145,7 @@ class IdentifyService extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ── Search Flow ───────────────────────────────────────────────────────────
+  // Search Flow
   Future<void> startSearching(VoidCallback onDone) async {
     if (selectedImage == null || isAnalyzing) return;
     final File snap = selectedImage!;
@@ -159,19 +161,31 @@ class IdentifyService extends ChangeNotifier {
 
     debugPrint('🔄 Bước 1: Thử Gemini...');
     final geminiResult = await _identifyWithGemini(snap, onDone);
-    if (geminiResult) { debugPrint('✅ Kết thúc xử lý Gemini'); return; }
+    if (geminiResult) {
+      debugPrint('✅ Kết thúc xử lý Gemini');
+      return;
+    }
 
     debugPrint('🔄 Bước 2: Thử Groq Llama...');
     final groqResult = await _identifyWithGroq(snap, onDone);
-    if (groqResult) { debugPrint('✅ Kết thúc xử lý Groq'); return; }
+    if (groqResult) {
+      debugPrint('✅ Kết thúc xử lý Groq');
+      return;
+    }
 
     debugPrint('🔄 Bước 3: Dùng Local model (API lỗi mạng)');
-    await _identifyWithLocalModel(imageFile: snap, fallback: true, onDone: onDone);
+    await _identifyWithLocalModel(
+      imageFile: snap,
+      fallback: true,
+      onDone: onDone,
+    );
   }
 
   Future<bool> _hasNetwork() async {
     try {
-      final res = await http.get(Uri.parse('https://www.google.com')).timeout(const Duration(seconds: 4));
+      final res = await http
+          .get(Uri.parse('https://www.google.com'))
+          .timeout(const Duration(seconds: 4));
       return res.statusCode == 200;
     } catch (_) {
       return false;
@@ -183,9 +197,11 @@ class IdentifyService extends ChangeNotifier {
     final decoded = img.decodeImage(raw);
     if (decoded == null) throw Exception('Không decode được ảnh');
     final resized = (decoded.width > 800 || decoded.height > 800)
-        ? img.copyResize(decoded,
-        width: decoded.width >= decoded.height ? 800 : -1,
-        height: decoded.height > decoded.width ? 800 : -1)
+        ? img.copyResize(
+            decoded,
+            width: decoded.width >= decoded.height ? 800 : -1,
+            height: decoded.height > decoded.width ? 800 : -1,
+          )
         : decoded;
     final jpeg = Uint8List.fromList(img.encodeJpg(resized, quality: 85));
     return jpeg;
@@ -200,29 +216,38 @@ class IdentifyService extends ChangeNotifier {
     String nameVi = '';
     String tiLe = '';
 
-    for (final line in raw
-        .replaceAll('\r', '')
-        .replaceAll('**', '')
-        .replaceAll('*', '')
-        .replaceAll('[', '')
-        .replaceAll(']', '')
-        .trim()
-        .split('\n')
-        .map((l) => l.trim())
-        .where((l) => l.isNotEmpty)) {
-      if (line.contains('BREED===')) breed = line.split('BREED===').last.trim();
-      else if (line.contains('NAMEVI===')) nameVi = line.split('NAMEVI===').last.trim();
-      else if (line.contains('TYLE===')) tiLe = line.split('TYLE===').last.replaceAll('%', '').trim();
+    for (final line
+        in raw
+            .replaceAll('\r', '')
+            .replaceAll('**', '')
+            .replaceAll('*', '')
+            .replaceAll('[', '')
+            .replaceAll(']', '')
+            .trim()
+            .split('\n')
+            .map((l) => l.trim())
+            .where((l) => l.isNotEmpty)) {
+      if (line.contains('BREED==='))
+        breed = line.split('BREED===').last.trim();
+      else if (line.contains('NAMEVI==='))
+        nameVi = line.split('NAMEVI===').last.trim();
+      else if (line.contains('TYLE==='))
+        tiLe = line.split('TYLE===').last.replaceAll('%', '').trim();
     }
 
     if (breed.isEmpty) return null;
     if (nameVi.isEmpty) nameVi = breed;
     if (tiLe.isEmpty) tiLe = '?';
 
-    return {'breed': breed, 'nameVi': nameVi, 'confidence': tiLe, 'status': 'OK'};
+    return {
+      'breed': breed,
+      'nameVi': nameVi,
+      'confidence': tiLe,
+      'status': 'OK',
+    };
   }
 
-  // ── AI Identifications ────────────────────────────────────────────────────
+  // Nhận diện bằng dịch vụ online.
   Future<bool> _identifyWithGemini(File f, VoidCallback onDone) async {
     if (!AppEnv.hasGemini) {
       debugPrint('⚠️ Thiếu GEMINI_API_KEY, bỏ qua Gemini');
@@ -231,12 +256,29 @@ class IdentifyService extends ChangeNotifier {
     try {
       final jpeg = await _prepareImage(f);
       final body = jsonEncode({
-        'contents': [{'parts': [{'inline_data': {'mime_type': 'image/jpeg', 'data': base64Encode(jpeg)}}, {'text': _prompt}]}],
+        'contents': [
+          {
+            'parts': [
+              {
+                'inline_data': {
+                  'mime_type': 'image/jpeg',
+                  'data': base64Encode(jpeg),
+                },
+              },
+              {'text': _prompt},
+            ],
+          },
+        ],
         'generationConfig': {'temperature': 0.1, 'maxOutputTokens': 80},
       });
 
-      final res = await http.post(Uri.parse('$_geminiUrl?key=$_geminiApiKey'),
-          headers: {'Content-Type': 'application/json'}, body: body).timeout(const Duration(seconds: 30));
+      final res = await http
+          .post(
+            Uri.parse('$_geminiUrl?key=$_geminiApiKey'),
+            headers: {'Content-Type': 'application/json'},
+            body: body,
+          )
+          .timeout(const Duration(seconds: 30));
 
       if (res.statusCode != 200) return false;
 
@@ -264,13 +306,33 @@ class IdentifyService extends ChangeNotifier {
       final body = jsonEncode({
         'model': _groqModel,
         'messages': [
-          {'role': 'user', 'content': [{'type': 'image_url', 'image_url': {'url': 'data:image/jpeg;base64,${base64Encode(jpeg)}'}}, {'type': 'text', 'text': _prompt}]}
+          {
+            'role': 'user',
+            'content': [
+              {
+                'type': 'image_url',
+                'image_url': {
+                  'url': 'data:image/jpeg;base64,${base64Encode(jpeg)}',
+                },
+              },
+              {'type': 'text', 'text': _prompt},
+            ],
+          },
         ],
-        'temperature': 0.1, 'max_tokens': 80,
+        'temperature': 0.1,
+        'max_tokens': 80,
       });
 
-      final res = await http.post(Uri.parse(_groqUrl),
-          headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $_groqApiKey'}, body: body).timeout(const Duration(seconds: 30));
+      final res = await http
+          .post(
+            Uri.parse(_groqUrl),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $_groqApiKey',
+            },
+            body: body,
+          )
+          .timeout(const Duration(seconds: 30));
 
       if (res.statusCode != 200) return false;
 
@@ -287,7 +349,11 @@ class IdentifyService extends ChangeNotifier {
     }
   }
 
-  Future<void> _identifyWithLocalModel({required File imageFile, bool fallback = false, required VoidCallback onDone}) async {
+  Future<void> _identifyWithLocalModel({
+    required File imageFile,
+    bool fallback = false,
+    required VoidCallback onDone,
+  }) async {
     if (_interpreter == null) {
       isAnalyzing = false;
       notifyListeners();
@@ -298,13 +364,25 @@ class IdentifyService extends ChangeNotifier {
       final decoded = img.decodeImage(bytes)!;
       final resized = img.copyResize(decoded, width: 224, height: 224);
 
-      final input = List.generate(1, (_) => List.generate(224, (y) => List.generate(224, (x) => [
-        resized.getPixel(x, y).r / 255.0,
-        resized.getPixel(x, y).g / 255.0,
-        resized.getPixel(x, y).b / 255.0,
-      ])));
+      final input = List.generate(
+        1,
+        (_) => List.generate(
+          224,
+          (y) => List.generate(
+            224,
+            (x) => [
+              resized.getPixel(x, y).r / 255.0,
+              resized.getPixel(x, y).g / 255.0,
+              resized.getPixel(x, y).b / 255.0,
+            ],
+          ),
+        ),
+      );
 
-      final output = List.filled(_labels.length, 0.0).reshape([1, _labels.length]);
+      final output = List.filled(
+        _labels.length,
+        0.0,
+      ).reshape([1, _labels.length]);
       _interpreter!.run(input, output);
 
       final scores = List<double>.from(output[0]);
@@ -314,7 +392,9 @@ class IdentifyService extends ChangeNotifier {
       // (có mạng nhưng API lỗi). Khi offline hoàn toàn, bỏ qua kiểm tra này
       // vì local model chỉ nhận diện giống mèo/chó, không thể phán "NOT_ANIMAL".
       if (fallback && maxScore < 0.40) {
-        debugPrint('⚠️ Local fallback confidence quá thấp (${(maxScore*100).toStringAsFixed(1)}%) → NOT_ANIMAL');
+        debugPrint(
+          '⚠️ Local fallback confidence quá thấp (${(maxScore * 100).toStringAsFixed(1)}%) → NOT_ANIMAL',
+        );
         isNotAnimal = true;
         isAnalyzing = false;
         notifyListeners();
@@ -327,10 +407,16 @@ class IdentifyService extends ChangeNotifier {
       final breed = _labels[maxIdx];
 
       await _fetchAndSetResult(
-        {'breed': breed, 'nameVi': breed, 'confidence': confidence, 'status': 'OK'},
+        {
+          'breed': breed,
+          'nameVi': breed,
+          'confidence': confidence,
+          'status': 'OK',
+        },
         fallback ? 'local_fallback' : 'local',
         onDone,
-        skipNetwork: !fallback, // offline → skip Supabase; fallback (có mạng nhưng API lỗi) → vẫn query Supabase
+        skipNetwork:
+            !fallback, // offline -> skip Supabase; dự phòng (có mạng nhưng API lỗi) -> vẫn query Supabase
       );
     } catch (e) {
       isAnalyzing = false;
@@ -338,30 +424,105 @@ class IdentifyService extends ChangeNotifier {
     }
   }
 
-  // ── Database & AI Remapping ───────────────────────────────────────────────
+  // Mapping tên giống với dữ liệu trong database.
   static const _dbBreedsByType = {
     'cat': [
-      'Abyssinian', 'Aegean', 'American Bobtail', 'American Curl', 'American Shorthair', 'American Wirehair', 'Aphrodite Giant',
-      'Arabian Mau', 'Australian Mist', 'Balinese', 'Bambino', 'Bengal', 'Birman', 'Bombay', 'Brazilian Shorthair', 'British Longhair',
-      'British Shorthair', 'Burmese', 'Burmilla', 'California Spangled', 'Chantilly-Tiffany', 'Chartreux', 'Chausie', 'Cheetoh',
-      'Colorpoint Shorthair', 'Cornish Rex', 'Cymric', 'Cyprus', 'Devon Rex', 'Donskoy', 'Dragon Li', 'Egyptian Mau', 'European Shorthair',
-      'Exotic Shorthair', 'German Rex', 'Havana Brown', 'Highlander', 'Himalayan', 'Japanese Bobtail', 'Javanese', 'Kanaani', 'Khao Manee',
-      'Kinkalow', 'Korat', 'Kurilian Bobtail', 'LaPerm', 'Lykoi', 'Maine Coon', 'Manx', 'Mekong Bobtail', 'Minskin', 'Minuet',
-      'Munchkin', 'Nebelung', 'Norwegian Forest Cat', 'Ocicat', 'Ojos Azules', 'Oregon Rex', 'Oriental Bicolour', 'Oriental Longhair',
-      'Oriental Shorthair', 'Persian', 'Peterbald', 'Pixie-bob', 'Ragamuffin', 'Ragdoll', 'Russian Blue', 'Savannah', 'Scottish Fold', 'Selkirk Rex',
-      'Serengeti', 'Siamese', 'Siberian', 'Singapura', 'Snowshoe', 'Sokoke', 'Somali', 'Sphynx', 'Thai', 'Tonkinese', 'Toyger', 'Turkish Angora',
-      'Turkish Van', 'Ukranian Levkoy', 'York Chocolate',
+      'Abyssinian',
+      'Aegean',
+      'American Bobtail',
+      'American Curl',
+      'American Shorthair',
+      'American Wirehair',
+      'Aphrodite Giant',
+      'Arabian Mau',
+      'Australian Mist',
+      'Balinese',
+      'Bambino',
+      'Bengal',
+      'Birman',
+      'Bombay',
+      'Brazilian Shorthair',
+      'British Longhair',
+      'British Shorthair',
+      'Burmese',
+      'Burmilla',
+      'California Spangled',
+      'Chantilly-Tiffany',
+      'Chartreux',
+      'Chausie',
+      'Cheetoh',
+      'Colorpoint Shorthair',
+      'Cornish Rex',
+      'Cymric',
+      'Cyprus',
+      'Devon Rex',
+      'Donskoy',
+      'Dragon Li',
+      'Egyptian Mau',
+      'European Shorthair',
+      'Exotic Shorthair',
+      'German Rex',
+      'Havana Brown',
+      'Highlander',
+      'Himalayan',
+      'Japanese Bobtail',
+      'Javanese',
+      'Kanaani',
+      'Khao Manee',
+      'Kinkalow',
+      'Korat',
+      'Kurilian Bobtail',
+      'LaPerm',
+      'Lykoi',
+      'Maine Coon',
+      'Manx',
+      'Mekong Bobtail',
+      'Minskin',
+      'Minuet',
+      'Munchkin',
+      'Nebelung',
+      'Norwegian Forest Cat',
+      'Ocicat',
+      'Ojos Azules',
+      'Oregon Rex',
+      'Oriental Bicolour',
+      'Oriental Longhair',
+      'Oriental Shorthair',
+      'Persian',
+      'Peterbald',
+      'Pixie-bob',
+      'Ragamuffin',
+      'Ragdoll',
+      'Russian Blue',
+      'Savannah',
+      'Scottish Fold',
+      'Selkirk Rex',
+      'Serengeti',
+      'Siamese',
+      'Siberian',
+      'Singapura',
+      'Snowshoe',
+      'Sokoke',
+      'Somali',
+      'Sphynx',
+      'Thai',
+      'Tonkinese',
+      'Toyger',
+      'Turkish Angora',
+      'Turkish Van',
+      'Ukranian Levkoy',
+      'York Chocolate',
     ],
   };
 
   Future<bool> _fetchAndSetResult(
-      Map<String, String> parsed,
-      String source,
-      VoidCallback onDone, {
-        bool skipNetwork = false,
-      }) async {
+    Map<String, String> parsed,
+    String source,
+    VoidCallback onDone, {
+    bool skipNetwork = false,
+  }) async {
     if (parsed['status'] == 'NOT_ANIMAL') {
-      // Ảnh không chứa động vật → báo không hợp lệ, KHÔNG fallback tiếp
+      // Ảnh không chứa động vật -> báo không hợp lệ, KHÔNG dự phòng tiếp
       isNotAnimal = true;
       isAnalyzing = false;
       notifyListeners();
@@ -376,16 +537,24 @@ class IdentifyService extends ChangeNotifier {
     // Chỉ query Supabase khi có mạng
     if (!skipNetwork) {
       try {
-        animal = await _querySupabase('name_english=eq.${Uri.encodeComponent(breed)}');
-        animal ??= await _querySupabase('name_english=ilike.${Uri.encodeComponent('%${breed.trim()}%')}');
+        animal = await _querySupabase(
+          'name_english=eq.${Uri.encodeComponent(breed)}',
+        );
+        animal ??= await _querySupabase(
+          'name_english=ilike.${Uri.encodeComponent('%${breed.trim()}%')}',
+        );
         if (animal == null && nameVi.isNotEmpty) {
-          animal ??= await _querySupabase('name_vietnamese=ilike.${Uri.encodeComponent('%${nameVi.trim()}%')}');
+          animal ??= await _querySupabase(
+            'name_vietnamese=ilike.${Uri.encodeComponent('%${nameVi.trim()}%')}',
+          );
         }
 
         if (animal == null) {
           final remapped = await _remapBreedWithAI(breed, nameVi);
           if (remapped != null) {
-            animal = await _querySupabase('name_english=eq.${Uri.encodeComponent(remapped)}');
+            animal = await _querySupabase(
+              'name_english=eq.${Uri.encodeComponent(remapped)}',
+            );
           }
         }
       } catch (e) {
@@ -427,16 +596,33 @@ class IdentifyService extends ChangeNotifier {
       final dbList = _dbBreedsByType[animalType];
       if (dbList == null) return null;
 
-      final prompt = 'The image AI identified a cat as: "$breed" ($nameVi).\nThis name is NOT in the database. Pick the SINGLE closest breed from this list:\n${dbList.join(', ')}\n\nReply with ONLY the exact breed name from the list above. Nothing else.';
+      final prompt =
+          'The image AI identified a cat as: "$breed" ($nameVi).\nThis name is NOT in the database. Pick the SINGLE closest breed from this list:\n${dbList.join(', ')}\n\nReply with ONLY the exact breed name from the list above. Nothing else.';
 
-      final res = await http.post(
-        Uri.parse(_groqUrl),
-        headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $_groqApiKey'},
-        body: jsonEncode({'model': 'llama-3.3-70b-versatile', 'messages': [{'role': 'user', 'content': prompt}], 'temperature': 0.1, 'max_tokens': 20}),
-      ).timeout(const Duration(seconds: 10));
+      final res = await http
+          .post(
+            Uri.parse(_groqUrl),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $_groqApiKey',
+            },
+            body: jsonEncode({
+              'model': 'llama-3.3-70b-versatile',
+              'messages': [
+                {'role': 'user', 'content': prompt},
+              ],
+              'temperature': 0.1,
+              'max_tokens': 20,
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
 
       if (res.statusCode == 200) {
-        final text = (jsonDecode(res.body)['choices'][0]['message']['content'] as String).trim().replaceAll('"', '').replaceAll("'", '');
+        final text =
+            (jsonDecode(res.body)['choices'][0]['message']['content'] as String)
+                .trim()
+                .replaceAll('"', '')
+                .replaceAll("'", '');
         for (final b in dbList) {
           if (b.toLowerCase() == text.toLowerCase()) return b;
         }
@@ -447,14 +633,24 @@ class IdentifyService extends ChangeNotifier {
 
   String _detectAnimalType(String breed, String nameVi) {
     final s = '${breed.toLowerCase()} ${nameVi.toLowerCase()}';
-    if (s.contains('dog') || s.contains('chó') || s.contains('puppy')) return 'dog';
+    if (s.contains('dog') || s.contains('chó') || s.contains('puppy'))
+      return 'dog';
     return 'cat';
   }
 
   Future<Map<String, dynamic>?> _querySupabase(String filter) async {
-    final url = '$_supabaseUrl/rest/v1/animals?$filter&select=id,name_vietnamese,name_english,image_url&limit=1';
+    final url =
+        '$_supabaseUrl/rest/v1/animals?$filter&select=id,name_vietnamese,name_english,image_url&limit=1';
     try {
-      final res = await http.get(Uri.parse(url), headers: {'apikey': _supabaseKey, 'Authorization': 'Bearer $_supabaseKey'}).timeout(const Duration(seconds: 8));
+      final res = await http
+          .get(
+            Uri.parse(url),
+            headers: {
+              'apikey': _supabaseKey,
+              'Authorization': 'Bearer $_supabaseKey',
+            },
+          )
+          .timeout(const Duration(seconds: 8));
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body) as List;
         if (data.isNotEmpty) return data[0] as Map<String, dynamic>;
@@ -463,9 +659,9 @@ class IdentifyService extends ChangeNotifier {
     return null;
   }
 
-  // ── Lịch sử tìm kiếm ─────────────────────────────────────────────────────
+  // Lịch sử tìm kiếm
 
-  /// Lưu một kết quả vào bảng search_history trên Supabase
+  // Lưu một kết quả vào bảng search_history trên Supabase
   Future<void> _saveHistory({
     required String nameVi,
     required String nameEn,
@@ -484,22 +680,27 @@ class IdentifyService extends ChangeNotifier {
         'animal_id': animalId,
         'animal_image_url': animalImageUrl,
       });
-      final res = await http.post(
-        Uri.parse(url),
-        headers: {
-          'apikey': _supabaseKey,
-          'Authorization': 'Bearer $_supabaseKey',
-          'Content-Type': 'application/json',
-          'Prefer': 'return=representation',
-        },
-        body: body,
-      ).timeout(const Duration(seconds: 8));
+      final res = await http
+          .post(
+            Uri.parse(url),
+            headers: {
+              'apikey': _supabaseKey,
+              'Authorization': 'Bearer $_supabaseKey',
+              'Content-Type': 'application/json',
+              'Prefer': 'return=representation',
+            },
+            body: body,
+          )
+          .timeout(const Duration(seconds: 8));
 
       if (res.statusCode == 201) {
         // Thêm vào đầu danh sách local luôn (không cần fetch lại)
         final inserted = jsonDecode(res.body) as List;
         if (inserted.isNotEmpty) {
-          historyItems.insert(0, SearchHistoryItem.fromJson(inserted[0] as Map<String, dynamic>));
+          historyItems.insert(
+            0,
+            SearchHistoryItem.fromJson(inserted[0] as Map<String, dynamic>),
+          );
           notifyListeners();
         }
         debugPrint('✅ Đã lưu lịch sử');
@@ -511,22 +712,30 @@ class IdentifyService extends ChangeNotifier {
     }
   }
 
-  /// Load toàn bộ lịch sử từ Supabase (gọi khi mở màn hình lịch sử)
+  // Tải toàn bộ lịch sử từ Supabase (gọi khi mở màn hình lịch sử)
   Future<void> loadHistory() async {
     if (isLoadingHistory) return;
     isLoadingHistory = true;
     notifyListeners();
 
     try {
-      final url = '$_supabaseUrl/rest/v1/search_history?select=*&order=created_at.desc&limit=100';
-      final res = await http.get(
-        Uri.parse(url),
-        headers: {'apikey': _supabaseKey, 'Authorization': 'Bearer $_supabaseKey'},
-      ).timeout(const Duration(seconds: 10));
+      final url =
+          '$_supabaseUrl/rest/v1/search_history?select=*&order=created_at.desc&limit=100';
+      final res = await http
+          .get(
+            Uri.parse(url),
+            headers: {
+              'apikey': _supabaseKey,
+              'Authorization': 'Bearer $_supabaseKey',
+            },
+          )
+          .timeout(const Duration(seconds: 10));
 
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body) as List;
-        historyItems = data.map((e) => SearchHistoryItem.fromJson(e as Map<String, dynamic>)).toList();
+        historyItems = data
+            .map((e) => SearchHistoryItem.fromJson(e as Map<String, dynamic>))
+            .toList();
         debugPrint('✅ Load ${historyItems.length} lịch sử');
       }
     } catch (e) {
@@ -537,14 +746,19 @@ class IdentifyService extends ChangeNotifier {
     }
   }
 
-  /// Xoá một item lịch sử theo id
+  // Xoá một item lịch sử theo id
   Future<void> deleteHistoryItem(int id) async {
     try {
       final url = '$_supabaseUrl/rest/v1/search_history?id=eq.$id';
-      final res = await http.delete(
-        Uri.parse(url),
-        headers: {'apikey': _supabaseKey, 'Authorization': 'Bearer $_supabaseKey'},
-      ).timeout(const Duration(seconds: 8));
+      final res = await http
+          .delete(
+            Uri.parse(url),
+            headers: {
+              'apikey': _supabaseKey,
+              'Authorization': 'Bearer $_supabaseKey',
+            },
+          )
+          .timeout(const Duration(seconds: 8));
 
       if (res.statusCode == 204 || res.statusCode == 200) {
         historyItems.removeWhere((e) => e.id == id);
@@ -556,15 +770,20 @@ class IdentifyService extends ChangeNotifier {
     }
   }
 
-  /// Xoá toàn bộ lịch sử
+  // Xoá toàn bộ lịch sử
   Future<void> clearAllHistory() async {
     try {
       // Supabase yêu cầu filter khi DELETE, dùng gte để xoá tất cả
       final url = '$_supabaseUrl/rest/v1/search_history?id=gte.0';
-      final res = await http.delete(
-        Uri.parse(url),
-        headers: {'apikey': _supabaseKey, 'Authorization': 'Bearer $_supabaseKey'},
-      ).timeout(const Duration(seconds: 10));
+      final res = await http
+          .delete(
+            Uri.parse(url),
+            headers: {
+              'apikey': _supabaseKey,
+              'Authorization': 'Bearer $_supabaseKey',
+            },
+          )
+          .timeout(const Duration(seconds: 10));
 
       if (res.statusCode == 204 || res.statusCode == 200) {
         historyItems.clear();

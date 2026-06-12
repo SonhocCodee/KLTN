@@ -34,10 +34,7 @@ class EcosystemPainter extends CustomPainter {
   final double progress;
   final int pageIndex;
 
-  EcosystemPainter({
-    required this.progress,
-    required this.pageIndex,
-  });
+  EcosystemPainter({required this.progress, required this.pageIndex});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -64,7 +61,10 @@ class EcosystemPainter extends CustomPainter {
         ],
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
 
-    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), waterGradient);
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      waterGradient,
+    );
 
     // Vẽ ánh sáng lấp lánh từ trên xuống
     _drawSunrays(canvas, size);
@@ -89,25 +89,33 @@ class EcosystemPainter extends CustomPainter {
         ],
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height * 0.5));
 
-    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height * 0.5), skyPaint);
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, size.width, size.height * 0.5),
+      skyPaint,
+    );
 
     // Lớp đất
     final landPaint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          Color(0xFF4CAF50), // Nâu đất
-          Color(0xFF4CAF50), // Nâu đậm
-        ],
-      ).createShader(Rect.fromLTWH(0, size.height * 0.5, size.width, size.height * 0.5));
+      ..shader =
+          LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF4CAF50), // Nâu đất
+              Color(0xFF4CAF50), // Nâu đậm
+            ],
+          ).createShader(
+            Rect.fromLTWH(0, size.height * 0.5, size.width, size.height * 0.5),
+          );
 
     final landPath = Path();
     landPath.moveTo(0, size.height * 0.5);
 
     // Tạo đường gợn sóng cho đất
     for (double i = 0; i <= size.width; i++) {
-      final y = size.height * 0.5 + sin((i / size.width * 4) + (progress * 2 * pi)) * 15;
+      final y =
+          size.height * 0.5 +
+          sin((i / size.width * 4) + (progress * 2 * pi)) * 15;
       landPath.lineTo(i, y);
     }
 
@@ -119,21 +127,31 @@ class EcosystemPainter extends CustomPainter {
 
     // Lớp cỏ xanh
     final grassPaint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          Color(0xFF81C784), // Xanh lá sáng
-          Color(0xFF66BB6A),
-          Color(0xFF4CAF50), // Xanh lá đậm
-        ],
-      ).createShader(Rect.fromLTWH(0, size.height * 0.45, size.width, size.height * 0.15));
+      ..shader =
+          LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF81C784), // Xanh lá sáng
+              Color(0xFF66BB6A),
+              Color(0xFF4CAF50), // Xanh lá đậm
+            ],
+          ).createShader(
+            Rect.fromLTWH(
+              0,
+              size.height * 0.45,
+              size.width,
+              size.height * 0.15,
+            ),
+          );
 
     final grassPath = Path();
     grassPath.moveTo(0, size.height * 0.5);
 
     for (double i = 0; i <= size.width; i++) {
-      final y = size.height * 0.5 + sin((i / size.width * 6) + (progress * 3 * pi)) * 12;
+      final y =
+          size.height * 0.5 +
+          sin((i / size.width * 6) + (progress * 3 * pi)) * 12;
       grassPath.lineTo(i, y);
     }
 
@@ -177,7 +195,7 @@ class EcosystemPainter extends CustomPainter {
     _drawBirdSilhouettes(canvas, size);
   }
 
-  // === HIỆU ỨNG DƯỚI NƯỚC ===
+  // Hiệu ứng dưới nước
 
   void _drawSunrays(Canvas canvas, Size size) {
     final rayPaint = Paint()
@@ -232,7 +250,7 @@ class EcosystemPainter extends CustomPainter {
     }
   }
 
-  // === HIỆU ỨNG ĐẤT/CỎ ===
+  // Hiệu ứng đất/cỏ
 
   void _drawGrassBlades(Canvas canvas, Size size) {
     final grassPaint = Paint()
@@ -287,23 +305,30 @@ class EcosystemPainter extends CustomPainter {
     }
   }
 
-  // === HIỆU ỨNG BẦU TRỜI ===
+  // Hiệu ứng bầu trời
 
   void _drawSun(Canvas canvas, Size size) {
     final sunPaint = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          Color(0xFFFFF59D),
-          Color(0xFFFFF176),
-          Color(0xFFFFEE58).withOpacity(0.0),
-        ],
-        stops: [0.0, 0.5, 1.0],
-      ).createShader(Rect.fromCircle(
-        center: Offset(size.width * 0.8, size.height * 0.2),
-        radius: 60,
-      ));
+      ..shader =
+          RadialGradient(
+            colors: [
+              Color(0xFFFFF59D),
+              Color(0xFFFFF176),
+              Color(0xFFFFEE58).withOpacity(0.0),
+            ],
+            stops: [0.0, 0.5, 1.0],
+          ).createShader(
+            Rect.fromCircle(
+              center: Offset(size.width * 0.8, size.height * 0.2),
+              radius: 60,
+            ),
+          );
 
-    canvas.drawCircle(Offset(size.width * 0.8, size.height * 0.2), 60, sunPaint);
+    canvas.drawCircle(
+      Offset(size.width * 0.8, size.height * 0.2),
+      60,
+      sunPaint,
+    );
 
     // Vẽ core mặt trời
     canvas.drawCircle(
@@ -333,9 +358,21 @@ class EcosystemPainter extends CustomPainter {
 
   void _drawCloud(Canvas canvas, Offset position, double scale, Paint paint) {
     canvas.drawCircle(position, 25 * scale, paint);
-    canvas.drawCircle(Offset(position.dx + 20 * scale, position.dy), 30 * scale, paint);
-    canvas.drawCircle(Offset(position.dx + 45 * scale, position.dy), 25 * scale, paint);
-    canvas.drawCircle(Offset(position.dx + 30 * scale, position.dy - 15 * scale), 20 * scale, paint);
+    canvas.drawCircle(
+      Offset(position.dx + 20 * scale, position.dy),
+      30 * scale,
+      paint,
+    );
+    canvas.drawCircle(
+      Offset(position.dx + 45 * scale, position.dy),
+      25 * scale,
+      paint,
+    );
+    canvas.drawCircle(
+      Offset(position.dx + 30 * scale, position.dy - 15 * scale),
+      20 * scale,
+      paint,
+    );
   }
 
   void _drawBirdSilhouettes(Canvas canvas, Size size) {
@@ -346,7 +383,9 @@ class EcosystemPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
 
     for (int i = 0; i < 5; i++) {
-      final x = (size.width * (0.1 + i * 0.15) + progress * 40 + i * 20) % (size.width + 50);
+      final x =
+          (size.width * (0.1 + i * 0.15) + progress * 40 + i * 20) %
+          (size.width + 50);
       final y = size.height * 0.3 + sin(progress * 2 * pi + i) * 30;
 
       final path = Path();

@@ -7,14 +7,14 @@ import 'Forgot password screen.dart';
 import 'auth_service.dart';
 import '../home/home_wrapper.dart';
 
-// ── Entry point ───────────────────────────────────────────────
+// Entry point
 class AuthScreen extends StatefulWidget {
-  /// Nếu khác null, sau khi đăng nhập thành công sẽ mở màn này
-  /// thay vì nhảy về HomeWrapper.
+  // Nếu khác null, sau khi đăng nhập thành công sẽ mở màn này
+  // thay vì nhảy về HomeWrapper.
   final Widget? redirectAfterLogin;
 
-  /// true: login xong pop về màn trước đó.
-  /// Dùng khi mở login từ report/favorite/explore/settings.
+  // true: login xong pop về màn trước đó.
+  // Dùng khi mở login từ report/favorite/explore/settings.
   final bool popAfterLogin;
 
   const AuthScreen({
@@ -23,14 +23,11 @@ class AuthScreen extends StatefulWidget {
     this.popAfterLogin = false,
   });
 
-
   @override
   State<AuthScreen> createState() => _AuthScreenState();
 }
 
-class _AuthScreenState extends State<AuthScreen>
-    with TickerProviderStateMixin {
-
+class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
   late AnimationController _bgController;
   late AnimationController _formController;
   late Animation<double> _formFade;
@@ -61,14 +58,18 @@ class _AuthScreenState extends State<AuthScreen>
       duration: const Duration(milliseconds: 700),
     );
 
-    _formFade  = CurvedAnimation(parent: _formController, curve: Curves.easeOut);
-    _formSlide = Tween<Offset>(begin: const Offset(0, 0.08), end: Offset.zero)
-        .animate(CurvedAnimation(parent: _formController, curve: Curves.easeOut));
+    _formFade = CurvedAnimation(parent: _formController, curve: Curves.easeOut);
+    _formSlide = Tween<Offset>(
+      begin: const Offset(0, 0.08),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _formController, curve: Curves.easeOut));
 
     _formController.forward();
 
-    // ── LẮNG NGHE TRẠNG THÁI ĐĂNG NHẬP (AUTO-LOGIN & REDIRECT) ──
-    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+    // Lắng nghe trạng thái đăng nhập (auto-login & redirect)
+    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((
+      data,
+    ) {
       final AuthChangeEvent event = data.event;
       final Session? session = data.session;
 
@@ -83,7 +84,9 @@ class _AuthScreenState extends State<AuthScreen>
         });
       }
       // 2. Nếu vừa mở app hoặc login thành công -> Vào thẳng Home
-      else if ((event == AuthChangeEvent.initialSession || event == AuthChangeEvent.signedIn) && session != null) {
+      else if ((event == AuthChangeEvent.initialSession ||
+              event == AuthChangeEvent.signedIn) &&
+          session != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
             _goAfterLogin();
@@ -121,8 +124,7 @@ class _AuthScreenState extends State<AuthScreen>
 
     final args = ModalRoute.of(context)?.settings.arguments;
     final popByRouteArgs =
-        args == true ||
-            (args is Map && args['popAfterLogin'] == true);
+        args == true || (args is Map && args['popAfterLogin'] == true);
 
     if (widget.popAfterLogin || popByRouteArgs) {
       Navigator.of(context).pop(true);
@@ -132,9 +134,9 @@ class _AuthScreenState extends State<AuthScreen>
     final redirect = widget.redirectAfterLogin;
 
     if (redirect != null) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => redirect),
-      );
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => redirect));
       return;
     }
 
@@ -153,13 +155,13 @@ class _AuthScreenState extends State<AuthScreen>
     return Scaffold(
       body: Stack(
         children: [
-          // ── Background động (giống onboarding) ──────────────
+          // Background động (giống onboarding)
           _AuthBackground(controller: _bgController, colors: _gradientColors),
 
-          // ── Particle dấu chân ───────────────────────────────
+          // Particle dấu chân
           _AuthParticles(color: _gradientColors[0]),
 
-          // ── Nội dung ─────────────────────────────────────────
+          // Nội dung
           SafeArea(
             child: FadeTransition(
               opacity: _formFade,
@@ -177,15 +179,15 @@ class _AuthScreenState extends State<AuthScreen>
                         padding: const EdgeInsets.symmetric(horizontal: 28),
                         child: _isLogin
                             ? _LoginForm(
-                          gradientColors: _gradientColors,
-                          onSuccess: _onLoginSuccess,
-                          onSwitchMode: _switchMode,
-                        )
+                                gradientColors: _gradientColors,
+                                onSuccess: _onLoginSuccess,
+                                onSwitchMode: _switchMode,
+                              )
                             : _RegisterForm(
-                          gradientColors: _gradientColors,
-                          onSuccess: _onLoginSuccess,
-                          onSwitchMode: _switchMode,
-                        ),
+                                gradientColors: _gradientColors,
+                                onSuccess: _onLoginSuccess,
+                                onSwitchMode: _switchMode,
+                              ),
                       ),
                     ),
                   ],
@@ -203,7 +205,8 @@ class _AuthScreenState extends State<AuthScreen>
       children: [
         // Icon chính với hiệu ứng glow
         Container(
-          width: 90, height: 90,
+          width: 90,
+          height: 90,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: _gradientColors,
@@ -226,9 +229,8 @@ class _AuthScreenState extends State<AuthScreen>
         ),
         const SizedBox(height: 16),
         ShaderMask(
-          shaderCallback: (bounds) => LinearGradient(
-            colors: _gradientColors,
-          ).createShader(bounds),
+          shaderCallback: (bounds) =>
+              LinearGradient(colors: _gradientColors).createShader(bounds),
           child: Text(
             _isLogin ? 'Chào mừng!' : 'Tạo tài khoản',
             style: const TextStyle(
@@ -237,8 +239,16 @@ class _AuthScreenState extends State<AuthScreen>
               color: Colors.white,
               letterSpacing: -0.5,
               shadows: [
-                Shadow(color: Colors.black87, offset: Offset(0, 0), blurRadius: 8),
-                Shadow(color: Colors.black54, offset: Offset(1, 1), blurRadius: 4),
+                Shadow(
+                  color: Colors.black87,
+                  offset: Offset(0, 0),
+                  blurRadius: 8,
+                ),
+                Shadow(
+                  color: Colors.black54,
+                  offset: Offset(1, 1),
+                  blurRadius: 4,
+                ),
               ],
             ),
           ),
@@ -260,7 +270,7 @@ class _AuthScreenState extends State<AuthScreen>
   }
 }
 
-// ── Login Form ────────────────────────────────────────────────
+// Login Form
 class _LoginForm extends StatefulWidget {
   final List<Color> gradientColors;
   final VoidCallback onSuccess;
@@ -277,10 +287,10 @@ class _LoginForm extends StatefulWidget {
 }
 
 class _LoginFormState extends State<_LoginForm> {
-  final _emailCtrl    = TextEditingController();
+  final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
-  bool _loading     = false;
-  bool _obscure     = true;
+  bool _loading = false;
+  bool _obscure = true;
   String? _error;
 
   @override
@@ -291,7 +301,10 @@ class _LoginFormState extends State<_LoginForm> {
   }
 
   Future<void> _submit() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     HapticFeedback.mediumImpact();
     try {
       await AuthService.signInWithEmail(
@@ -300,19 +313,31 @@ class _LoginFormState extends State<_LoginForm> {
       );
       widget.onSuccess();
     } on AuthException catch (e) {
-      setState(() { _error = _mapError(e.message); _loading = false; });
+      setState(() {
+        _error = _mapError(e.message);
+        _loading = false;
+      });
     } catch (e) {
-      setState(() { _error = 'Đã có lỗi xảy ra. Vui lòng thử lại.'; _loading = false; });
+      setState(() {
+        _error = 'Đã có lỗi xảy ra. Vui lòng thử lại.';
+        _loading = false;
+      });
     }
   }
 
   Future<void> _googleSignIn() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
       await AuthService.signInWithGoogle();
       // Kết quả sẽ được xử lý qua authStateStream listener ở màn hình chính
     } catch (e) {
-      setState(() { _error = 'Đăng nhập Google thất bại.'; _loading = false; });
+      setState(() {
+        _error = 'Đăng nhập Google thất bại.';
+        _loading = false;
+      });
     }
   }
 
@@ -336,8 +361,11 @@ class _LoginFormState extends State<_LoginForm> {
           gradientColors: widget.gradientColors,
           suffixIcon: IconButton(
             icon: Icon(
-              _obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-              color: Colors.black38, size: 20,
+              _obscure
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
+              color: Colors.black38,
+              size: 20,
             ),
             onPressed: () => setState(() => _obscure = !_obscure),
           ),
@@ -345,12 +373,20 @@ class _LoginFormState extends State<_LoginForm> {
         Align(
           alignment: Alignment.centerRight,
           child: GestureDetector(
-            onTap: () => Navigator.push(context,
-                MaterialPageRoute(builder: (_) => const ForgotPasswordScreen())),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
+            ),
             child: Padding(
               padding: const EdgeInsets.only(top: 8),
-              child: Text('Quên mật khẩu?',
-                  style: TextStyle(fontSize: 13, color: widget.gradientColors[0], fontWeight: FontWeight.w600)),
+              child: Text(
+                'Quên mật khẩu?',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: widget.gradientColors[0],
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ),
         ),
@@ -374,14 +410,22 @@ class _LoginFormState extends State<_LoginForm> {
         const SizedBox(height: 16),
 
         // Divider
-        Row(children: [
-          Expanded(child: Divider(color: Colors.black.withOpacity(0.15))),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Text('hoặc', style: TextStyle(color: Colors.black.withOpacity(0.4), fontSize: 13)),
-          ),
-          Expanded(child: Divider(color: Colors.black.withOpacity(0.15))),
-        ]),
+        Row(
+          children: [
+            Expanded(child: Divider(color: Colors.black.withOpacity(0.15))),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Text(
+                'hoặc',
+                style: TextStyle(
+                  color: Colors.black.withOpacity(0.4),
+                  fontSize: 13,
+                ),
+              ),
+            ),
+            Expanded(child: Divider(color: Colors.black.withOpacity(0.15))),
+          ],
+        ),
 
         const SizedBox(height: 16),
 
@@ -417,7 +461,10 @@ class _LoginFormState extends State<_LoginForm> {
           onTap: widget.onSwitchMode,
           child: RichText(
             text: TextSpan(
-              style: TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.5)),
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.black.withOpacity(0.5),
+              ),
               children: [
                 const TextSpan(text: 'Chưa có tài khoản? '),
                 TextSpan(
@@ -437,7 +484,7 @@ class _LoginFormState extends State<_LoginForm> {
   }
 }
 
-// ── Register Form ─────────────────────────────────────────────
+// Register Form
 class _RegisterForm extends StatefulWidget {
   final List<Color> gradientColors;
   final VoidCallback onSuccess;
@@ -454,8 +501,8 @@ class _RegisterForm extends StatefulWidget {
 }
 
 class _RegisterFormState extends State<_RegisterForm> {
-  final _nameCtrl     = TextEditingController();
-  final _emailCtrl    = TextEditingController();
+  final _nameCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   bool _loading = false;
   bool _obscure = true;
@@ -474,7 +521,10 @@ class _RegisterFormState extends State<_RegisterForm> {
       setState(() => _error = 'Vui lòng nhập tên hiển thị');
       return;
     }
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     HapticFeedback.mediumImpact();
     try {
       await AuthService.signUpWithEmail(
@@ -484,19 +534,31 @@ class _RegisterFormState extends State<_RegisterForm> {
       );
       widget.onSuccess();
     } on AuthException catch (e) {
-      setState(() { _error = _mapError(e.message); _loading = false; });
+      setState(() {
+        _error = _mapError(e.message);
+        _loading = false;
+      });
     } catch (e) {
-      setState(() { _error = 'Đã có lỗi xảy ra. Vui lòng thử lại.'; _loading = false; });
+      setState(() {
+        _error = 'Đã có lỗi xảy ra. Vui lòng thử lại.';
+        _loading = false;
+      });
     }
   }
 
   Future<void> _googleSignIn() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
       await AuthService.signInWithGoogle();
       // Chờ Listener xử lý chuyển trang
     } catch (e) {
-      setState(() { _error = 'Đăng nhập Google thất bại.'; _loading = false; });
+      setState(() {
+        _error = 'Đăng nhập Google thất bại.';
+        _loading = false;
+      });
     }
   }
 
@@ -527,8 +589,11 @@ class _RegisterFormState extends State<_RegisterForm> {
           gradientColors: widget.gradientColors,
           suffixIcon: IconButton(
             icon: Icon(
-              _obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-              color: Colors.black38, size: 20,
+              _obscure
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
+              color: Colors.black38,
+              size: 20,
             ),
             onPressed: () => setState(() => _obscure = !_obscure),
           ),
@@ -551,14 +616,22 @@ class _RegisterFormState extends State<_RegisterForm> {
 
         const SizedBox(height: 16),
 
-        Row(children: [
-          Expanded(child: Divider(color: Colors.black.withOpacity(0.15))),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Text('hoặc', style: TextStyle(color: Colors.black.withOpacity(0.4), fontSize: 13)),
-          ),
-          Expanded(child: Divider(color: Colors.black.withOpacity(0.15))),
-        ]),
+        Row(
+          children: [
+            Expanded(child: Divider(color: Colors.black.withOpacity(0.15))),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Text(
+                'hoặc',
+                style: TextStyle(
+                  color: Colors.black.withOpacity(0.4),
+                  fontSize: 13,
+                ),
+              ),
+            ),
+            Expanded(child: Divider(color: Colors.black.withOpacity(0.15))),
+          ],
+        ),
 
         const SizedBox(height: 16),
         _GoogleButton(loading: _loading, onTap: _googleSignIn),
@@ -569,12 +642,18 @@ class _RegisterFormState extends State<_RegisterForm> {
           onTap: widget.onSwitchMode,
           child: RichText(
             text: TextSpan(
-              style: TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.5)),
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.black.withOpacity(0.5),
+              ),
               children: [
                 const TextSpan(text: 'Đã có tài khoản? '),
                 TextSpan(
                   text: 'Đăng nhập',
-                  style: TextStyle(fontWeight: FontWeight.w700, color: widget.gradientColors[0]),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: widget.gradientColors[0],
+                  ),
                 ),
               ],
             ),
@@ -586,7 +665,7 @@ class _RegisterFormState extends State<_RegisterForm> {
   }
 }
 
-// ── Shared Widgets ────────────────────────────────────────────
+// Shared Widgets
 
 class _AuthTextField extends StatelessWidget {
   final TextEditingController controller;
@@ -626,14 +705,24 @@ class _AuthTextField extends StatelessWidget {
         controller: controller,
         obscureText: obscureText,
         keyboardType: keyboardType,
-        style: const TextStyle(fontSize: 15, color: Colors.black87, fontWeight: FontWeight.w500),
+        style: const TextStyle(
+          fontSize: 15,
+          color: Colors.black87,
+          fontWeight: FontWeight.w500,
+        ),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: TextStyle(color: Colors.black.withOpacity(0.45), fontSize: 14),
+          labelStyle: TextStyle(
+            color: Colors.black.withOpacity(0.45),
+            fontSize: 14,
+          ),
           prefixIcon: Icon(icon, color: gradientColors[0], size: 21),
           suffixIcon: suffixIcon,
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 18,
+          ),
           floatingLabelBehavior: FloatingLabelBehavior.auto,
         ),
       ),
@@ -677,17 +766,28 @@ class _GradientButton extends StatelessWidget {
         child: Center(
           child: loading
               ? const SizedBox(
-            width: 24, height: 24,
-            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
-          )
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2.5,
+                  ),
+                )
               : Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(text, style: const TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold)),
-              const SizedBox(width: 10),
-              Icon(icon, color: Colors.white, size: 22),
-            ],
-          ),
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      text,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Icon(icon, color: Colors.white, size: 22),
+                  ],
+                ),
         ),
       ),
     );
@@ -712,15 +812,33 @@ class _GoogleButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(36),
           border: Border.all(color: Colors.white.withOpacity(0.5)),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 12, offset: const Offset(0, 4)),
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
           ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('G', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFFEA4335))),
+            const Text(
+              'G',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
+                color: Color(0xFFEA4335),
+              ),
+            ),
             const SizedBox(width: 10),
-            Text('Tiếp tục với Google', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.black.withOpacity(0.7))),
+            Text(
+              'Tiếp tục với Google',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: Colors.black.withOpacity(0.7),
+              ),
+            ),
           ],
         ),
       ),
@@ -743,16 +861,25 @@ class _ErrorBox extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.error_outline_rounded, color: Color(0xFFEF4444), size: 18),
+          const Icon(
+            Icons.error_outline_rounded,
+            color: Color(0xFFEF4444),
+            size: 18,
+          ),
           const SizedBox(width: 10),
-          Expanded(child: Text(message, style: const TextStyle(color: Color(0xFFEF4444), fontSize: 13))),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(color: Color(0xFFEF4444), fontSize: 13),
+            ),
+          ),
         ],
       ),
     );
   }
 }
 
-// ── Background giống onboarding ──────────────────────────────
+// Background giống onboarding
 class _AuthBackground extends StatelessWidget {
   final AnimationController controller;
   final List<Color> colors;
@@ -771,30 +898,40 @@ class _AuthBackground extends StatelessWidget {
             colors: colors,
           ),
         ),
-        child: Stack(children: [
-          Positioned(
-            top: -100 + math.sin(controller.value * 2 * math.pi) * 50,
-            left: -150 + math.cos(controller.value * 2 * math.pi) * 30,
-            child: Container(
-              width: 400, height: 400,
-              decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withOpacity(0.1)),
+        child: Stack(
+          children: [
+            Positioned(
+              top: -100 + math.sin(controller.value * 2 * math.pi) * 50,
+              left: -150 + math.cos(controller.value * 2 * math.pi) * 30,
+              child: Container(
+                width: 400,
+                height: 400,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withOpacity(0.1),
+                ),
+              ),
             ),
-          ),
-          Positioned(
-            bottom: -50 + math.sin(controller.value * 2 * math.pi * -1) * 40,
-            right: -100 + math.cos(controller.value * 2 * math.pi * -1) * 25,
-            child: Container(
-              width: 300, height: 300,
-              decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withOpacity(0.08)),
+            Positioned(
+              bottom: -50 + math.sin(controller.value * 2 * math.pi * -1) * 40,
+              right: -100 + math.cos(controller.value * 2 * math.pi * -1) * 25,
+              child: Container(
+                width: 300,
+                height: 300,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withOpacity(0.08),
+                ),
+              ),
             ),
-          ),
-        ]),
+          ],
+        ),
       ),
     );
   }
 }
 
-// ── Particle dấu chân nhẹ ────────────────────────────────────
+// Particle dấu chân nhẹ
 class _AuthParticles extends StatefulWidget {
   final Color color;
   const _AuthParticles({required this.color});
@@ -810,11 +947,17 @@ class _AuthParticlesState extends State<_AuthParticles>
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(vsync: this, duration: const Duration(seconds: 20))..repeat();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 20),
+    )..repeat();
   }
 
   @override
-  void dispose() { _ctrl.dispose(); super.dispose(); }
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -832,13 +975,17 @@ class _PawPainter extends CustomPainter {
   final double progress;
   final Color color;
   static final _rng = math.Random(42);
-  static final _particles = List.generate(15, (i) => [
-    _rng.nextDouble(), _rng.nextDouble(),
-    _rng.nextDouble() * 0.008 - 0.004,
-    _rng.nextDouble() * 0.004,
-    4 + _rng.nextDouble() * 5,
-    _rng.nextDouble() * 0.25 + 0.05,
-  ]);
+  static final _particles = List.generate(
+    15,
+    (i) => [
+      _rng.nextDouble(),
+      _rng.nextDouble(),
+      _rng.nextDouble() * 0.008 - 0.004,
+      _rng.nextDouble() * 0.004,
+      4 + _rng.nextDouble() * 5,
+      _rng.nextDouble() * 0.25 + 0.05,
+    ],
+  );
 
   _PawPainter({required this.progress, required this.color});
 
@@ -851,7 +998,10 @@ class _PawPainter extends CustomPainter {
       final paint = Paint()..color = color.withOpacity(p[5] as double);
       canvas.save();
       canvas.translate(x, y);
-      canvas.drawOval(Rect.fromCenter(center: Offset.zero, width: r * 2.2, height: r * 1.8), paint);
+      canvas.drawOval(
+        Rect.fromCenter(center: Offset.zero, width: r * 2.2, height: r * 1.8),
+        paint,
+      );
       canvas.drawCircle(Offset(-r * 0.8, -r * 1.4), r * 0.7, paint);
       canvas.drawCircle(Offset(0, -r * 1.2 * 1.2), r * 0.7, paint);
       canvas.drawCircle(Offset(r * 0.8, -r * 1.4), r * 0.7, paint);
@@ -863,12 +1013,16 @@ class _PawPainter extends CustomPainter {
   bool shouldRepaint(_PawPainter old) => true;
 }
 
-// ── Helper: map lỗi Supabase sang tiếng Việt ─────────────────
+// map lỗi Supabase sang tiếng Việt
 String _mapError(String msg) {
-  if (msg.contains('Invalid login credentials')) return 'Email hoặc mật khẩu không đúng.';
-  if (msg.contains('Email not confirmed'))        return 'Vui lòng xác nhận email trước khi đăng nhập.';
-  if (msg.contains('User already registered'))    return 'Email này đã được đăng ký.';
-  if (msg.contains('Password should be'))         return 'Mật khẩu phải có ít nhất 6 ký tự.';
-  if (msg.contains('Unable to validate'))         return 'Email không hợp lệ.';
+  if (msg.contains('Invalid login credentials'))
+    return 'Email hoặc mật khẩu không đúng.';
+  if (msg.contains('Email not confirmed'))
+    return 'Vui lòng xác nhận email trước khi đăng nhập.';
+  if (msg.contains('User already registered'))
+    return 'Email này đã được đăng ký.';
+  if (msg.contains('Password should be'))
+    return 'Mật khẩu phải có ít nhất 6 ký tự.';
+  if (msg.contains('Unable to validate')) return 'Email không hợp lệ.';
   return msg;
 }

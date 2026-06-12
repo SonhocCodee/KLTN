@@ -37,7 +37,7 @@ class SmartAnimalImage extends StatelessWidget {
                   color: Colors.white,
                   value: loadingProgress.expectedTotalBytes != null
                       ? loadingProgress.cumulativeBytesLoaded /
-                      loadingProgress.expectedTotalBytes!
+                            loadingProgress.expectedTotalBytes!
                       : null,
                 ),
               ),
@@ -59,14 +59,14 @@ class SmartAnimalImage extends StatelessWidget {
     );
   }
 
-  /// Tính alignment dựa vào tên động vật và loại ảnh
+  // Tính alignment dựa vào tên động vật và loại ảnh
   Alignment _getAlignment() {
-    // Ảnh đã extend bởi AI → Con vật đã ở center-bottom
+    // Ảnh đã được xử lý -> Con vật đã ở center-bottom
     if (isExtendedImage) {
       return const Alignment(0, 0.3);
     }
 
-    // Ảnh gốc → Dùng preset theo tên động vật
+    // Ảnh gốc -> Dùng preset theo tên động vật
     if (animalName != null) {
       return _getPresetAlignment(animalName!);
     }
@@ -75,7 +75,7 @@ class SmartAnimalImage extends StatelessWidget {
     return const Alignment(0, 0.2);
   }
 
-  /// Preset alignment cho từng loại động vật
+  // Preset alignment cho từng loại động vật
   Alignment _getPresetAlignment(String animalName) {
     final normalized = animalName.toLowerCase().trim();
 

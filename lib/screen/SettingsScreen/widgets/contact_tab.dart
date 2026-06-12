@@ -29,7 +29,7 @@ class ContactTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Header ──────────────────────────────────────────
+          // Header
           Center(
             child: Column(
               children: [
@@ -37,14 +37,23 @@ class ContactTab extends StatelessWidget {
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: isDark ? primaryGreen.withOpacity(0.2) : primaryGreen.withOpacity(0.1),
+                    color: isDark
+                        ? primaryGreen.withOpacity(0.2)
+                        : primaryGreen.withOpacity(0.1),
                   ),
-                  child: Icon(Icons.support_agent_rounded, size: 46, color: primaryGreen),
+                  child: Icon(
+                    Icons.support_agent_rounded,
+                    size: 46,
+                    color: primaryGreen,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Text(
                   t.tr('Chúng tôi luôn lắng nghe bạn!'),
-                  style: TextStyle(fontSize: 15, color: colorScheme.onSurfaceVariant),
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -53,32 +62,40 @@ class ContactTab extends StatelessWidget {
 
           const SizedBox(height: 28),
 
-          // ── Kênh liên hệ nhanh ──────────────────────────────
+          // Kênh liên hệ nhanh
           _SectionLabel(label: t.tr('Kênh liên hệ'), color: primaryGreen),
           const SizedBox(height: 10),
           _buildContactCard(
-            context: context, isDark: isDark,
-            icon: Icons.email_rounded, color: Colors.redAccent,
-            title: t.tr('Email Hỗ Trợ'), value: 'support@aniquest.com',
+            context: context,
+            isDark: isDark,
+            icon: Icons.email_rounded,
+            color: Colors.redAccent,
+            title: t.tr('Email Hỗ Trợ'),
+            value: 'support@aniquest.com',
             onTap: () => _launch('mailto:support@aniquest.com'),
           ),
           _buildContactCard(
-            context: context, isDark: isDark,
-            icon: Icons.facebook_rounded, color: Colors.blue,
-            title: 'Facebook', value: 'AniQuest Official',
+            context: context,
+            isDark: isDark,
+            icon: Icons.facebook_rounded,
+            color: Colors.blue,
+            title: 'Facebook',
+            value: 'AniQuest Official',
             onTap: () => _launch('https://facebook.com/'),
           ),
           _buildContactCard(
-            context: context, isDark: isDark,
+            context: context,
+            isDark: isDark,
             icon: Icons.code_rounded,
             color: isDark ? Colors.white : Colors.black87,
-            title: 'GitHub', value: 'AniQuest Open Source',
+            title: 'GitHub',
+            value: 'AniQuest Open Source',
             onTap: () => _launch('https://github.com/'),
           ),
 
           const SizedBox(height: 32),
 
-          // ── Form góp ý / báo lỗi ────────────────────────────
+          // Form góp ý / báo lỗi
           _SectionLabel(label: t.tr('Góp ý & Báo lỗi'), color: primaryGreen),
           const SizedBox(height: 12),
           _FeedbackForm(primaryGreen: primaryGreen),
@@ -106,8 +123,10 @@ class ContactTab extends StatelessWidget {
     required VoidCallback onTap,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
-    final cardColor   = isDark ? Colors.grey[850] : colorScheme.surface;
-    final borderColor = isDark ? Colors.white12 : colorScheme.outlineVariant.withOpacity(0.5);
+    final cardColor = isDark ? Colors.grey[850] : colorScheme.surface;
+    final borderColor = isDark
+        ? Colors.white12
+        : colorScheme.outlineVariant.withOpacity(0.5);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -117,25 +136,49 @@ class ContactTab extends StatelessWidget {
         border: Border.all(color: borderColor),
         boxShadow: isDark
             ? []
-            : [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8, offset: const Offset(0, 2))],
+            : [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.03),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
       ),
       child: ListTile(
         onTap: onTap,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         leading: Container(
-          width: 42, height: 42,
-          decoration: BoxDecoration(shape: BoxShape.circle, color: color.withOpacity(0.15)),
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: color.withOpacity(0.15),
+          ),
           child: Icon(icon, color: color, size: 22),
         ),
-        title: Text(title, style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant)),
-        subtitle: Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
-        trailing: Icon(Icons.arrow_forward_ios_rounded, size: 14, color: colorScheme.outline),
+        title: Text(
+          title,
+          style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+        ),
+        subtitle: Text(
+          value,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: colorScheme.onSurface,
+          ),
+        ),
+        trailing: Icon(
+          Icons.arrow_forward_ios_rounded,
+          size: 14,
+          color: colorScheme.outline,
+        ),
       ),
     );
   }
 }
 
-// ── Label tiêu đề section ────────────────────────────────────
+// Label tiêu đề section
 class _SectionLabel extends StatelessWidget {
   final String label;
   final Color color;
@@ -145,17 +188,30 @@ class _SectionLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Container(width: 3, height: 16, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2))),
+        Container(
+          width: 3,
+          height: 16,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
         const SizedBox(width: 8),
-        Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: color, letterSpacing: 0.3)),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: color,
+            letterSpacing: 0.3,
+          ),
+        ),
       ],
     );
   }
 }
 
-// ══════════════════════════════════════════════════════════════
 // Form Góp ý / Báo lỗi
-// ══════════════════════════════════════════════════════════════
 class _FeedbackForm extends StatefulWidget {
   final Color primaryGreen;
   const _FeedbackForm({required this.primaryGreen});
@@ -165,17 +221,17 @@ class _FeedbackForm extends StatefulWidget {
 }
 
 class _FeedbackFormState extends State<_FeedbackForm> {
-  final _formKey      = GlobalKey<FormState>();
-  final _service      = FeedbackService();
-  final _picker       = ImagePicker();
+  final _formKey = GlobalKey<FormState>();
+  final _service = FeedbackService();
+  final _picker = ImagePicker();
 
-  final _descCtrl     = TextEditingController();
-  final _nameCtrl     = TextEditingController();
-  final _emailCtrl    = TextEditingController();
+  final _descCtrl = TextEditingController();
+  final _nameCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
 
-  String _type        = 'bug';        // bug | suggestion | other
-  bool _isSubmitting  = false;
-  bool _submitted     = false;
+  String _type = 'bug'; // bug | suggestion | other
+  bool _isSubmitting = false;
+  bool _submitted = false;
 
   // Danh sách file đã chọn (ảnh hoặc video)
   final List<XFile> _mediaFiles = [];
@@ -188,7 +244,7 @@ class _FeedbackFormState extends State<_FeedbackForm> {
     final user = AuthService.currentUser;
     if (user != null) {
       final meta = user.userMetadata;
-      _nameCtrl.text  = (meta?['full_name'] as String?) ?? '';
+      _nameCtrl.text = (meta?['full_name'] as String?) ?? '';
       _emailCtrl.text = user.email ?? '';
     }
   }
@@ -210,9 +266,15 @@ class _FeedbackFormState extends State<_FeedbackForm> {
     try {
       XFile? file;
       if (isVideo) {
-        file = await _picker.pickVideo(source: ImageSource.gallery, maxDuration: const Duration(minutes: 2));
+        file = await _picker.pickVideo(
+          source: ImageSource.gallery,
+          maxDuration: const Duration(minutes: 2),
+        );
       } else {
-        file = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+        file = await _picker.pickImage(
+          source: ImageSource.gallery,
+          imageQuality: 80,
+        );
       }
       if (file != null) setState(() => _mediaFiles.add(file!));
     } catch (_) {
@@ -232,7 +294,7 @@ class _FeedbackFormState extends State<_FeedbackForm> {
       final List<String> urls = [];
       for (final xfile in _mediaFiles) {
         final file = File(xfile.path);
-        final url  = await _service.uploadMedia(file, xfile.name);
+        final url = await _service.uploadMedia(file, xfile.name);
         if (url != null) urls.add(url);
       }
 
@@ -241,11 +303,18 @@ class _FeedbackFormState extends State<_FeedbackForm> {
         type: _type,
         description: _descCtrl.text.trim(),
         mediaUrls: urls,
-        contactName:  _nameCtrl.text.trim().isNotEmpty  ? _nameCtrl.text.trim()  : null,
-        contactEmail: _emailCtrl.text.trim().isNotEmpty ? _emailCtrl.text.trim() : null,
+        contactName: _nameCtrl.text.trim().isNotEmpty
+            ? _nameCtrl.text.trim()
+            : null,
+        contactEmail: _emailCtrl.text.trim().isNotEmpty
+            ? _emailCtrl.text.trim()
+            : null,
       );
 
-      setState(() { _isSubmitting = false; _submitted = true; });
+      setState(() {
+        _isSubmitting = false;
+        _submitted = true;
+      });
     } catch (e) {
       setState(() => _isSubmitting = false);
       _showSnack('${t.tr('Gửi thất bại:')} $e');
@@ -255,28 +324,41 @@ class _FeedbackFormState extends State<_FeedbackForm> {
   void _showSnack(String msg) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: Theme.of(context).colorScheme.error),
+      SnackBar(
+        content: Text(msg),
+        backgroundColor: Theme.of(context).colorScheme.error,
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final cs      = Theme.of(context).colorScheme;
-    final isDark  = Theme.of(context).brightness == Brightness.dark;
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isLoggedIn = AuthService.isLoggedIn;
-    final t       = context.watch<LocaleProvider>();
+    final t = context.watch<LocaleProvider>();
 
     if (_submitted) return _buildSuccess(cs, t);
 
-    final cardBg     = isDark ? Colors.grey[850] : cs.surface;
-    final borderCol  = isDark ? Colors.white12 : cs.outlineVariant.withOpacity(0.5);
+    final cardBg = isDark ? Colors.grey[850] : cs.surface;
+    final borderCol = isDark
+        ? Colors.white12
+        : cs.outlineVariant.withOpacity(0.5);
 
     return Container(
       decoration: BoxDecoration(
         color: cardBg,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: borderCol),
-        boxShadow: isDark ? [] : [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 12, offset: const Offset(0, 4))],
+        boxShadow: isDark
+            ? []
+            : [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
       ),
       padding: const EdgeInsets.all(20),
       child: Form(
@@ -284,8 +366,15 @@ class _FeedbackFormState extends State<_FeedbackForm> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Loại phản hồi ─────────────────────────────────
-            Text(t.tr('Loại phản hồi'), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: cs.onSurfaceVariant)),
+            // Loại phản hồi
+            Text(
+              t.tr('Loại phản hồi'),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: cs.onSurfaceVariant,
+              ),
+            ),
             const SizedBox(height: 10),
             _TypeSelector(
               selected: _type,
@@ -295,13 +384,31 @@ class _FeedbackFormState extends State<_FeedbackForm> {
 
             const SizedBox(height: 20),
 
-            // ── Thông tin người dùng ──────────────────────────
+            // Thông tin người dùng
             if (!isLoggedIn) ...[
-              Text(t.tr('Thông tin của bạn (tùy chọn)'), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: cs.onSurfaceVariant)),
+              Text(
+                t.tr('Thông tin của bạn (tùy chọn)'),
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: cs.onSurfaceVariant,
+                ),
+              ),
               const SizedBox(height: 10),
-              _buildField(_nameCtrl,  t.tr('Họ tên'), Icons.person_outline_rounded, cs),
+              _buildField(
+                _nameCtrl,
+                t.tr('Họ tên'),
+                Icons.person_outline_rounded,
+                cs,
+              ),
               const SizedBox(height: 10),
-              _buildField(_emailCtrl, 'Email', Icons.email_outlined, cs, type: TextInputType.emailAddress),
+              _buildField(
+                _emailCtrl,
+                'Email',
+                Icons.email_outlined,
+                cs,
+                type: TextInputType.emailAddress,
+              ),
               const SizedBox(height: 20),
             ] else ...[
               // Đã đăng nhập: hiển thị info thay vì form nhập
@@ -309,8 +416,15 @@ class _FeedbackFormState extends State<_FeedbackForm> {
               const SizedBox(height: 20),
             ],
 
-            // ── Mô tả ─────────────────────────────────────────
-            Text(t.tr('Mô tả chi tiết *'), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: cs.onSurfaceVariant)),
+            // Mô tả
+            Text(
+              t.tr('Mô tả chi tiết *'),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: cs.onSurfaceVariant,
+              ),
+            ),
             const SizedBox(height: 10),
             TextFormField(
               controller: _descCtrl,
@@ -324,15 +438,30 @@ class _FeedbackFormState extends State<_FeedbackForm> {
                     ? t.tr('Tính năng bạn muốn thêm, cải tiến mong muốn...')
                     : t.tr('Nội dung góp ý của bạn...'),
               ),
-              validator: (v) => (v == null || v.trim().isEmpty) ? t.tr('Vui lòng mô tả vấn đề') : null,
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? t.tr('Vui lòng mô tả vấn đề')
+                  : null,
             ),
 
             const SizedBox(height: 20),
 
-            // ── Upload media ──────────────────────────────────
-            Text(t.tr('Đính kèm ảnh / video (tùy chọn)'), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: cs.onSurfaceVariant)),
+            // Upload media
+            Text(
+              t.tr('Đính kèm ảnh / video (tùy chọn)'),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: cs.onSurfaceVariant,
+              ),
+            ),
             const SizedBox(height: 4),
-            Text(t.tr('Tối đa 5 file · Ảnh hoặc video ≤ 2 phút'), style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant.withOpacity(0.6))),
+            Text(
+              t.tr('Tối đa 5 file · Ảnh hoặc video ≤ 2 phút'),
+              style: TextStyle(
+                fontSize: 11,
+                color: cs.onSurfaceVariant.withOpacity(0.6),
+              ),
+            ),
             const SizedBox(height: 10),
 
             // Grid preview media đã chọn
@@ -363,19 +492,30 @@ class _FeedbackFormState extends State<_FeedbackForm> {
 
             const SizedBox(height: 24),
 
-            // ── Submit ────────────────────────────────────────
+            // Submit
             SizedBox(
               width: double.infinity,
               child: FilledButton.icon(
                 onPressed: _isSubmitting ? null : _submit,
                 icon: _isSubmitting
-                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
                     : const Icon(Icons.send_rounded),
-                label: Text(_isSubmitting ? t.tr('Đang gửi...') : t.tr('Gửi phản hồi')),
+                label: Text(
+                  _isSubmitting ? t.tr('Đang gửi...') : t.tr('Gửi phản hồi'),
+                ),
                 style: FilledButton.styleFrom(
                   backgroundColor: widget.primaryGreen,
                   minimumSize: const Size.fromHeight(50),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                 ),
               ),
             ),
@@ -396,21 +536,44 @@ class _FeedbackFormState extends State<_FeedbackForm> {
       child: Column(
         children: [
           Container(
-            width: 72, height: 72,
-            decoration: BoxDecoration(color: widget.primaryGreen.withOpacity(0.12), shape: BoxShape.circle),
-            child: const Center(child: Text('✅', style: TextStyle(fontSize: 32))),
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: widget.primaryGreen.withOpacity(0.12),
+              shape: BoxShape.circle,
+            ),
+            child: const Center(
+              child: Text('✅', style: TextStyle(fontSize: 32)),
+            ),
           ),
           const SizedBox(height: 16),
-          Text(t.tr('Đã gửi thành công!'), style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: cs.onSurface)),
+          Text(
+            t.tr('Đã gửi thành công!'),
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: cs.onSurface,
+            ),
+          ),
           const SizedBox(height: 8),
           Text(
-            t.tr('Cảm ơn bạn đã góp ý. Chúng tôi sẽ xem xét và phản hồi sớm nhất có thể.'),
+            t.tr(
+              'Cảm ơn bạn đã góp ý. Chúng tôi sẽ xem xét và phản hồi sớm nhất có thể.',
+            ),
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant, height: 1.6),
+            style: TextStyle(
+              fontSize: 13,
+              color: cs.onSurfaceVariant,
+              height: 1.6,
+            ),
           ),
           const SizedBox(height: 20),
           OutlinedButton(
-            onPressed: () => setState(() { _submitted = false; _descCtrl.clear(); _mediaFiles.clear(); }),
+            onPressed: () => setState(() {
+              _submitted = false;
+              _descCtrl.clear();
+              _mediaFiles.clear();
+            }),
             child: Text(t.tr('Gửi thêm phản hồi')),
           ),
         ],
@@ -418,7 +581,13 @@ class _FeedbackFormState extends State<_FeedbackForm> {
     );
   }
 
-  Widget _buildField(TextEditingController ctrl, String label, IconData icon, ColorScheme cs, {TextInputType type = TextInputType.text}) {
+  Widget _buildField(
+    TextEditingController ctrl,
+    String label,
+    IconData icon,
+    ColorScheme cs, {
+    TextInputType type = TextInputType.text,
+  }) {
     return TextFormField(
       controller: ctrl,
       keyboardType: type,
@@ -427,35 +596,54 @@ class _FeedbackFormState extends State<_FeedbackForm> {
     );
   }
 
-  InputDecoration _inputDeco({required ColorScheme cs, String? label, String? hint, IconData? icon}) {
+  InputDecoration _inputDeco({
+    required ColorScheme cs,
+    String? label,
+    String? hint,
+    IconData? icon,
+  }) {
     return InputDecoration(
       labelText: label,
       hintText: hint,
-      hintStyle: TextStyle(fontSize: 13, color: cs.onSurfaceVariant.withOpacity(0.5)),
-      prefixIcon: icon != null ? Icon(icon, size: 20, color: cs.onSurfaceVariant) : null,
+      hintStyle: TextStyle(
+        fontSize: 13,
+        color: cs.onSurfaceVariant.withOpacity(0.5),
+      ),
+      prefixIcon: icon != null
+          ? Icon(icon, size: 20, color: cs.onSurfaceVariant)
+          : null,
       filled: true,
       fillColor: cs.surfaceContainerHighest,
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: cs.outlineVariant)),
-      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: cs.outlineVariant)),
-      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: cs.primary, width: 1.5)),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: cs.outlineVariant),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: cs.outlineVariant),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: cs.primary, width: 1.5),
+      ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       labelStyle: TextStyle(fontSize: 13, color: cs.onSurfaceVariant),
     );
   }
 }
 
-// ── Widget hiển thị info user đã đăng nhập ──────────────────
+// Widget hiển thị info user đã đăng nhập
 class _LoggedInUserInfo extends StatelessWidget {
   final Color primaryGreen;
   const _LoggedInUserInfo({required this.primaryGreen});
 
   @override
   Widget build(BuildContext context) {
-    final cs   = Theme.of(context).colorScheme;
-    final t    = context.watch<LocaleProvider>();
+    final cs = Theme.of(context).colorScheme;
+    final t = context.watch<LocaleProvider>();
     final user = AuthService.currentUser;
     final meta = user?.userMetadata;
-    final name  = (meta?['full_name'] as String?) ?? t.tr('Người dùng');
+    final name = (meta?['full_name'] as String?) ?? t.tr('Người dùng');
     final email = user?.email ?? '';
     final avatar = meta?['avatar_url'] as String?;
 
@@ -472,15 +660,33 @@ class _LoggedInUserInfo extends StatelessWidget {
             radius: 20,
             backgroundColor: primaryGreen.withOpacity(0.2),
             backgroundImage: avatar != null ? NetworkImage(avatar) : null,
-            child: avatar == null ? Text(name[0].toUpperCase(), style: TextStyle(color: primaryGreen, fontWeight: FontWeight.bold)) : null,
+            child: avatar == null
+                ? Text(
+                    name[0].toUpperCase(),
+                    style: TextStyle(
+                      color: primaryGreen,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )
+                : null,
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: cs.onSurface)),
-                Text(email, style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
+                Text(
+                  name,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                    color: cs.onSurface,
+                  ),
+                ),
+                Text(
+                  email,
+                  style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+                ),
               ],
             ),
           ),
@@ -491,23 +697,27 @@ class _LoggedInUserInfo extends StatelessWidget {
   }
 }
 
-// ── Selector loại phản hồi ───────────────────────────────────
+// Selector loại phản hồi
 class _TypeSelector extends StatelessWidget {
   final String selected;
   final Color primaryGreen;
   final ValueChanged<String> onChanged;
 
-  const _TypeSelector({required this.selected, required this.primaryGreen, required this.onChanged});
+  const _TypeSelector({
+    required this.selected,
+    required this.primaryGreen,
+    required this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final t  = context.watch<LocaleProvider>();
+    final t = context.watch<LocaleProvider>();
 
     final types = [
-      ('bug',        '🐛', t.tr('Báo lỗi')),
+      ('bug', '🐛', t.tr('Báo lỗi')),
       ('suggestion', '💡', t.tr('Góp ý')),
-      ('other',      '💬', t.tr('Khác')),
+      ('other', '💬', t.tr('Khác')),
     ];
 
     return Row(
@@ -521,15 +731,28 @@ class _TypeSelector extends StatelessWidget {
               margin: const EdgeInsets.only(right: 8),
               padding: const EdgeInsets.symmetric(vertical: 10),
               decoration: BoxDecoration(
-                color: isSelected ? primaryGreen.withOpacity(0.15) : cs.surfaceContainerHighest,
+                color: isSelected
+                    ? primaryGreen.withOpacity(0.15)
+                    : cs.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: isSelected ? primaryGreen : cs.outlineVariant.withOpacity(0.5)),
+                border: Border.all(
+                  color: isSelected
+                      ? primaryGreen
+                      : cs.outlineVariant.withOpacity(0.5),
+                ),
               ),
               child: Column(
                 children: [
                   Text(typeObj.$2, style: const TextStyle(fontSize: 20)),
                   const SizedBox(height: 4),
-                  Text(typeObj.$3, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: isSelected ? primaryGreen : cs.onSurfaceVariant)),
+                  Text(
+                    typeObj.$3,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: isSelected ? primaryGreen : cs.onSurfaceVariant,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -540,7 +763,7 @@ class _TypeSelector extends StatelessWidget {
   }
 }
 
-// ── Preview grid media đã chọn ───────────────────────────────
+// Preview grid media đã chọn
 class _MediaPreviewGrid extends StatelessWidget {
   final List<XFile> files;
   final void Function(int) onRemove;
@@ -555,34 +778,50 @@ class _MediaPreviewGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Wrap(
-      spacing: 8, runSpacing: 8,
+      spacing: 8,
+      runSpacing: 8,
       children: files.asMap().entries.map((e) {
         final index = e.key;
-        final file  = e.value;
+        final file = e.value;
         final video = _isVideo(file);
 
         return Stack(
           children: [
             Container(
-              width: 80, height: 80,
-              decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: Colors.grey[200]),
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: Colors.grey[200],
+              ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: video
                     ? Container(
-                  color: Colors.black87,
-                  child: const Center(child: Icon(Icons.videocam_rounded, color: Colors.white, size: 32)),
-                )
+                        color: Colors.black87,
+                        child: const Center(
+                          child: Icon(
+                            Icons.videocam_rounded,
+                            color: Colors.white,
+                            size: 32,
+                          ),
+                        ),
+                      )
                     : Image.file(File(file.path), fit: BoxFit.cover),
               ),
             ),
             Positioned(
-              top: 4, right: 4,
+              top: 4,
+              right: 4,
               child: GestureDetector(
                 onTap: () => onRemove(index),
                 child: Container(
-                  width: 20, height: 20,
-                  decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                  width: 20,
+                  height: 20,
+                  decoration: const BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
                   child: const Icon(Icons.close, size: 12, color: Colors.white),
                 ),
               ),
@@ -594,14 +833,19 @@ class _MediaPreviewGrid extends StatelessWidget {
   }
 }
 
-// ── Nút chọn file ─────────────────────────────────────────────
+// Nút chọn file
 class _MediaPickerBtn extends StatelessWidget {
   final IconData icon;
   final String label;
   final Color color;
   final VoidCallback onTap;
 
-  const _MediaPickerBtn({required this.icon, required this.label, required this.color, required this.onTap});
+  const _MediaPickerBtn({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -620,7 +864,14 @@ class _MediaPickerBtn extends StatelessWidget {
             children: [
               Icon(icon, size: 18, color: color),
               const SizedBox(width: 6),
-              Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: color)),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                ),
+              ),
             ],
           ),
         ),

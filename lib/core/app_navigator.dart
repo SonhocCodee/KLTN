@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-/// Dùng để điều hướng khi người dùng bấm vào push notification
-/// mà không cần BuildContext.
+// Dùng để điều hướng khi người dùng bấm vào push notification
+// mà không cần Dựng giao diệnContext.
 class AppNavigator {
   AppNavigator._();
 

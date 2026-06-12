@@ -28,9 +28,7 @@ class AnimalData {
     );
   }
 
-  // ─────────────────────────────────────────────
   // THÊM MỚI: Đọc từ Supabase cache
-  // ─────────────────────────────────────────────
   factory AnimalData.fromCacheJson(Map<String, dynamic> json) {
     return AnimalData(
       name: json['animal_name'] ?? '',
@@ -46,9 +44,7 @@ class AnimalData {
     );
   }
 
-  // ─────────────────────────────────────────────
   // THÊM MỚI: Lưu lên Supabase cache
-  // ─────────────────────────────────────────────
   Map<String, dynamic> toCacheJson() {
     return {
       'animal_name': name,
@@ -80,14 +76,18 @@ class AnimalData {
       facts.add('${t.tr('Chế độ ăn:')} ${characteristics['diet']}');
     }
 
-    final imageUrl = remoteImageUrl ??
+    final imageUrl =
+        remoteImageUrl ??
         'https://upload.wikimedia.org/wikipedia/commons/7/73/Lion_waiting_in_Namibia.jpg';
 
     return AnimalFact(
-      name: t.tr(_getVietnameseName(name)), // Bọc t.tr để dịch ngược tên con vật ra tiếng Anh
+      name: t.tr(
+        _getVietnameseName(name),
+      ), // Bọc t.tr để dịch ngược tên con vật ra tiếng Anh
       englishName: name,
       scientificName: taxonomy,
-      description: aiDescription ?? _generateDescription(t), // Truyền t vào desc
+      description:
+          aiDescription ?? _generateDescription(t), // Truyền t vào desc
       facts: facts.isEmpty ? [t.tr('Đang cập nhật thông tin...')] : facts,
       imageUrl: imageUrl,
       category: characteristics['diet'] ?? 'Unknown',

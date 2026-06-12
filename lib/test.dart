@@ -1,24 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-// ═══════════════════════════════════════════════════════
-// MAIN
-// ═══════════════════════════════════════════════════════
+// Màn hình chính
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Supabase.initialize(
     url: 'https://dnvlqnixommhjqwpflmw.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRudmxxbml4b21taGpxd3BmbG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzE1MDEsImV4cCI6MjA4NTkwNzUwMX0.sz5oI5lhecJ0DCJNByI3CIHFICHh2PBt5FHnrMfmDaE',
+    anonKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRudmxxbml4b21taGpxd3BmbG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzE1MDEsImV4cCI6MjA4NTkwNzUwMX0.sz5oI5lhecJ0DCJNByI3CIHFICHh2PBt5FHnrMfmDaE',
   );
 
   runApp(const AniQuestApp());
 }
 
-// ═══════════════════════════════════════════════════════
-// APP
-// ═══════════════════════════════════════════════════════
+// Ứng dụng
 
 class AniQuestApp extends StatelessWidget {
   const AniQuestApp({Key? key}) : super(key: key);
@@ -42,9 +39,7 @@ class AniQuestApp extends StatelessWidget {
   }
 }
 
-// ═══════════════════════════════════════════════════════
-// MODELS
-// ═══════════════════════════════════════════════════════
+// Models
 
 class QuizStep {
   final String id;
@@ -122,9 +117,7 @@ class Animal {
   }
 }
 
-// ═══════════════════════════════════════════════════════
-// QUIZ DATA
-// ═══════════════════════════════════════════════════════
+// Quiz data
 
 final List<QuizStep> quizFlow = [
   QuizStep(
@@ -150,26 +143,14 @@ final List<QuizStep> quizFlow = [
         label: 'Gà',
         filter: {'order_name': 'Galliformes'},
       ),
-      QuizOption(
-        emoji: '🦆',
-        label: 'Vịt',
-        filter: {'family': 'Anatidae'},
-      ),
+      QuizOption(emoji: '🦆', label: 'Vịt', filter: {'family': 'Anatidae'}),
       QuizOption(
         emoji: '🐭',
         label: 'Chuột',
         filter: {'order_name': 'Rodentia'},
       ),
-      QuizOption(
-        emoji: '🐦',
-        label: 'Chim',
-        filter: {'class': 'Aves'},
-      ),
-      QuizOption(
-        emoji: '🐟',
-        label: 'Cá',
-        filter: {'class': 'Actinopterygii'},
-      ),
+      QuizOption(emoji: '🐦', label: 'Chim', filter: {'class': 'Aves'}),
+      QuizOption(emoji: '🐟', label: 'Cá', filter: {'class': 'Actinopterygii'}),
       QuizOption(
         emoji: '🐯',
         label: 'Thú hoang',
@@ -214,11 +195,36 @@ final List<QuizStep> quizFlow = [
     type: QuizType.multi,
     isBooleanColumns: true,
     options: [
-      QuizOption(emoji: '🔵', label: 'Có đốm', column: 'has_spots', value: true),
-      QuizOption(emoji: '🦓', label: 'Có vằn', column: 'has_stripes', value: true),
-      QuizOption(emoji: '🧶', label: 'Lông xù', column: 'is_fluffy', value: true),
-      QuizOption(emoji: '👂', label: 'Tai cụp', column: 'has_floppy_ears', value: true),
-      QuizOption(emoji: '👂', label: 'Tai nhọn', column: 'has_pointy_ears', value: true),
+      QuizOption(
+        emoji: '🔵',
+        label: 'Có đốm',
+        column: 'has_spots',
+        value: true,
+      ),
+      QuizOption(
+        emoji: '🦓',
+        label: 'Có vằn',
+        column: 'has_stripes',
+        value: true,
+      ),
+      QuizOption(
+        emoji: '🧶',
+        label: 'Lông xù',
+        column: 'is_fluffy',
+        value: true,
+      ),
+      QuizOption(
+        emoji: '👂',
+        label: 'Tai cụp',
+        column: 'has_floppy_ears',
+        value: true,
+      ),
+      QuizOption(
+        emoji: '👂',
+        label: 'Tai nhọn',
+        column: 'has_pointy_ears',
+        value: true,
+      ),
       QuizOption(emoji: '🦁', label: 'Có bờm', column: 'has_mane', value: true),
     ],
   ),
@@ -239,9 +245,7 @@ final List<QuizStep> quizFlow = [
   ),
 ];
 
-// ═══════════════════════════════════════════════════════
-// QUIZ PAGE
-// ═══════════════════════════════════════════════════════
+// Quiz page
 
 class QuizPage extends StatefulWidget {
   const QuizPage({Key? key}) : super(key: key);
@@ -250,7 +254,8 @@ class QuizPage extends StatefulWidget {
   State<QuizPage> createState() => _QuizPageState();
 }
 
-class _QuizPageState extends State<QuizPage> with SingleTickerProviderStateMixin {
+class _QuizPageState extends State<QuizPage>
+    with SingleTickerProviderStateMixin {
   int currentStep = 0;
   Map<String, dynamic> filters = {};
   List<Animal> results = [];
@@ -276,9 +281,7 @@ class _QuizPageState extends State<QuizPage> with SingleTickerProviderStateMixin
     super.dispose();
   }
 
-  // ═══════════════════════════════════════════════════════
-  // FETCH RESULTS
-  // ═══════════════════════════════════════════════════════
+  // Fetch results
 
   Future<void> fetchResults() async {
     setState(() => isLoading = true);
@@ -313,7 +316,6 @@ class _QuizPageState extends State<QuizPage> with SingleTickerProviderStateMixin
       results = (data as List).map((json) => Animal.fromJson(json)).toList();
 
       print('Found ${results.length} results');
-
     } catch (e) {
       print('Error fetching: $e');
       results = [];
@@ -322,9 +324,7 @@ class _QuizPageState extends State<QuizPage> with SingleTickerProviderStateMixin
     setState(() => isLoading = false);
   }
 
-  // ═══════════════════════════════════════════════════════
-  // SELECT OPTION
-  // ═══════════════════════════════════════════════════════
+  // Select option
 
   void selectOption(int index) {
     final step = quizFlow[currentStep];
@@ -387,15 +387,13 @@ class _QuizPageState extends State<QuizPage> with SingleTickerProviderStateMixin
     print('Filters: $filters');
   }
 
-  // ═══════════════════════════════════════════════════════
-  // NEXT STEP
-  // ═══════════════════════════════════════════════════════
+  // Chuyển sang câu tiếp theo.
 
   Future<void> nextStep() async {
     await fetchResults();
 
     if (results.length <= 10 && results.isNotEmpty) {
-      // Show results
+      // Hiển thị kết quả nếu đã lọc đủ hẹp.
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -433,9 +431,7 @@ class _QuizPageState extends State<QuizPage> with SingleTickerProviderStateMixin
     }
   }
 
-  // ═══════════════════════════════════════════════════════
-  // GO BACK
-  // ═══════════════════════════════════════════════════════
+  // Go back
 
   void goBack() {
     if (currentStep > 0) {
@@ -449,9 +445,7 @@ class _QuizPageState extends State<QuizPage> with SingleTickerProviderStateMixin
     }
   }
 
-  // ═══════════════════════════════════════════════════════
-  // RESET
-  // ═══════════════════════════════════════════════════════
+  // Reset
 
   void reset() {
     setState(() {
@@ -464,9 +458,7 @@ class _QuizPageState extends State<QuizPage> with SingleTickerProviderStateMixin
     Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
-  // ═══════════════════════════════════════════════════════
-  // BUILD
-  // ═══════════════════════════════════════════════════════
+  // Build
 
   @override
   Widget build(BuildContext context) {
@@ -475,9 +467,12 @@ class _QuizPageState extends State<QuizPage> with SingleTickerProviderStateMixin
 
     // Filter options by search
     final filteredOptions = step.hasSearch && searchQuery.isNotEmpty
-        ? step.options.where((opt) =>
-        opt.label.toLowerCase().contains(searchQuery.toLowerCase())
-    ).toList()
+        ? step.options
+              .where(
+                (opt) =>
+                    opt.label.toLowerCase().contains(searchQuery.toLowerCase()),
+              )
+              .toList()
         : step.options;
 
     return Scaffold(
@@ -486,10 +481,7 @@ class _QuizPageState extends State<QuizPage> with SingleTickerProviderStateMixin
           gradient: RadialGradient(
             center: Alignment(-0.5, -0.5),
             radius: 1.5,
-            colors: [
-              Color(0xFF1A1926),
-              Color(0xFF0F0E17),
-            ],
+            colors: [Color(0xFF1A1926), Color(0xFF0F0E17)],
           ),
         ),
         child: SafeArea(
@@ -502,7 +494,11 @@ class _QuizPageState extends State<QuizPage> with SingleTickerProviderStateMixin
                   children: [
                     ShaderMask(
                       shaderCallback: (bounds) => const LinearGradient(
-                        colors: [Color(0xFFFF8906), Color(0xFFF25F4C), Color(0xFFE53170)],
+                        colors: [
+                          Color(0xFFFF8906),
+                          Color(0xFFF25F4C),
+                          Color(0xFFE53170),
+                        ],
                       ).createShader(bounds),
                       child: const Text(
                         '🐾 AniQuest',
@@ -537,7 +533,9 @@ class _QuizPageState extends State<QuizPage> with SingleTickerProviderStateMixin
                         value: progress,
                         minHeight: 8,
                         backgroundColor: const Color(0xFF1A1926),
-                        valueColor: const AlwaysStoppedAnimation(Color(0xFFFF8906)),
+                        valueColor: const AlwaysStoppedAnimation(
+                          Color(0xFFFF8906),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -559,217 +557,247 @@ class _QuizPageState extends State<QuizPage> with SingleTickerProviderStateMixin
               Expanded(
                 child: isLoading
                     ? const Center(
-                  child: CircularProgressIndicator(
-                    color: Color(0xFFFF8906),
-                  ),
-                )
+                        child: CircularProgressIndicator(
+                          color: Color(0xFFFF8906),
+                        ),
+                      )
                     : FadeTransition(
-                  opacity: _animController,
-                  child: SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(0, 0.3),
-                      end: Offset.zero,
-                    ).animate(_animController),
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Question Title
-                          Row(
-                            children: [
-                              Text(
-                                step.emoji,
-                                style: const TextStyle(fontSize: 40),
-                              ),
-                              const SizedBox(width: 15),
-                              Expanded(
-                                child: Text(
-                                  step.question,
-                                  style: const TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
+                        opacity: _animController,
+                        child: SlideTransition(
+                          position: Tween<Offset>(
+                            begin: const Offset(0, 0.3),
+                            end: Offset.zero,
+                          ).animate(_animController),
+                          child: SingleChildScrollView(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Question Title
+                                Row(
+                                  children: [
+                                    Text(
+                                      step.emoji,
+                                      style: const TextStyle(fontSize: 40),
+                                    ),
+                                    const SizedBox(width: 15),
+                                    Expanded(
+                                      child: Text(
+                                        step.question,
+                                        style: const TextStyle(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                            ],
-                          ),
 
-                          const SizedBox(height: 25),
+                                const SizedBox(height: 25),
 
-                          // Search (if enabled)
-                          if (step.hasSearch) ...[
-                            TextField(
-                              onChanged: (value) {
-                                setState(() => searchQuery = value);
-                              },
-                              style: const TextStyle(color: Colors.white),
-                              decoration: InputDecoration(
-                                hintText: step.searchPlaceholder,
-                                hintStyle: TextStyle(
-                                  color: Colors.white.withOpacity(0.4),
-                                ),
-                                prefixIcon: const Icon(
-                                  Icons.search,
-                                  color: Color(0xFFFF8906),
-                                ),
-                                filled: true,
-                                fillColor: const Color(0xFF1A1926),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide.none,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-                          ],
-
-                          // Options Grid
-                          GridView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 3,
-                              crossAxisSpacing: 12,
-                              mainAxisSpacing: 12,
-                              childAspectRatio: 0.85,
-                            ),
-                            itemCount: filteredOptions.length,
-                            itemBuilder: (context, index) {
-                              final optionIndex = step.options.indexOf(filteredOptions[index]);
-                              final option = filteredOptions[index];
-                              final isSelected = selectedIndices.contains(optionIndex);
-
-                              return GestureDetector(
-                                onTap: () => selectOption(optionIndex),
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 200),
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? const Color(0xFFFF8906).withOpacity(0.2)
-                                        : const Color(0xFF1A1926),
-                                    borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(
-                                      color: isSelected
-                                          ? const Color(0xFFFF8906)
-                                          : Colors.transparent,
-                                      width: 3,
+                                // Search (if enabled)
+                                if (step.hasSearch) ...[
+                                  TextField(
+                                    onChanged: (value) {
+                                      setState(() => searchQuery = value);
+                                    },
+                                    style: const TextStyle(color: Colors.white),
+                                    decoration: InputDecoration(
+                                      hintText: step.searchPlaceholder,
+                                      hintStyle: TextStyle(
+                                        color: Colors.white.withOpacity(0.4),
+                                      ),
+                                      prefixIcon: const Icon(
+                                        Icons.search,
+                                        color: Color(0xFFFF8906),
+                                      ),
+                                      filled: true,
+                                      fillColor: const Color(0xFF1A1926),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                        borderSide: BorderSide.none,
+                                      ),
                                     ),
                                   ),
-                                  child: Stack(
-                                    children: [
-                                      Center(
-                                        child: Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
+                                  const SizedBox(height: 20),
+                                ],
+
+                                // Options Grid
+                                GridView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  gridDelegate:
+                                      const SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount: 3,
+                                        crossAxisSpacing: 12,
+                                        mainAxisSpacing: 12,
+                                        childAspectRatio: 0.85,
+                                      ),
+                                  itemCount: filteredOptions.length,
+                                  itemBuilder: (context, index) {
+                                    final optionIndex = step.options.indexOf(
+                                      filteredOptions[index],
+                                    );
+                                    final option = filteredOptions[index];
+                                    final isSelected = selectedIndices.contains(
+                                      optionIndex,
+                                    );
+
+                                    return GestureDetector(
+                                      onTap: () => selectOption(optionIndex),
+                                      child: AnimatedContainer(
+                                        duration: const Duration(
+                                          milliseconds: 200,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: isSelected
+                                              ? const Color(
+                                                  0xFFFF8906,
+                                                ).withOpacity(0.2)
+                                              : const Color(0xFF1A1926),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                          border: Border.all(
+                                            color: isSelected
+                                                ? const Color(0xFFFF8906)
+                                                : Colors.transparent,
+                                            width: 3,
+                                          ),
+                                        ),
+                                        child: Stack(
                                           children: [
-                                            Text(
-                                              option.emoji,
-                                              style: const TextStyle(fontSize: 40),
-                                            ),
-                                            const SizedBox(height: 8),
-                                            Text(
-                                              option.label,
-                                              textAlign: TextAlign.center,
-                                              style: const TextStyle(
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w600,
-                                                color: Colors.white,
+                                            Center(
+                                              child: Column(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  Text(
+                                                    option.emoji,
+                                                    style: const TextStyle(
+                                                      fontSize: 40,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 8),
+                                                  Text(
+                                                    option.label,
+                                                    textAlign: TextAlign.center,
+                                                    style: const TextStyle(
+                                                      fontSize: 13,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             ),
+                                            if (isSelected)
+                                              Positioned(
+                                                top: 8,
+                                                right: 8,
+                                                child: Container(
+                                                  width: 24,
+                                                  height: 24,
+                                                  decoration:
+                                                      const BoxDecoration(
+                                                        color: Color(
+                                                          0xFF00F5D4,
+                                                        ),
+                                                        shape: BoxShape.circle,
+                                                      ),
+                                                  child: const Icon(
+                                                    Icons.check,
+                                                    size: 16,
+                                                    color: Color(0xFF0F0E17),
+                                                  ),
+                                                ),
+                                              ),
                                           ],
                                         ),
                                       ),
-                                      if (isSelected)
-                                        Positioned(
-                                          top: 8,
-                                          right: 8,
-                                          child: Container(
-                                            width: 24,
-                                            height: 24,
-                                            decoration: const BoxDecoration(
-                                              color: Color(0xFF00F5D4),
-                                              shape: BoxShape.circle,
+                                    );
+                                  },
+                                ),
+
+                                const SizedBox(height: 30),
+
+                                // Nút bấm
+                                Row(
+                                  children: [
+                                    if (currentStep > 0)
+                                      Expanded(
+                                        child: OutlinedButton(
+                                          onPressed: goBack,
+                                          style: OutlinedButton.styleFrom(
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 16,
                                             ),
-                                            child: const Icon(
-                                              Icons.check,
-                                              size: 16,
-                                              color: Color(0xFF0F0E17),
+                                            side: const BorderSide(
+                                              color: Color(0xFFFF8906),
+                                            ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                            ),
+                                          ),
+                                          child: const Text(
+                                            '← Quay lại',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600,
+                                              color: Color(0xFFFF8906),
                                             ),
                                           ),
                                         ),
-                                    ],
-                                  ),
+                                      ),
+                                    if (currentStep > 0)
+                                      const SizedBox(width: 12),
+                                    Expanded(
+                                      child: ElevatedButton(
+                                        onPressed:
+                                            selectedIndices.isEmpty &&
+                                                step.type == QuizType.single
+                                            ? null
+                                            : nextStep,
+                                        style: ElevatedButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 16,
+                                          ),
+                                          backgroundColor: const Color(
+                                            0xFFFF8906,
+                                          ),
+                                          disabledBackgroundColor: const Color(
+                                            0xFF1A1926,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
+                                          ),
+                                        ),
+                                        child: Text(
+                                          currentStep < quizFlow.length - 1
+                                              ? 'Tiếp tục →'
+                                              : 'Xem kết quả 🎯',
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              );
-                            },
+
+                                const SizedBox(height: 20),
+                              ],
+                            ),
                           ),
-
-                          const SizedBox(height: 30),
-
-                          // Buttons
-                          Row(
-                            children: [
-                              if (currentStep > 0)
-                                Expanded(
-                                  child: OutlinedButton(
-                                    onPressed: goBack,
-                                    style: OutlinedButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(vertical: 16),
-                                      side: const BorderSide(
-                                        color: Color(0xFFFF8906),
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                    ),
-                                    child: const Text(
-                                      '← Quay lại',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                        color: Color(0xFFFF8906),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              if (currentStep > 0) const SizedBox(width: 12),
-                              Expanded(
-                                child: ElevatedButton(
-                                  onPressed: selectedIndices.isEmpty &&
-                                      step.type == QuizType.single
-                                      ? null
-                                      : nextStep,
-                                  style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(vertical: 16),
-                                    backgroundColor: const Color(0xFFFF8906),
-                                    disabledBackgroundColor:
-                                    const Color(0xFF1A1926),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    currentStep < quizFlow.length - 1
-                                        ? 'Tiếp tục →'
-                                        : 'Xem kết quả 🎯',
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 20),
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
-                ),
               ),
             ],
           ),
@@ -779,9 +807,7 @@ class _QuizPageState extends State<QuizPage> with SingleTickerProviderStateMixin
   }
 }
 
-// ═══════════════════════════════════════════════════════
-// RESULTS PAGE
-// ═══════════════════════════════════════════════════════
+// Results page
 
 class ResultsPage extends StatelessWidget {
   final List<Animal> results;
@@ -803,10 +829,7 @@ class ResultsPage extends StatelessWidget {
           gradient: RadialGradient(
             center: Alignment(-0.5, -0.5),
             radius: 1.5,
-            colors: [
-              Color(0xFF1A1926),
-              Color(0xFF0F0E17),
-            ],
+            colors: [Color(0xFF1A1926), Color(0xFF0F0E17)],
           ),
         ),
         child: SafeArea(
@@ -819,10 +842,7 @@ class ResultsPage extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        const Text(
-                          '🎯',
-                          style: TextStyle(fontSize: 40),
-                        ),
+                        const Text('🎯', style: TextStyle(fontSize: 40)),
                         const SizedBox(width: 15),
                         Expanded(
                           child: Text(
@@ -852,153 +872,162 @@ class ResultsPage extends StatelessWidget {
               Expanded(
                 child: results.isEmpty
                     ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        '🔍',
-                        style: TextStyle(fontSize: 80),
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        'Không tìm thấy kết quả\nphù hợp',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.white.withOpacity(0.6),
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-                    : GridView.builder(
-                  padding: const EdgeInsets.all(20),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 15,
-                    mainAxisSpacing: 15,
-                    childAspectRatio: 0.75,
-                  ),
-                  itemCount: results.length > 10 ? 10 : results.length,
-                  itemBuilder: (context, index) {
-                    final animal = results[index];
-                    return GestureDetector(
-                      onTap: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) => AnimalDetailDialog(animal: animal),
-                        );
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF16141F),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: const Color(0xFFFF8906).withOpacity(0.2),
-                            width: 2,
-                          ),
-                        ),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            // Image
-                            ClipRRect(
-                              borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(18),
-                              ),
-                              child: animal.imageUrl != null
-                                  ? Image.network(
-                                animal.imageUrl!,
-                                height: 140,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Container(
-                                  height: 140,
-                                  color: const Color(0xFF1A1926),
-                                  child: const Icon(
-                                    Icons.pets,
-                                    size: 50,
-                                    color: Color(0xFFFF8906),
-                                  ),
-                                ),
-                              )
-                                  : Container(
-                                height: 140,
-                                color: const Color(0xFF1A1926),
-                                child: const Icon(
-                                  Icons.pets,
-                                  size: 50,
-                                  color: Color(0xFFFF8906),
-                                ),
+                            const Text('🔍', style: TextStyle(fontSize: 80)),
+                            const SizedBox(height: 20),
+                            Text(
+                              'Không tìm thấy kết quả\nphù hợp',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.white.withOpacity(0.6),
                               ),
                             ),
-
-                            // Content
-                            Padding(
-                              padding: const EdgeInsets.all(12),
+                          ],
+                        ),
+                      )
+                    : GridView.builder(
+                        padding: const EdgeInsets.all(20),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 15,
+                              mainAxisSpacing: 15,
+                              childAspectRatio: 0.75,
+                            ),
+                        itemCount: results.length > 10 ? 10 : results.length,
+                        itemBuilder: (context, index) {
+                          final animal = results[index];
+                          return GestureDetector(
+                            onTap: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) =>
+                                    AnimalDetailDialog(animal: animal),
+                              );
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF16141F),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: const Color(
+                                    0xFFFF8906,
+                                  ).withOpacity(0.2),
+                                  width: 2,
+                                ),
+                              ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    animal.nameVietnamese,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
+                                  // Image
+                                  ClipRRect(
+                                    borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(18),
                                     ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                                    child: animal.imageUrl != null
+                                        ? Image.network(
+                                            animal.imageUrl!,
+                                            height: 140,
+                                            width: double.infinity,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (_, __, ___) =>
+                                                Container(
+                                                  height: 140,
+                                                  color: const Color(
+                                                    0xFF1A1926,
+                                                  ),
+                                                  child: const Icon(
+                                                    Icons.pets,
+                                                    size: 50,
+                                                    color: Color(0xFFFF8906),
+                                                  ),
+                                                ),
+                                          )
+                                        : Container(
+                                            height: 140,
+                                            color: const Color(0xFF1A1926),
+                                            child: const Icon(
+                                              Icons.pets,
+                                              size: 50,
+                                              color: Color(0xFFFF8906),
+                                            ),
+                                          ),
                                   ),
-                                  if (animal.scientificName != null) ...[
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      animal.scientificName!,
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        fontStyle: FontStyle.italic,
-                                        color: Colors.white.withOpacity(0.6),
-                                        fontFamily: 'monospace',
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ],
-                                  const SizedBox(height: 8),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      gradient: const LinearGradient(
-                                        colors: [
-                                          Color(0xFFFF8906),
-                                          Color(0xFFF25F4C)
+
+                                  // Content
+                                  Padding(
+                                    padding: const EdgeInsets.all(12),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          animal.nameVietnamese,
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        if (animal.scientificName != null) ...[
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            animal.scientificName!,
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontStyle: FontStyle.italic,
+                                              color: Colors.white.withOpacity(
+                                                0.6,
+                                              ),
+                                              fontFamily: 'monospace',
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
                                         ],
-                                      ),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Text(
-                                      '${85 + (index * 2)}% khớp',
-                                      style: const TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.white,
-                                      ),
+                                        const SizedBox(height: 8),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            gradient: const LinearGradient(
+                                              colors: [
+                                                Color(0xFFFF8906),
+                                                Color(0xFFF25F4C),
+                                              ],
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            '${85 + (index * 2)}% khớp',
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                          ],
-                        ),
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
               ),
 
-              // Buttons
+              // Nút bấm
               Padding(
                 padding: const EdgeInsets.all(20),
                 child: Row(
@@ -1055,9 +1084,7 @@ class ResultsPage extends StatelessWidget {
   }
 }
 
-// ═══════════════════════════════════════════════════════
-// ANIMAL DETAIL DIALOG
-// ═══════════════════════════════════════════════════════
+// Dialog chi tiết động vật
 
 class AnimalDetailDialog extends StatelessWidget {
   final Animal animal;
@@ -1068,18 +1095,13 @@ class AnimalDetailDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dialog(
       backgroundColor: const Color(0xFF16141F),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              '🎉',
-              style: TextStyle(fontSize: 60),
-            ),
+            const Text('🎉', style: TextStyle(fontSize: 60)),
             const SizedBox(height: 16),
             Text(
               'Đây có phải là ${animal.nameVietnamese}?',
@@ -1161,9 +1183,7 @@ class AnimalDetailDialog extends StatelessWidget {
   }
 }
 
-// ═══════════════════════════════════════════════════════
-// SUCCESS DIALOG
-// ═══════════════════════════════════════════════════════
+// Success dialog
 
 class SuccessDialog extends StatelessWidget {
   const SuccessDialog({Key? key}) : super(key: key);
@@ -1178,18 +1198,13 @@ class SuccessDialog extends StatelessWidget {
 
     return Dialog(
       backgroundColor: const Color(0xFF16141F),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: const Padding(
         padding: EdgeInsets.all(40),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              '🎊',
-              style: TextStyle(fontSize: 80),
-            ),
+            Text('🎊', style: TextStyle(fontSize: 80)),
             SizedBox(height: 20),
             Text(
               'Tuyệt vời!',
@@ -1202,10 +1217,7 @@ class SuccessDialog extends StatelessWidget {
             SizedBox(height: 10),
             Text(
               'Bạn đã tìm đúng!',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.white70,
-              ),
+              style: TextStyle(fontSize: 16, color: Colors.white70),
             ),
           ],
         ),

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// 'metric'   → kg, m, km/h
-/// 'imperial' → lbs, ft, mph
+// 'metric' -> kg, m, km/h
+// 'imperial' -> lbs, ft, mph
 class UnitProvider extends ChangeNotifier {
   static const _key = 'selected_unit';
 
@@ -28,9 +28,9 @@ class UnitProvider extends ChangeNotifier {
     await prefs.setString(_key, unit);
   }
 
-  // ── Convert helpers ────────────────────────────────────────────────────
+  // Convert helpers
 
-  /// kg → lbs nếu imperial
+  // kg -> lbs nếu imperial
   String formatWeight(num kg) {
     if (isImperial) {
       final lbs = (kg * 2.20462).toStringAsFixed(0);
@@ -39,7 +39,7 @@ class UnitProvider extends ChangeNotifier {
     return '${kg.toStringAsFixed(0)} kg';
   }
 
-  /// m → ft nếu imperial
+  // m -> ft nếu imperial
   String formatHeight(num m) {
     if (isImperial) {
       final ft = (m * 3.28084).toStringAsFixed(1);
@@ -48,10 +48,10 @@ class UnitProvider extends ChangeNotifier {
     return '${m.toStringAsFixed(1)} m';
   }
 
-  /// m → ft nếu imperial (dùng cho length_avg_m)
+  // m -> ft nếu imperial (dùng cho length_avg_m)
   String formatLength(num m) => formatHeight(m);
 
-  /// km/h → mph nếu imperial
+  // km/h -> mph nếu imperial
   String formatSpeed(num kmh) {
     if (isImperial) {
       final mph = (kmh * 0.621371).toStringAsFixed(0);

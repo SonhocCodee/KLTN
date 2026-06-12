@@ -15,9 +15,6 @@ import '../../core/app_env.dart';
 import '../Animal_detail/Animal detail screen.dart';
 import '../home/animal_category_model.dart';
 
-
-
-
 class AnimalAiChatScreen extends StatefulWidget {
   const AnimalAiChatScreen({super.key});
 
@@ -49,7 +46,8 @@ class _AnimalAiChatScreenState extends State<AnimalAiChatScreen> {
     return _sessions.isEmpty ? null : _sessions.first;
   }
 
-  List<AnimalChatMessage> get _messages => _currentSession?.messages ?? const [];
+  List<AnimalChatMessage> get _messages =>
+      _currentSession?.messages ?? const [];
 
   @override
   void initState() {
@@ -68,7 +66,7 @@ class _AnimalAiChatScreenState extends State<AnimalAiChatScreen> {
     super.dispose();
   }
 
-  // ── Connectivity ──────────────────────────────────────────────
+  // Connectivity
 
   Future<void> _initConnectivity() async {
     try {
@@ -78,9 +76,9 @@ class _AnimalAiChatScreenState extends State<AnimalAiChatScreen> {
       if (mounted) setState(() => _isOnline = false);
     }
 
-    _connectivitySub = Connectivity()
-        .onConnectivityChanged
-        .listen((results) => unawaited(_handleConnectivity(results)));
+    _connectivitySub = Connectivity().onConnectivityChanged.listen(
+      (results) => unawaited(_handleConnectivity(results)),
+    );
 
     _networkWatchTimer?.cancel();
     _networkWatchTimer = Timer.periodic(const Duration(seconds: 5), (_) {
@@ -89,10 +87,12 @@ class _AnimalAiChatScreenState extends State<AnimalAiChatScreen> {
   }
 
   bool _hasNetworkInterface(List<ConnectivityResult> results) {
-    return results.any((r) =>
-        r == ConnectivityResult.mobile ||
-        r == ConnectivityResult.wifi ||
-        r == ConnectivityResult.ethernet);
+    return results.any(
+      (r) =>
+          r == ConnectivityResult.mobile ||
+          r == ConnectivityResult.wifi ||
+          r == ConnectivityResult.ethernet,
+    );
   }
 
   Future<bool> _refreshOnlineStatus({bool syncWhenBack = true}) async {
@@ -100,7 +100,8 @@ class _AnimalAiChatScreenState extends State<AnimalAiChatScreen> {
     try {
       final results = await Connectivity().checkConnectivity();
       final hasNetworkInterface = _hasNetworkInterface(results);
-      online = hasNetworkInterface &&
+      online =
+          hasNetworkInterface &&
           await NetworkHealth.hasInternet(timeout: const Duration(seconds: 2));
     } catch (_) {
       online = false;
@@ -117,7 +118,8 @@ class _AnimalAiChatScreenState extends State<AnimalAiChatScreen> {
 
   Future<void> _handleConnectivity(List<ConnectivityResult> results) async {
     final hasNetworkInterface = _hasNetworkInterface(results);
-    final online = hasNetworkInterface &&
+    final online =
+        hasNetworkInterface &&
         await NetworkHealth.hasInternet(timeout: const Duration(seconds: 2));
 
     if (!mounted) return;
@@ -148,13 +150,15 @@ class _AnimalAiChatScreenState extends State<AnimalAiChatScreen> {
     }
   }
 
-  // ── Sessions ──────────────────────────────────────────────────
+  // Sessions
 
   Future<void> _loadSessions() async {
     // Khởi tạo cache song song với load sessions
-    unawaited(AnimalLocalCache.instance.init().then((_) {
-      if (_isOnline) _triggerSync();
-    }));
+    unawaited(
+      AnimalLocalCache.instance.init().then((_) {
+        if (_isOnline) _triggerSync();
+      }),
+    );
 
     final sessions = await AnimalChatStorage.loadSessions();
     if (!mounted) return;
@@ -187,14 +191,18 @@ class _AnimalAiChatScreenState extends State<AnimalAiChatScreen> {
       if (jump) {
         _scrollCtrl.jumpTo(_scrollCtrl.position.maxScrollExtent);
       } else {
-        _scrollCtrl.animateTo(target,
-            duration: const Duration(milliseconds: 280), curve: Curves.easeOut);
+        _scrollCtrl.animateTo(
+          target,
+          duration: const Duration(milliseconds: 280),
+          curve: Curves.easeOut,
+        );
       }
     });
   }
 
   void _updateCurrentSession(
-      AnimalChatSession Function(AnimalChatSession s) updater) {
+    AnimalChatSession Function(AnimalChatSession s) updater,
+  ) {
     final id = _currentSessionId;
     if (id == null) return;
     final idx = _sessions.indexWhere((s) => s.id == id);
@@ -225,11 +233,13 @@ class _AnimalAiChatScreenState extends State<AnimalAiChatScreen> {
         content: Text('Bạn muốn xoá "${current.title}" khỏi lịch sử chat?'),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Huỷ')),
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Huỷ'),
+          ),
           FilledButton.tonal(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Xoá')),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Xoá'),
+          ),
         ],
       ),
     );
@@ -257,11 +267,13 @@ class _AnimalAiChatScreenState extends State<AnimalAiChatScreen> {
         content: const Text('Tất cả đoạn chat đã lưu sẽ bị xoá khỏi máy.'),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Huỷ')),
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Huỷ'),
+          ),
           FilledButton.tonal(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Xoá hết')),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Xoá hết'),
+          ),
         ],
       ),
     );
@@ -279,7 +291,10 @@ class _AnimalAiChatScreenState extends State<AnimalAiChatScreen> {
 
   Future<void> _pickImage(ImageSource source) async {
     final x = await _picker.pickImage(
-        source: source, imageQuality: 70, maxWidth: 1280);
+      source: source,
+      imageQuality: 70,
+      maxWidth: 1280,
+    );
     if (x == null) return;
     setState(() => _pendingImage = File(x.path));
   }
@@ -318,16 +333,19 @@ class _AnimalAiChatScreenState extends State<AnimalAiChatScreen> {
     );
   }
 
-  // ── Send ──────────────────────────────────────────────────────
+  // Send
 
   Future<void> _send() async {
     final text = _inputCtrl.text.trim();
     final session = _currentSession;
-    if ((text.isEmpty && _pendingImage == null) || _isSending || session == null)
+    if ((text.isEmpty && _pendingImage == null) ||
+        _isSending ||
+        session == null)
       return;
 
-    final userText =
-    text.isEmpty ? 'Hãy nhận diện và mô tả con vật trong ảnh này.' : text;
+    final userText = text.isEmpty
+        ? 'Hãy nhận diện và mô tả con vật trong ảnh này.'
+        : text;
     final imageFile = _pendingImage;
 
     // Trước mỗi lần gửi, kiểm tra lại Internet thật sự để tránh bị kẹt
@@ -344,7 +362,9 @@ class _AnimalAiChatScreenState extends State<AnimalAiChatScreen> {
           ...s.messages,
           AnimalChatMessage.user(userText, imagePath: imageFile?.path),
           AnimalChatMessage.assistant(
-            effectiveOnline ? 'Đang xử lý...' : '🔍 Đang tìm trong dữ liệu offline...',
+            effectiveOnline
+                ? 'Đang xử lý...'
+                : '🔍 Đang tìm trong dữ liệu offline...',
             isLoading: true,
           ),
         ];
@@ -370,11 +390,13 @@ class _AnimalAiChatScreenState extends State<AnimalAiChatScreen> {
         _isSending = false;
         _updateCurrentSession((s) {
           final messages = s.messages.where((m) => !m.isLoading).toList()
-            ..add(AnimalChatMessage.assistant(
-              result.text,
-              mentionedAnimals: result.animals,
-              isOfflineAnswer: result.isOffline,
-            ));
+            ..add(
+              AnimalChatMessage.assistant(
+                result.text,
+                mentionedAnimals: result.animals,
+                isOfflineAnswer: result.isOffline,
+              ),
+            );
           return s.copyWith(messages: messages, updatedAt: DateTime.now());
         });
       });
@@ -432,9 +454,10 @@ class _AnimalAiChatScreenState extends State<AnimalAiChatScreen> {
   void _openAnimalDetail(String animalId, String? animalType) {
     final enabled = AnimalCategory.getEnabledCategories();
     final category = enabled.firstWhere(
-          (c) => c.id.toLowerCase() == (animalType ?? '').toLowerCase(),
-      orElse: () =>
-      enabled.isNotEmpty ? enabled.first : AnimalCategory.allCategories.first,
+      (c) => c.id.toLowerCase() == (animalType ?? '').toLowerCase(),
+      orElse: () => enabled.isNotEmpty
+          ? enabled.first
+          : AnimalCategory.allCategories.first,
     );
     Navigator.push(
       context,
@@ -445,7 +468,7 @@ class _AnimalAiChatScreenState extends State<AnimalAiChatScreen> {
     );
   }
 
-  // ── Build ─────────────────────────────────────────────────────
+  // Dựng giao diện
 
   @override
   Widget build(BuildContext context) {
@@ -468,12 +491,17 @@ class _AnimalAiChatScreenState extends State<AnimalAiChatScreen> {
           children: [
             Row(
               children: [
-                const Text('Trợ lý động vật AI',
-                    style: TextStyle(fontWeight: FontWeight.w900)),
+                const Flexible(
+                  child: Text(
+                    'Trợ lý động vật AI',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontWeight: FontWeight.w900),
+                  ),
+                ),
                 const SizedBox(width: 8),
-                // Badge online/offline
-                _ConnectivityBadge(
-                    isOnline: _isOnline, isSyncing: _isSyncing),
+                // Nhãn online/offline
+                _ConnectivityBadge(isOnline: _isOnline, isSyncing: _isSyncing),
               ],
             ),
             Text(
@@ -500,29 +528,31 @@ class _AnimalAiChatScreenState extends State<AnimalAiChatScreen> {
       body: _isLoadingSessions
           ? const Center(child: CircularProgressIndicator())
           : Column(
-        children: [
-          Expanded(
-            child: _messages.isEmpty
-                ? const SizedBox.shrink()
-                : ListView.builder(
-              controller: _scrollCtrl,
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-              physics: const BouncingScrollPhysics(),
-              itemCount: _messages.length,
-              itemBuilder: (_, i) => AnimalChatBubble(
-                message: _messages[i],
-                onOpenAnimal: (id, type) =>
-                    _openAnimalDetail(id, type),
-              ),
+              children: [
+                Expanded(
+                  child: _messages.isEmpty
+                      ? const SizedBox.shrink()
+                      : ListView.builder(
+                          controller: _scrollCtrl,
+                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                          physics: const BouncingScrollPhysics(),
+                          itemCount: _messages.length,
+                          itemBuilder: (_, i) => AnimalChatBubble(
+                            message: _messages[i],
+                            onOpenAnimal: (id, type) =>
+                                _openAnimalDetail(id, type),
+                          ),
+                        ),
+                ),
+                _SuggestedPromptBar(
+                  onTap: (text) {
+                    _inputCtrl.text = text;
+                    _send();
+                  },
+                ),
+                _buildComposer(cs),
+              ],
             ),
-          ),
-          _SuggestedPromptBar(onTap: (text) {
-            _inputCtrl.text = text;
-            _send();
-          }),
-          _buildComposer(cs),
-        ],
-      ),
     );
   }
 
@@ -533,8 +563,9 @@ class _AnimalAiChatScreenState extends State<AnimalAiChatScreen> {
         padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
         decoration: BoxDecoration(
           color: cs.surface,
-          border:
-          Border(top: BorderSide(color: cs.outlineVariant.withOpacity(0.7))),
+          border: Border(
+            top: BorderSide(color: cs.outlineVariant.withOpacity(0.7)),
+          ),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -553,8 +584,12 @@ class _AnimalAiChatScreenState extends State<AnimalAiChatScreen> {
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child: Image.file(_pendingImage!,
-                            width: 52, height: 52, fit: BoxFit.cover),
+                        child: Image.file(
+                          _pendingImage!,
+                          width: 52,
+                          height: 52,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
@@ -563,7 +598,9 @@ class _AnimalAiChatScreenState extends State<AnimalAiChatScreen> {
                               ? 'Ảnh sẽ được gửi kèm câu hỏi.'
                               : '⚠️ Offline: ảnh không được phân tích.',
                           style: TextStyle(
-                              fontSize: 13, color: cs.onSurfaceVariant),
+                            fontSize: 13,
+                            color: cs.onSurfaceVariant,
+                          ),
                         ),
                       ),
                       IconButton(
@@ -606,7 +643,9 @@ class _AnimalAiChatScreenState extends State<AnimalAiChatScreen> {
                         borderSide: BorderSide(color: cs.outlineVariant),
                       ),
                       contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 12),
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
                     ),
                   ),
                 ),
@@ -619,14 +658,15 @@ class _AnimalAiChatScreenState extends State<AnimalAiChatScreen> {
                     style: FilledButton.styleFrom(
                       padding: EdgeInsets.zero,
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(18)),
+                        borderRadius: BorderRadius.circular(18),
+                      ),
                     ),
                     child: _isSending
                         ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child:
-                        CircularProgressIndicator(strokeWidth: 2))
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
                         : const Icon(Icons.send_rounded),
                   ),
                 ),
@@ -639,9 +679,7 @@ class _AnimalAiChatScreenState extends State<AnimalAiChatScreen> {
   }
 }
 
-// ════════════════════════════════════════════════════════════════
-// CONNECTIVITY BADGE
-// ════════════════════════════════════════════════════════════════
+// Trạng thái kết nối
 
 class _ConnectivityBadge extends StatelessWidget {
   final bool isOnline;
@@ -653,48 +691,56 @@ class _ConnectivityBadge extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     if (isOnline && !isSyncing) return const SizedBox.shrink();
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-      decoration: BoxDecoration(
-        color: isSyncing
-            ? cs.primaryContainer
-            : cs.errorContainer,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (isSyncing)
-            SizedBox(
-              width: 10,
-              height: 10,
-              child: CircularProgressIndicator(
-                strokeWidth: 1.5,
-                color: cs.onPrimaryContainer,
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 82),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: isSyncing ? cs.primaryContainer : cs.errorContainer,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isSyncing)
+              SizedBox(
+                width: 9,
+                height: 9,
+                child: CircularProgressIndicator(
+                  strokeWidth: 1.4,
+                  color: cs.onPrimaryContainer,
+                ),
+              )
+            else
+              Icon(
+                Icons.wifi_off_rounded,
+                size: 10,
+                color: cs.onErrorContainer,
               ),
-            )
-          else
-            Icon(Icons.wifi_off_rounded,
-                size: 11, color: cs.onErrorContainer),
-          const SizedBox(width: 4),
-          Text(
-            isSyncing ? 'Đang sync' : 'Offline',
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-              color: isSyncing ? cs.onPrimaryContainer : cs.onErrorContainer,
+            const SizedBox(width: 3),
+            Flexible(
+              child: Text(
+                isSyncing ? 'Sync' : 'Offline',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: isSyncing
+                      ? cs.onPrimaryContainer
+                      : cs.onErrorContainer,
+                ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
-// ════════════════════════════════════════════════════════════════
-// SUGGESTED PROMPTS
-// ════════════════════════════════════════════════════════════════
+// Gợi ý câu hỏi
 
 class _SuggestedPromptBar extends StatelessWidget {
   final ValueChanged<String> onTap;
@@ -727,9 +773,7 @@ class _SuggestedPromptBar extends StatelessWidget {
   }
 }
 
-// ════════════════════════════════════════════════════════════════
-// CHAT HISTORY SHEET
-// ════════════════════════════════════════════════════════════════
+// Lịch sử chat
 
 class _ChatHistorySheet extends StatelessWidget {
   final List<AnimalChatSession> sessions;
@@ -759,15 +803,19 @@ class _ChatHistorySheet extends StatelessWidget {
               child: Row(
                 children: [
                   Expanded(
-                    child: Text('Lịch sử chat',
-                        style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w900,
-                            color: cs.onSurface)),
+                    child: Text(
+                      'Lịch sử chat',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        color: cs.onSurface,
+                      ),
+                    ),
                   ),
                   IconButton(
-                      onPressed: onClearAll,
-                      icon: const Icon(Icons.delete_sweep_rounded)),
+                    onPressed: onClearAll,
+                    icon: const Icon(Icons.delete_sweep_rounded),
+                  ),
                   FilledButton.icon(
                     onPressed: onNewChat,
                     icon: const Icon(Icons.add_rounded, size: 18),
@@ -784,8 +832,7 @@ class _ChatHistorySheet extends StatelessWidget {
                 itemBuilder: (_, i) {
                   final s = sessions[i];
                   final selected = s.id == currentSessionId;
-                  final lastText =
-                  s.messages.where((m) => !m.isLoading).isEmpty
+                  final lastText = s.messages.where((m) => !m.isLoading).isEmpty
                       ? 'Chưa có tin nhắn'
                       : s.messages.where((m) => !m.isLoading).last.text;
                   return ListTile(
@@ -794,17 +841,26 @@ class _ChatHistorySheet extends StatelessWidget {
                       backgroundColor: selected
                           ? cs.primary
                           : cs.surfaceContainerHighest,
-                      foregroundColor:
-                      selected ? cs.onPrimary : cs.primary,
+                      foregroundColor: selected ? cs.onPrimary : cs.primary,
                       child: const Icon(Icons.smart_toy_rounded),
                     ),
-                    title: Text(s.title,
-                        maxLines: 1, overflow: TextOverflow.ellipsis),
-                    subtitle: Text(lastText,
-                        maxLines: 1, overflow: TextOverflow.ellipsis),
-                    trailing: Text(_formatTime(s.updatedAt),
-                        style: TextStyle(
-                            fontSize: 11, color: cs.onSurfaceVariant)),
+                    title: Text(
+                      s.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    subtitle: Text(
+                      lastText,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    trailing: Text(
+                      _formatTime(s.updatedAt),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: cs.onSurfaceVariant,
+                      ),
+                    ),
                     onTap: () => onSelect(s.id),
                   );
                 },
@@ -818,9 +874,8 @@ class _ChatHistorySheet extends StatelessWidget {
 
   static String _formatTime(DateTime dt) {
     final now = DateTime.now();
-    final sameDay = now.year == dt.year &&
-        now.month == dt.month &&
-        now.day == dt.day;
+    final sameDay =
+        now.year == dt.year && now.month == dt.month && now.day == dt.day;
     if (sameDay) {
       return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
     }
@@ -828,16 +883,13 @@ class _ChatHistorySheet extends StatelessWidget {
   }
 }
 
-// ════════════════════════════════════════════════════════════════
-// CHAT BUBBLE
-// ════════════════════════════════════════════════════════════════
+// Bong bóng chat
 
 class AnimalChatBubble extends StatelessWidget {
   final AnimalChatMessage message;
   final void Function(String animalId, String? animalType)? onOpenAnimal;
 
-  const AnimalChatBubble(
-      {super.key, required this.message, this.onOpenAnimal});
+  const AnimalChatBubble({super.key, required this.message, this.onOpenAnimal});
 
   @override
   Widget build(BuildContext context) {
@@ -847,8 +899,9 @@ class AnimalChatBubble extends StatelessWidget {
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        constraints:
-        BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.82),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.82,
+        ),
         margin: const EdgeInsets.symmetric(vertical: 5),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
         decoration: BoxDecoration(
@@ -867,8 +920,12 @@ class AnimalChatBubble extends StatelessWidget {
                 File(message.imagePath!).existsSync()) ...[
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Image.file(File(message.imagePath!),
-                    width: 180, height: 140, fit: BoxFit.cover),
+                child: Image.file(
+                  File(message.imagePath!),
+                  width: 180,
+                  height: 140,
+                  fit: BoxFit.cover,
+                ),
               ),
               const SizedBox(height: 8),
             ],
@@ -877,13 +934,18 @@ class AnimalChatBubble extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                          strokeWidth: 2, color: cs.onSurfaceVariant)),
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: cs.onSurfaceVariant,
+                    ),
+                  ),
                   const SizedBox(width: 10),
-                  Text(message.text,
-                      style: TextStyle(color: cs.onSurfaceVariant)),
+                  Text(
+                    message.text,
+                    style: TextStyle(color: cs.onSurfaceVariant),
+                  ),
                 ],
               )
             else ...[
@@ -891,8 +953,10 @@ class AnimalChatBubble extends StatelessWidget {
               if (!isUser && message.isOfflineAnswer) ...[
                 Container(
                   margin: const EdgeInsets.only(bottom: 6),
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: cs.tertiaryContainer,
                     borderRadius: BorderRadius.circular(8),
@@ -900,14 +964,20 @@ class AnimalChatBubble extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.wifi_off_rounded,
-                          size: 11, color: cs.onTertiaryContainer),
+                      Icon(
+                        Icons.wifi_off_rounded,
+                        size: 11,
+                        color: cs.onTertiaryContainer,
+                      ),
                       const SizedBox(width: 4),
-                      Text('Kết quả offline · dữ liệu local',
-                          style: TextStyle(
-                              fontSize: 10,
-                              color: cs.onTertiaryContainer,
-                              fontWeight: FontWeight.w600)),
+                      Text(
+                        'Kết quả offline · dữ liệu local',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: cs.onTertiaryContainer,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -921,7 +991,7 @@ class AnimalChatBubble extends StatelessWidget {
                 ),
               ),
             ],
-            // Chips loài
+            // Chip loài
             if (!isUser && message.mentionedAnimals.isNotEmpty) ...[
               const SizedBox(height: 10),
               Wrap(
@@ -936,7 +1006,9 @@ class AnimalChatBubble extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 6),
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: canOpen
                             ? cs.primaryContainer
@@ -951,11 +1023,11 @@ class AnimalChatBubble extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.pets_rounded,
-                              size: 14,
-                              color: canOpen
-                                  ? cs.primary
-                                  : cs.onSurfaceVariant),
+                          Icon(
+                            Icons.pets_rounded,
+                            size: 14,
+                            color: canOpen ? cs.primary : cs.onSurfaceVariant,
+                          ),
                           const SizedBox(width: 5),
                           Text(
                             a.labelForChip,
@@ -971,8 +1043,11 @@ class AnimalChatBubble extends StatelessWidget {
                           ),
                           if (canOpen) ...[
                             const SizedBox(width: 4),
-                            Icon(Icons.open_in_new_rounded,
-                                size: 12, color: cs.primary),
+                            Icon(
+                              Icons.open_in_new_rounded,
+                              size: 12,
+                              color: cs.primary,
+                            ),
                           ],
                         ],
                       ),
@@ -988,9 +1063,7 @@ class AnimalChatBubble extends StatelessWidget {
   }
 }
 
-// ════════════════════════════════════════════════════════════════
-// DATA MODEL + STORAGE
-// ════════════════════════════════════════════════════════════════
+// Model và lưu trữ
 
 enum AnimalChatRole { user, assistant }
 
@@ -1015,25 +1088,25 @@ class AnimalChatMessage {
 
   factory AnimalChatMessage.user(String text, {String? imagePath}) =>
       AnimalChatMessage(
-          role: AnimalChatRole.user,
-          text: text,
-          imagePath: imagePath,
-          createdAt: DateTime.now());
+        role: AnimalChatRole.user,
+        text: text,
+        imagePath: imagePath,
+        createdAt: DateTime.now(),
+      );
 
   factory AnimalChatMessage.assistant(
-      String text, {
-        bool isLoading = false,
-        List<AiMentionedAnimal> mentionedAnimals = const [],
-        bool isOfflineAnswer = false,
-      }) =>
-      AnimalChatMessage(
-        role: AnimalChatRole.assistant,
-        text: text,
-        createdAt: DateTime.now(),
-        isLoading: isLoading,
-        mentionedAnimals: mentionedAnimals,
-        isOfflineAnswer: isOfflineAnswer,
-      );
+    String text, {
+    bool isLoading = false,
+    List<AiMentionedAnimal> mentionedAnimals = const [],
+    bool isOfflineAnswer = false,
+  }) => AnimalChatMessage(
+    role: AnimalChatRole.assistant,
+    text: text,
+    createdAt: DateTime.now(),
+    isLoading: isLoading,
+    mentionedAnimals: mentionedAnimals,
+    isOfflineAnswer: isOfflineAnswer,
+  );
 
   Map<String, dynamic> toJson() => {
     'role': role.name,
@@ -1042,14 +1115,16 @@ class AnimalChatMessage {
     'image_path': imagePath,
     'is_offline_answer': isOfflineAnswer,
     'mentioned_animals': mentionedAnimals
-        .map((a) => {
-      'name_display': a.nameDisplay,
-      'name_english': a.nameEnglish,
-      'animal_type': a.animalType,
-      'db_id': a.dbId,
-      'db_name_vi': a.dbNameVi,
-      'db_name_en': a.dbNameEn,
-    })
+        .map(
+          (a) => {
+            'name_display': a.nameDisplay,
+            'name_english': a.nameEnglish,
+            'animal_type': a.animalType,
+            'db_id': a.dbId,
+            'db_name_vi': a.dbNameVi,
+            'db_name_en': a.dbNameEn,
+          },
+        )
         .toList(),
   };
 
@@ -1057,23 +1132,25 @@ class AnimalChatMessage {
     final rawAnimals = json['mentioned_animals'];
     final animals = rawAnimals is List
         ? rawAnimals.whereType<Map>().map((e) {
-      final m = Map<String, dynamic>.from(e);
-      return AiMentionedAnimal(
-        nameDisplay: m['name_display']?.toString() ?? '',
-        nameEnglish: m['name_english']?.toString(),
-        animalType: m['animal_type']?.toString(),
-        dbId: m['db_id']?.toString(),
-        dbNameVi: m['db_name_vi']?.toString(),
-        dbNameEn: m['db_name_en']?.toString(),
-      );
-    }).toList()
+            final m = Map<String, dynamic>.from(e);
+            return AiMentionedAnimal(
+              nameDisplay: m['name_display']?.toString() ?? '',
+              nameEnglish: m['name_english']?.toString(),
+              animalType: m['animal_type']?.toString(),
+              dbId: m['db_id']?.toString(),
+              dbNameVi: m['db_name_vi']?.toString(),
+              dbNameEn: m['db_name_en']?.toString(),
+            );
+          }).toList()
         : <AiMentionedAnimal>[];
 
     return AnimalChatMessage(
-      role: json['role'] == 'user' ? AnimalChatRole.user : AnimalChatRole.assistant,
+      role: json['role'] == 'user'
+          ? AnimalChatRole.user
+          : AnimalChatRole.assistant,
       text: json['text']?.toString() ?? '',
       createdAt:
-      DateTime.tryParse(json['created_at']?.toString() ?? '') ??
+          DateTime.tryParse(json['created_at']?.toString() ?? '') ??
           DateTime.now(),
       imagePath: json['image_path']?.toString(),
       isOfflineAnswer: json['is_offline_answer'] == true,
@@ -1118,14 +1195,13 @@ class AnimalChatSession {
     String? title,
     DateTime? updatedAt,
     List<AnimalChatMessage>? messages,
-  }) =>
-      AnimalChatSession(
-        id: id,
-        title: title ?? this.title,
-        createdAt: createdAt,
-        updatedAt: updatedAt ?? this.updatedAt,
-        messages: messages ?? this.messages,
-      );
+  }) => AnimalChatSession(
+    id: id,
+    title: title ?? this.title,
+    createdAt: createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    messages: messages ?? this.messages,
+  );
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -1140,20 +1216,24 @@ class AnimalChatSession {
 
   factory AnimalChatSession.fromJson(Map<String, dynamic> json) =>
       AnimalChatSession(
-        id: json['id']?.toString() ??
+        id:
+            json['id']?.toString() ??
             DateTime.now().microsecondsSinceEpoch.toString(),
         title: json['title']?.toString() ?? 'Đoạn chat mới',
         createdAt:
-        DateTime.tryParse(json['created_at']?.toString() ?? '') ??
+            DateTime.tryParse(json['created_at']?.toString() ?? '') ??
             DateTime.now(),
         updatedAt:
-        DateTime.tryParse(json['updated_at']?.toString() ?? '') ??
+            DateTime.tryParse(json['updated_at']?.toString() ?? '') ??
             DateTime.now(),
         messages: json['messages'] is List
             ? List<AnimalChatMessage>.from(
-            (json['messages'] as List).map((e) =>
-                AnimalChatMessage.fromJson(
-                    Map<String, dynamic>.from(e as Map))))
+                (json['messages'] as List).map(
+                  (e) => AnimalChatMessage.fromJson(
+                    Map<String, dynamic>.from(e as Map),
+                  ),
+                ),
+              )
             : [],
       );
 }
@@ -1168,8 +1248,10 @@ class AnimalChatStorage {
     try {
       final list = jsonDecode(raw) as List;
       return list
-          .map((e) => AnimalChatSession.fromJson(
-          Map<String, dynamic>.from(e as Map)))
+          .map(
+            (e) =>
+                AnimalChatSession.fromJson(Map<String, dynamic>.from(e as Map)),
+          )
           .toList();
     } catch (_) {
       return [];
@@ -1194,9 +1276,7 @@ class AnimalChatStorage {
   }
 }
 
-// ════════════════════════════════════════════════════════════════
-// AI RESPONSE MODEL
-// ════════════════════════════════════════════════════════════════
+// Model phản hồi
 
 class AiMentionedAnimal {
   final String nameDisplay;
@@ -1219,9 +1299,7 @@ class AiMentionedAnimal {
   String get labelForChip => dbNameVi ?? dbNameEn ?? nameDisplay;
 }
 
-// ════════════════════════════════════════════════════════════════
-// NETWORK HEALTH — kiểm tra Internet thật, tránh chờ timeout giả online
-// ════════════════════════════════════════════════════════════════
+// NETWORK HEALTH - kiểm tra Internet thật, tránh chờ timeout giả online
 
 class NetworkHealth {
   NetworkHealth._();
@@ -1240,10 +1318,11 @@ class NetworkHealth {
       client.close(force: true);
       return res.statusCode >= 200 && res.statusCode < 500;
     } catch (_) {
-      // Fallback DNS ngắn, tránh treo lâu khi vừa tắt mạng.
+      // Dự phòng DNS ngắn, tránh treo lâu khi vừa tắt mạng.
       try {
-        final result = await InternetAddress.lookup('api.groq.com')
-            .timeout(timeout);
+        final result = await InternetAddress.lookup(
+          'api.groq.com',
+        ).timeout(timeout);
         return result.isNotEmpty && result.first.rawAddress.isNotEmpty;
       } catch (_) {
         return false;
@@ -1252,9 +1331,7 @@ class NetworkHealth {
   }
 }
 
-// ════════════════════════════════════════════════════════════════
-// LOCAL CACHE — SQLite (sync từ Supabase, dùng khi offline)
-// ════════════════════════════════════════════════════════════════
+// LOCAL CACHE - SQLite (sync từ Supabase, dùng khi offline)
 
 class AnimalLocalCache {
   AnimalLocalCache._();
@@ -1287,17 +1364,18 @@ class AnimalLocalCache {
           )
         ''');
         await db.execute(
-            'CREATE INDEX idx_name_en ON animals(name_english COLLATE NOCASE)');
+          'CREATE INDEX idx_name_en ON animals(name_english COLLATE NOCASE)',
+        );
         await db.execute(
-            'CREATE INDEX idx_name_vi ON animals(name_vietnamese COLLATE NOCASE)');
-        await db.execute(
-            'CREATE INDEX idx_type ON animals(animal_type)');
+          'CREATE INDEX idx_name_vi ON animals(name_vietnamese COLLATE NOCASE)',
+        );
+        await db.execute('CREATE INDEX idx_type ON animals(animal_type)');
       },
     );
     _initialized = true;
   }
 
-  /// Sync nếu chưa sync hoặc data đã cũ hơn [_syncIntervalHours]
+  // Sync nếu chưa sync hoặc data đã cũ hơn [_syncIntervalHours]
   Future<void> syncIfNeeded() async {
     await init();
     final prefs = await SharedPreferences.getInstance();
@@ -1312,7 +1390,7 @@ class AnimalLocalCache {
     await _syncFromSupabase();
   }
 
-  /// Force sync (gọi khi muốn refresh thủ công)
+  // Force sync (gọi khi muốn refresh thủ công)
   Future<void> forceSync() async {
     await init();
     await _syncFromSupabase();
@@ -1321,7 +1399,7 @@ class AnimalLocalCache {
   Future<void> _syncFromSupabase() async {
     try {
       final db = Supabase.instance.client;
-      // Lấy toàn bộ animals — chỉ các field cần thiết cho lookup & display
+      // Lấy toàn bộ animals - chỉ các field cần thiết cho lookup & display
       // Dùng range để tránh timeout với bảng lớn (mỗi batch 1000 rows)
       var offset = 0;
       const batchSize = 1000;
@@ -1330,7 +1408,9 @@ class AnimalLocalCache {
       while (true) {
         final batch = await db
             .from('animals')
-            .select('id, name_vietnamese, name_english, animal_type, description_short, updated_at')
+            .select(
+              'id, name_vietnamese, name_english, animal_type, description_short, updated_at',
+            )
             .range(offset, offset + batchSize - 1)
             .timeout(const Duration(seconds: 12));
         final list = batch as List;
@@ -1362,18 +1442,19 @@ class AnimalLocalCache {
       // Lưu timestamp sync
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(
-          _prefsKeyUpdatedAt, DateTime.now().toIso8601String());
+        _prefsKeyUpdatedAt,
+        DateTime.now().toIso8601String(),
+      );
     } catch (e) {
       // Sync fail không crash app
       debugPrint('[AnimalCache] sync failed: $e');
     }
   }
 
-  /// Fuzzy search trong SQLite local — dùng khi offline.
-  ///
-  /// Bản cũ chỉ dùng LIKE nên nhập sai 1 ký tự như "belgal" sẽ không ra
-  /// "Bengal". Bản này tìm nhanh bằng LIKE trước, sau đó fallback sang
-  /// chấm điểm gần đúng trong Dart.
+  // Fuzzy search trong SQLite local - dùng khi offline.
+  // Bản cũ chỉ dùng LIKE nên nhập sai 1 ký tự như "belgal" sẽ không ra
+  // "Bengal". Bản này tìm nhanh bằng LIKE trước, sau đó dự phòng sang
+  // chấm điểm gần đúng trong Dart.
   Future<List<Map<String, dynamic>>> fuzzySearch({
     required String query,
     String? animalType,
@@ -1386,8 +1467,9 @@ class AnimalLocalCache {
     final normalizedQuery = _normalizeForSearch(cleanQuery);
     if (normalizedQuery.isEmpty) return [];
 
-    final typeFilter =
-        animalType != null && animalType.isNotEmpty ? animalType : null;
+    final typeFilter = animalType != null && animalType.isNotEmpty
+        ? animalType
+        : null;
     final picked = <Map<String, dynamic>>[];
 
     void addUnique(Iterable<Map<String, dynamic>> rows) {
@@ -1421,10 +1503,12 @@ class AnimalLocalCache {
       ''';
       args = [q, q, limit];
     }
-    addUnique((await _db!.rawQuery(sql, args)).map((e) => Map<String, dynamic>.from(e)));
+    addUnique(
+      (await _db!.rawQuery(sql, args)).map((e) => Map<String, dynamic>.from(e)),
+    );
     if (picked.length >= limit) return picked.take(limit).toList();
 
-    // 2) Fallback fuzzy: lấy pool nhỏ rồi tự so khớp bỏ dấu + sai chính tả nhẹ.
+    // 2) Dự phòng fuzzy: lấy pool nhỏ rồi tự so khớp bỏ dấu + sai chính tả nhẹ.
     final poolArgs = <Object?>[];
     final poolSql = typeFilter != null
         ? 'SELECT * FROM animals WHERE animal_type = ? LIMIT 2500'
@@ -1525,18 +1609,72 @@ class AnimalLocalCache {
   String _normalizeForSearch(String input) {
     var s = input.toLowerCase().trim();
     const accents = {
-      'à': 'a', 'á': 'a', 'ạ': 'a', 'ả': 'a', 'ã': 'a',
-      'ă': 'a', 'ằ': 'a', 'ắ': 'a', 'ặ': 'a', 'ẳ': 'a', 'ẵ': 'a',
-      'â': 'a', 'ầ': 'a', 'ấ': 'a', 'ậ': 'a', 'ẩ': 'a', 'ẫ': 'a',
-      'è': 'e', 'é': 'e', 'ẹ': 'e', 'ẻ': 'e', 'ẽ': 'e',
-      'ê': 'e', 'ề': 'e', 'ế': 'e', 'ệ': 'e', 'ể': 'e', 'ễ': 'e',
-      'ì': 'i', 'í': 'i', 'ị': 'i', 'ỉ': 'i', 'ĩ': 'i',
-      'ò': 'o', 'ó': 'o', 'ọ': 'o', 'ỏ': 'o', 'õ': 'o',
-      'ô': 'o', 'ồ': 'o', 'ố': 'o', 'ộ': 'o', 'ổ': 'o', 'ỗ': 'o',
-      'ơ': 'o', 'ờ': 'o', 'ớ': 'o', 'ợ': 'o', 'ở': 'o', 'ỡ': 'o',
-      'ù': 'u', 'ú': 'u', 'ụ': 'u', 'ủ': 'u', 'ũ': 'u',
-      'ư': 'u', 'ừ': 'u', 'ứ': 'u', 'ự': 'u', 'ử': 'u', 'ữ': 'u',
-      'ỳ': 'y', 'ý': 'y', 'ỵ': 'y', 'ỷ': 'y', 'ỹ': 'y',
+      'à': 'a',
+      'á': 'a',
+      'ạ': 'a',
+      'ả': 'a',
+      'ã': 'a',
+      'ă': 'a',
+      'ằ': 'a',
+      'ắ': 'a',
+      'ặ': 'a',
+      'ẳ': 'a',
+      'ẵ': 'a',
+      'â': 'a',
+      'ầ': 'a',
+      'ấ': 'a',
+      'ậ': 'a',
+      'ẩ': 'a',
+      'ẫ': 'a',
+      'è': 'e',
+      'é': 'e',
+      'ẹ': 'e',
+      'ẻ': 'e',
+      'ẽ': 'e',
+      'ê': 'e',
+      'ề': 'e',
+      'ế': 'e',
+      'ệ': 'e',
+      'ể': 'e',
+      'ễ': 'e',
+      'ì': 'i',
+      'í': 'i',
+      'ị': 'i',
+      'ỉ': 'i',
+      'ĩ': 'i',
+      'ò': 'o',
+      'ó': 'o',
+      'ọ': 'o',
+      'ỏ': 'o',
+      'õ': 'o',
+      'ô': 'o',
+      'ồ': 'o',
+      'ố': 'o',
+      'ộ': 'o',
+      'ổ': 'o',
+      'ỗ': 'o',
+      'ơ': 'o',
+      'ờ': 'o',
+      'ớ': 'o',
+      'ợ': 'o',
+      'ở': 'o',
+      'ỡ': 'o',
+      'ù': 'u',
+      'ú': 'u',
+      'ụ': 'u',
+      'ủ': 'u',
+      'ũ': 'u',
+      'ư': 'u',
+      'ừ': 'u',
+      'ứ': 'u',
+      'ự': 'u',
+      'ử': 'u',
+      'ữ': 'u',
+      'ỳ': 'y',
+      'ý': 'y',
+      'ỵ': 'y',
+      'ỷ': 'y',
+      'ỹ': 'y',
       'đ': 'd',
     };
     accents.forEach((from, to) => s = s.replaceAll(from, to));
@@ -1546,7 +1684,7 @@ class AnimalLocalCache {
         .trim();
   }
 
-  /// Lookup chính xác theo tên để resolve chip — dùng khi offline
+  // Lookup chính xác theo tên để resolve chip - dùng khi offline
   Future<Map<String, dynamic>?> lookupByName({
     required String nameEn,
     required String nameDisplay,
@@ -1559,8 +1697,18 @@ class AnimalLocalCache {
     if (nameEn.isNotEmpty) candidates.add(nameEn.toLowerCase());
     if (nameDisplay.isNotEmpty) candidates.add(nameDisplay.toLowerCase());
     // Biến thể bỏ suffix
-    for (final suffix in ['cattle', 'breed', 'cow', 'dog', 'cat', 'horse', 'sheep', 'pig']) {
-      final trimmed = nameEn.toLowerCase()
+    for (final suffix in [
+      'cattle',
+      'breed',
+      'cow',
+      'dog',
+      'cat',
+      'horse',
+      'sheep',
+      'pig',
+    ]) {
+      final trimmed = nameEn
+          .toLowerCase()
           .replaceAll(RegExp(r'\b' + suffix + r'\b'), '')
           .trim();
       if (trimmed.isNotEmpty) candidates.add(trimmed);
@@ -1573,7 +1721,8 @@ class AnimalLocalCache {
       List<Object?> args;
 
       if (animalType != null && animalType.isNotEmpty) {
-        sql = 'SELECT * FROM animals WHERE LOWER(name_english) LIKE ? AND animal_type = ? LIMIT 1';
+        sql =
+            'SELECT * FROM animals WHERE LOWER(name_english) LIKE ? AND animal_type = ? LIMIT 1';
         args = [q, animalType];
       } else {
         sql = 'SELECT * FROM animals WHERE LOWER(name_english) LIKE ? LIMIT 1';
@@ -1585,10 +1734,12 @@ class AnimalLocalCache {
 
       // Thử name_vietnamese
       if (animalType != null && animalType.isNotEmpty) {
-        sql = 'SELECT * FROM animals WHERE LOWER(name_vietnamese) LIKE ? AND animal_type = ? LIMIT 1';
+        sql =
+            'SELECT * FROM animals WHERE LOWER(name_vietnamese) LIKE ? AND animal_type = ? LIMIT 1';
         args = [q, animalType];
       } else {
-        sql = 'SELECT * FROM animals WHERE LOWER(name_vietnamese) LIKE ? LIMIT 1';
+        sql =
+            'SELECT * FROM animals WHERE LOWER(name_vietnamese) LIKE ? LIMIT 1';
         args = [q];
       }
       final rows2 = await _db!.rawQuery(sql, args);
@@ -1601,8 +1752,7 @@ class AnimalLocalCache {
   Future<int> get cachedCount async {
     await init();
     if (_db == null) return 0;
-    final result =
-    await _db!.rawQuery('SELECT COUNT(*) as cnt FROM animals');
+    final result = await _db!.rawQuery('SELECT COUNT(*) as cnt FROM animals');
     return (result.first['cnt'] as int?) ?? 0;
   }
 
@@ -1613,9 +1763,7 @@ class AnimalLocalCache {
   }
 }
 
-// ════════════════════════════════════════════════════════════════
-// OFFLINE KEYWORD SEARCH — trả lời khi không có mạng
-// ════════════════════════════════════════════════════════════════
+// OFFLINE KEYWORD SEARCH - trả lời khi không có mạng
 
 class OfflineKeywordSearch {
   static final instance = OfflineKeywordSearch._();
@@ -1626,7 +1774,8 @@ class OfflineKeywordSearch {
   static const _featureHairless = 'hairless';
 
   Future<({String text, List<AiMentionedAnimal> animals})> search(
-      String question) async {
+    String question,
+  ) async {
     final cache = AnimalLocalCache.instance;
     final count = await cache.cachedCount;
 
@@ -1641,12 +1790,13 @@ class OfflineKeywordSearch {
     final normalizedQuestion = _normalize(question);
     final animalType = _detectAnimalType(question);
     final requestedCount = _requestedCount(normalizedQuestion);
-    final isListQuestion = _isListQuestion(normalizedQuestion) || requestedCount > 1;
+    final isListQuestion =
+        _isListQuestion(normalizedQuestion) || requestedCount > 1;
 
     // 1) Rule theo đặc điểm phổ biến. Đặt TRƯỚC keyword search để tránh:
-    // - "mèo mắt hai màu" bị dính rule "màu"/"mắt xanh".
-    // - "mèo không lông" bị keyword "lông" kéo sang "mèo Anh lông dài".
-    // - "kể 4 con mèo có mắt xanh" bị ép chỉ trả 1 con.
+    // "mèo mắt hai màu" bị dính rule "màu"/"mắt xanh".
+    // "mèo không lông" bị keyword "lông" kéo sang "mèo Anh lông dài".
+    // "kể 4 con mèo có mắt xanh" bị ép chỉ trả 1 con.
     final feature = _detectFeatureIntent(normalizedQuestion);
     if (feature != null) {
       final desired = isListQuestion ? requestedCount.clamp(2, 8).toInt() : 1;
@@ -1730,7 +1880,8 @@ class OfflineKeywordSearch {
       );
     }
 
-    final shouldAnswerOne = !isListQuestion &&
+    final shouldAnswerOne =
+        !isListQuestion &&
         (specialKeywords.isNotEmpty ||
             _isColorQuestion(normalizedQuestion) ||
             _isIdentityQuestion(normalizedQuestion) ||
@@ -1796,7 +1947,11 @@ class OfflineKeywordSearch {
     for (final row in rows) {
       final a = _toMentionedAnimal(row);
       animals.add(a);
-      used.add(_normalize('${a.dbNameVi ?? ''} ${a.dbNameEn ?? ''} ${a.nameDisplay} ${a.nameEnglish ?? ''}'));
+      used.add(
+        _normalize(
+          '${a.dbNameVi ?? ''} ${a.dbNameEn ?? ''} ${a.nameDisplay} ${a.nameEnglish ?? ''}',
+        ),
+      );
       if (animals.length >= limit) return animals;
     }
 
@@ -1806,11 +1961,13 @@ class OfflineKeywordSearch {
       final n = _normalize(name);
       final exists = used.any((u) => u.contains(n) || n.contains(u));
       if (exists) continue;
-      animals.add(AiMentionedAnimal(
-        nameDisplay: name,
-        nameEnglish: name,
-        animalType: animalType,
-      ));
+      animals.add(
+        AiMentionedAnimal(
+          nameDisplay: name,
+          nameEnglish: name,
+          animalType: animalType,
+        ),
+      );
       if (animals.length >= limit) break;
     }
     return animals;
@@ -1890,7 +2047,9 @@ class OfflineKeywordSearch {
     required String fallbackName,
     required int cachedCount,
   }) {
-    final display = primaryRow == null ? fallbackName : _displayName(primaryRow);
+    final display = primaryRow == null
+        ? fallbackName
+        : _displayName(primaryRow);
     final en = primaryRow?['name_english']?.toString().trim() ?? fallbackName;
     final enPart = en.isNotEmpty && en != display ? ' ($en)' : '';
     final desc = primaryRow?['description_short']?.toString().trim() ?? '';
@@ -2081,7 +2240,8 @@ class OfflineKeywordSearch {
 
   AiMentionedAnimal _toMentionedAnimal(Map<String, dynamic> r) {
     return AiMentionedAnimal(
-      nameDisplay: r['name_vietnamese']?.toString() ??
+      nameDisplay:
+          r['name_vietnamese']?.toString() ??
           r['name_english']?.toString() ??
           '',
       nameEnglish: r['name_english']?.toString(),
@@ -2151,18 +2311,72 @@ class OfflineKeywordSearch {
   String _normalize(String input) {
     var s = input.toLowerCase().trim();
     const accents = {
-      'à': 'a', 'á': 'a', 'ạ': 'a', 'ả': 'a', 'ã': 'a',
-      'ă': 'a', 'ằ': 'a', 'ắ': 'a', 'ặ': 'a', 'ẳ': 'a', 'ẵ': 'a',
-      'â': 'a', 'ầ': 'a', 'ấ': 'a', 'ậ': 'a', 'ẩ': 'a', 'ẫ': 'a',
-      'è': 'e', 'é': 'e', 'ẹ': 'e', 'ẻ': 'e', 'ẽ': 'e',
-      'ê': 'e', 'ề': 'e', 'ế': 'e', 'ệ': 'e', 'ể': 'e', 'ễ': 'e',
-      'ì': 'i', 'í': 'i', 'ị': 'i', 'ỉ': 'i', 'ĩ': 'i',
-      'ò': 'o', 'ó': 'o', 'ọ': 'o', 'ỏ': 'o', 'õ': 'o',
-      'ô': 'o', 'ồ': 'o', 'ố': 'o', 'ộ': 'o', 'ổ': 'o', 'ỗ': 'o',
-      'ơ': 'o', 'ờ': 'o', 'ớ': 'o', 'ợ': 'o', 'ở': 'o', 'ỡ': 'o',
-      'ù': 'u', 'ú': 'u', 'ụ': 'u', 'ủ': 'u', 'ũ': 'u',
-      'ư': 'u', 'ừ': 'u', 'ứ': 'u', 'ự': 'u', 'ử': 'u', 'ữ': 'u',
-      'ỳ': 'y', 'ý': 'y', 'ỵ': 'y', 'ỷ': 'y', 'ỹ': 'y',
+      'à': 'a',
+      'á': 'a',
+      'ạ': 'a',
+      'ả': 'a',
+      'ã': 'a',
+      'ă': 'a',
+      'ằ': 'a',
+      'ắ': 'a',
+      'ặ': 'a',
+      'ẳ': 'a',
+      'ẵ': 'a',
+      'â': 'a',
+      'ầ': 'a',
+      'ấ': 'a',
+      'ậ': 'a',
+      'ẩ': 'a',
+      'ẫ': 'a',
+      'è': 'e',
+      'é': 'e',
+      'ẹ': 'e',
+      'ẻ': 'e',
+      'ẽ': 'e',
+      'ê': 'e',
+      'ề': 'e',
+      'ế': 'e',
+      'ệ': 'e',
+      'ể': 'e',
+      'ễ': 'e',
+      'ì': 'i',
+      'í': 'i',
+      'ị': 'i',
+      'ỉ': 'i',
+      'ĩ': 'i',
+      'ò': 'o',
+      'ó': 'o',
+      'ọ': 'o',
+      'ỏ': 'o',
+      'õ': 'o',
+      'ô': 'o',
+      'ồ': 'o',
+      'ố': 'o',
+      'ộ': 'o',
+      'ổ': 'o',
+      'ỗ': 'o',
+      'ơ': 'o',
+      'ờ': 'o',
+      'ớ': 'o',
+      'ợ': 'o',
+      'ở': 'o',
+      'ỡ': 'o',
+      'ù': 'u',
+      'ú': 'u',
+      'ụ': 'u',
+      'ủ': 'u',
+      'ũ': 'u',
+      'ư': 'u',
+      'ừ': 'u',
+      'ứ': 'u',
+      'ự': 'u',
+      'ử': 'u',
+      'ữ': 'u',
+      'ỳ': 'y',
+      'ý': 'y',
+      'ỵ': 'y',
+      'ỷ': 'y',
+      'ỹ': 'y',
       'đ': 'd',
     };
     accents.forEach((from, to) => s = s.replaceAll(from, to));
@@ -2173,9 +2387,7 @@ class OfflineKeywordSearch {
   }
 }
 
-// ════════════════════════════════════════════════════════════════
-// GROQ SERVICE — online: Groq AI, offline: local keyword search
-// ════════════════════════════════════════════════════════════════
+// GROQ SERVICE - online: Groq, offline: local keyword search
 
 class GroqAnimalChatService {
   static const String _groqApiKey = AppEnv.groqApiKey;
@@ -2190,14 +2402,14 @@ class GroqAnimalChatService {
     List<AnimalChatMessage> recentMessages = const [],
     bool isOnline = true,
   }) async {
-    // ── OFFLINE PATH ──────────────────────────────────────────
+    // Offline path
     // Không chỉ tin ConnectivityResult, vì máy có Wi-Fi nhưng Internet đã mất
     // vẫn làm Groq/Supabase treo tới timeout.
     if (!AppEnv.hasGroq) {
       return _offlineFallback(
         question,
         reason:
-        '⚠️ Chưa cấu hình GROQ_API_KEY, mình đã chuyển sang tìm offline.',
+            '⚠️ Chưa cấu hình GROQ_API_KEY, mình đã chuyển sang tìm offline.',
       );
     }
 
@@ -2213,7 +2425,7 @@ class GroqAnimalChatService {
     }
 
     try {
-      // ── ONLINE PATH ───────────────────────────────────────────
+      // Online path
       final historyText = _buildHistoryText(recentMessages);
       final imagePart = await _buildOptionalImagePart(imageFile);
 
@@ -2228,8 +2440,7 @@ class GroqAnimalChatService {
           '- Từ chối nhẹ nếu câu hỏi không liên quan động vật\n'
           '- KHÔNG bịa thông tin khi không chắc chắn';
 
-      final userPrompt =
-          'LỊCH SỬ GẦN ĐÂY:\n$historyText\n\nCÂU HỎI: $question';
+      final userPrompt = 'LỊCH SỬ GẦN ĐÂY:\n$historyText\n\nCÂU HỎI: $question';
 
       final userContent = imagePart == null
           ? userPrompt
@@ -2257,7 +2468,7 @@ class GroqAnimalChatService {
             },
             body: body,
           )
-          // Đừng để user chờ 40s. Quá 15s thì fallback offline ngay.
+          // Đừng để user chờ 40s. Quá 15s thì dự phòng offline ngay.
           .timeout(const Duration(seconds: 15));
 
       if (res.statusCode != 200) {
@@ -2281,7 +2492,7 @@ class GroqAnimalChatService {
       final rawText =
           choices.first['message']?['content']?.toString().trim() ?? '';
 
-      // Parse JSON từ AI
+      // Đọc JSON từ phản hồi online
       Map<String, dynamic>? parsed;
       try {
         final cleaned = rawText
@@ -2334,7 +2545,7 @@ class GroqAnimalChatService {
   }
 
   Future<({String text, List<AiMentionedAnimal> animals, bool isOffline})>
-      _offlineFallback(String question, {String? reason}) async {
+  _offlineFallback(String question, {String? reason}) async {
     final result = await OfflineKeywordSearch.instance.search(question);
     final prefix = reason == null ? '' : '$reason\n\n';
     return (
@@ -2344,11 +2555,11 @@ class GroqAnimalChatService {
     );
   }
 
-  /// Resolve tên loài → lookup DB (online: Supabase, offline: SQLite)
+  // Resolve tên loài -> lookup DB (online: Supabase, offline: SQLite)
   Future<List<AiMentionedAnimal>> _resolveAnimals(
-      List<Map<String, dynamic>> aiAnimals, {
-        required bool isOnline,
-      }) async {
+    List<Map<String, dynamic>> aiAnimals, {
+    required bool isOnline,
+  }) async {
     final result = <AiMentionedAnimal>[];
     for (final a in aiAnimals) {
       final nameDisplay = a['name_display']?.toString() ?? '';
@@ -2359,7 +2570,10 @@ class GroqAnimalChatService {
       try {
         if (isOnline) {
           dbRow = await _supabaseLookup(
-              nameEn: nameEn, nameDisplay: nameDisplay, animalType: animalType);
+            nameEn: nameEn,
+            nameDisplay: nameDisplay,
+            animalType: animalType,
+          );
         }
         // Fallback: local cache (cả khi online để bù lỗi Supabase)
         dbRow ??= await AnimalLocalCache.instance.lookupByName(
@@ -2371,14 +2585,16 @@ class GroqAnimalChatService {
         dbRow = null;
       }
 
-      result.add(AiMentionedAnimal(
-        nameDisplay: nameDisplay,
-        nameEnglish: nameEn.isEmpty ? null : nameEn,
-        animalType: animalType,
-        dbId: dbRow?['id']?.toString(),
-        dbNameVi: dbRow?['name_vietnamese']?.toString(),
-        dbNameEn: dbRow?['name_english']?.toString(),
-      ));
+      result.add(
+        AiMentionedAnimal(
+          nameDisplay: nameDisplay,
+          nameEnglish: nameEn.isEmpty ? null : nameEn,
+          animalType: animalType,
+          dbId: dbRow?['id']?.toString(),
+          dbNameVi: dbRow?['name_vietnamese']?.toString(),
+          dbNameEn: dbRow?['name_english']?.toString(),
+        ),
+      );
     }
     return result;
   }
@@ -2391,8 +2607,18 @@ class GroqAnimalChatService {
     final candidates = <String>{};
     if (nameEn.isNotEmpty) candidates.add(nameEn);
     if (nameDisplay.isNotEmpty) candidates.add(nameDisplay);
-    for (final suffix in ['cattle', 'breed', 'cow', 'dog', 'cat', 'horse', 'sheep', 'pig']) {
-      final trimmed = nameEn.toLowerCase()
+    for (final suffix in [
+      'cattle',
+      'breed',
+      'cow',
+      'dog',
+      'cat',
+      'horse',
+      'sheep',
+      'pig',
+    ]) {
+      final trimmed = nameEn
+          .toLowerCase()
           .replaceAll(RegExp(r'\b' + suffix + r'\b'), '')
           .trim();
       if (trimmed.isNotEmpty && trimmed != nameEn.toLowerCase()) {
@@ -2414,7 +2640,8 @@ class GroqAnimalChatService {
         }
         final data = await q.limit(1).timeout(const Duration(seconds: 6));
         final list = data as List;
-        if (list.isNotEmpty) return Map<String, dynamic>.from(list.first as Map);
+        if (list.isNotEmpty)
+          return Map<String, dynamic>.from(list.first as Map);
       } catch (_) {}
 
       try {
@@ -2427,7 +2654,8 @@ class GroqAnimalChatService {
         }
         final data = await qv.limit(1).timeout(const Duration(seconds: 6));
         final list = data as List;
-        if (list.isNotEmpty) return Map<String, dynamic>.from(list.first as Map);
+        if (list.isNotEmpty)
+          return Map<String, dynamic>.from(list.first as Map);
       } catch (_) {}
     }
     return null;
@@ -2438,8 +2666,10 @@ class GroqAnimalChatService {
     final last = clean.length > 8 ? clean.sublist(clean.length - 8) : clean;
     if (last.isEmpty) return 'Chưa có lịch sử.';
     return last
-        .map((m) =>
-    '${m.role == AnimalChatRole.user ? 'User' : 'Assistant'}: ${m.text}')
+        .map(
+          (m) =>
+              '${m.role == AnimalChatRole.user ? 'User' : 'Assistant'}: ${m.text}',
+        )
         .join('\n');
   }
 
@@ -2450,9 +2680,7 @@ class GroqAnimalChatService {
       if (bytes.length > 4 * 1024 * 1024) return null;
       return {
         'type': 'image_url',
-        'image_url': {
-          'url': 'data:image/jpeg;base64,${base64Encode(bytes)}'
-        },
+        'image_url': {'url': 'data:image/jpeg;base64,${base64Encode(bytes)}'},
       };
     } catch (_) {
       return null;

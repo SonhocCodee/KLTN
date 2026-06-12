@@ -1,8 +1,6 @@
-// File: services/daily_fact_cache.dart
-//
 // Cache 2 tầng cho Daily Fact:
-//  Tầng 1 — Supabase (shared, tất cả users đều dùng chung)
-//  Tầng 2 — SharedPreferences (local fallback khi offline)
+// Tầng 1 - Supabase (shared, tất cả users đều dùng chung)
+// Tầng 2 - SharedPreferences (local dự phòng khi offline)
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -10,19 +8,17 @@ import 'dart:convert';
 import '../screen/models/animal_data.dart';
 
 class DailyFactCache {
-  // ✅ FIX: Dùng getter thay vì static final
+  // Dùng getter thay vì static final
   // static final _supabase = Supabase.instance.client; ← crash vì chạy khi class load
-  // getter chỉ resolve khi hàm được gọi → Supabase đã init xong rồi
+  // getter chỉ resolve khi hàm được gọi -> Supabase đã init xong rồi
   static SupabaseClient get _supabase => Supabase.instance.client;
 
   static const String _table = 'daily_animal_facts';
   static const String _localKey = 'daily_fact_v3';
   static const String _localDateKey = 'daily_fact_date_v3';
 
-  // ──────────────────────────────────────────
-  // ĐỌC CACHE
-  // Thứ tự: Supabase → Local SharedPreferences
-  // ──────────────────────────────────────────
+  // Đọc cache
+  // Thứ tự: Supabase -> Local SharedPreferences
   static Future<AnimalFact?> getCache() async {
     final today = _todayString();
 
@@ -46,20 +42,15 @@ class DailyFactCache {
     return _getLocal();
   }
 
-  // ──────────────────────────────────────────
-  // LƯU CACHE
-  // ──────────────────────────────────────────
+  // Lưu cache
   static Future<void> saveCache(AnimalFact fact) async {
     final today = _todayString();
 
     try {
-      await _supabase.from(_table).upsert(
-        {
-          'fact_date': today,
-          ..._factToRow(fact),
-        },
-        onConflict: 'fact_date',
-      );
+      await _supabase.from(_table).upsert({
+        'fact_date': today,
+        ..._factToRow(fact),
+      }, onConflict: 'fact_date');
       print('✅ [FactCache] Đã lưu Supabase');
     } catch (e) {
       print('⚠️ [FactCache] Không lưu được Supabase: $e');
@@ -68,9 +59,7 @@ class DailyFactCache {
     await _saveLocal(fact);
   }
 
-  // ──────────────────────────────────────────
   // XÓA CACHE (dùng khi force refresh)
-  // ──────────────────────────────────────────
   static Future<void> clearCache() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_localKey);
@@ -78,9 +67,7 @@ class DailyFactCache {
     print('🗑️ [FactCache] Đã xóa local cache');
   }
 
-  // ──────────────────────────────────────────
-  // PRIVATE HELPERS
-  // ──────────────────────────────────────────
+  // Private helpers
   static AnimalFact _rowToFact(Map<String, dynamic> row) {
     List<String> facts = [];
     final rawFacts = row['facts'];

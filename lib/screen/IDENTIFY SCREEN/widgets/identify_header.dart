@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../language/Locale_provider.dart'; // Đảm bảo import Locale_provider
+import '../../language/Locale_provider.dart';
 import '../dentify_history_screen.dart';
 import '../service/Identify_service.dart';
 
@@ -17,37 +17,53 @@ class IdentifyHeader extends StatelessWidget {
     final t = context.watch<LocaleProvider>();
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 10),
       child: Row(
         children: [
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      t.tr('Camera Thú Vị'),
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w900,
-                        color: colorScheme.primary,
-                        letterSpacing: -0.5,
-                      ),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: _accentOrange.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(14),
                     ),
-                    const SizedBox(width: 8),
-                    const Icon(Icons.pets_rounded, color: _accentOrange, size: 28),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  t.tr('Khám phá thế giới động vật qua ống kính'),
-                  style: TextStyle(fontSize: 14, color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500),
-                ),
-              ],
+                    child: const Icon(
+                      Icons.camera_alt_rounded,
+                      color: _accentOrange,
+                      size: 21,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  RichText(
+                    maxLines: 1,
+                    text: TextSpan(
+                      style: TextStyle(
+                        fontSize: 25,
+                        fontWeight: FontWeight.w900,
+                        height: 1.1,
+                        color: colorScheme.onSurface,
+                      ),
+                      children: [
+                        TextSpan(text: '${t.tr('Camera')} '),
+                        TextSpan(
+                          text: t.tr('thú vị'),
+                          style: const TextStyle(color: _accentOrange),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          // ── Nút lịch sử ──────────────────────────────────────────────
+          const SizedBox(width: 12),
           GestureDetector(
             onTap: () => Navigator.push(
               context,
@@ -59,11 +75,15 @@ class IdentifyHeader extends StatelessWidget {
               ),
             ),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              height: 40,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
-                color: _accentOrange.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: _accentOrange.withOpacity(0.3), width: 1.5),
+                color: _accentOrange.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: _accentOrange.withValues(alpha: 0.28),
+                  width: 1.2,
+                ),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -71,29 +91,50 @@ class IdentifyHeader extends StatelessWidget {
                   Stack(
                     clipBehavior: Clip.none,
                     children: [
-                      const Icon(Icons.history_rounded, size: 20, color: _accentOrange),
-                      // Badge số lượng lịch sử
+                      const Icon(
+                        Icons.history_rounded,
+                        size: 20,
+                        color: _accentOrange,
+                      ),
                       if (service.historyItems.isNotEmpty)
                         Positioned(
-                          top: -4,
-                          right: -6,
+                          top: -6,
+                          right: -8,
                           child: Container(
-                            padding: const EdgeInsets.all(2),
-                            constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
-                            decoration: const BoxDecoration(color: _accentOrange, shape: BoxShape.circle),
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            constraints: const BoxConstraints(
+                              minWidth: 16,
+                              minHeight: 16,
+                            ),
+                            decoration: const BoxDecoration(
+                              color: _accentOrange,
+                              shape: BoxShape.circle,
+                            ),
+                            alignment: Alignment.center,
                             child: Text(
-                              service.historyItems.length > 99 ? '99+' : '${service.historyItems.length}',
-                              style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
+                              service.historyItems.length > 99
+                                  ? '99+'
+                                  : '${service.historyItems.length}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 9,
+                                fontWeight: FontWeight.w800,
+                                height: 1,
+                              ),
                               textAlign: TextAlign.center,
                             ),
                           ),
                         ),
                     ],
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 7),
                   Text(
                     t.tr('Lịch sử'),
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _accentOrange),
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: _accentOrange,
+                    ),
                   ),
                 ],
               ),

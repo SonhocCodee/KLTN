@@ -1,20 +1,20 @@
-/// lib/core/app_env.dart
-/// Chạy bằng:
-/// flutter run --dart-define-from-file=..env.json
-///
-/// Build:
-/// flutter build apk --release --dart-define-from-file=..env.json
-/// flutter build ios --release --dart-define-from-file=..env.json
+// lib/core/app_env.dart
+// Chạy bằng:
+// flutter run --dart-define-from-file=..env.json
+// Dựng giao diện:
+// flutter build apk --release --dart-define-from-file=..env.json
+// flutter build ios --release --dart-define-from-file=..env.json
 
 class AppEnv {
   AppEnv._();
 
   static const String supabaseUrl = String.fromEnvironment('SUPABASE_URL');
 
-  /// Chỉ dùng anon key trong Flutter app.
-  /// TUYỆT ĐỐI không đưa service_role vào app.
-  static const String supabaseAnonKey =
-  String.fromEnvironment('SUPABASE_ANON_KEY');
+  // Chỉ dùng anon key trong Flutter app.
+  // TUYỆT ĐỐI không đưa service_role vào app.
+  static const String supabaseAnonKey = String.fromEnvironment(
+    'SUPABASE_ANON_KEY',
+  );
 
   static const String groqApiKey = String.fromEnvironment('GROQ_API_KEY');
 
@@ -33,17 +33,17 @@ class AppEnv {
     defaultValue: 'meta-llama/llama-4-scout-17b-16e-instruct',
   );
 
-  static const String geminiApiKey =
-  String.fromEnvironment('GEMINI_API_KEY');
+  static const String geminiApiKey = String.fromEnvironment('GEMINI_API_KEY');
 
   static const String geminiUrl = String.fromEnvironment(
     'GEMINI_URL',
     defaultValue:
-    'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+        'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
   );
 
-  static const String clipDropApiKey =
-  String.fromEnvironment('CLIPDROP_API_KEY');
+  static const String clipDropApiKey = String.fromEnvironment(
+    'CLIPDROP_API_KEY',
+  );
 
   static bool get hasSupabase =>
       supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty;

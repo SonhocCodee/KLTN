@@ -82,49 +82,53 @@ class QuizQuestion {
 
 class ExploreService extends ChangeNotifier {
   // SharedPreferences keys
-  static const _keyDate           = 'explore_date';
-  static const _keyAnimalIds      = 'explore_animal_ids';
-  static const _keyReadCount      = 'explore_read_count';
-  static const _keyReadIndices    = 'explore_read_indices';
-  static const _keyStreak         = 'explore_streak';
-  static const _keyLastQuizDate   = 'explore_last_quiz_date'; // ngày làm quiz gần nhất
-  static const _keyQuizDoneToday  = 'explore_quiz_done_today'; // ngày đã tính streak
-  static const _keyTotalFacts     = 'explore_total_facts';
-  static const _keyTotalSpecies   = 'explore_total_species';
+  static const _keyDate = 'explore_date';
+  static const _keyAnimalIds = 'explore_animal_ids';
+  static const _keyReadCount = 'explore_read_count';
+  static const _keyReadIndices = 'explore_read_indices';
+  static const _keyStreak = 'explore_streak';
+  static const _keyLastQuizDate =
+      'explore_last_quiz_date'; // ngày làm quiz gần nhất
+  static const _keyQuizDoneToday =
+      'explore_quiz_done_today'; // ngày đã tính streak
+  static const _keyTotalFacts = 'explore_total_facts';
+  static const _keyTotalSpecies = 'explore_total_species';
   static const _keyAllReadSpecies = 'explore_all_read_species';
   static const _keySpeciesBaseline = 'explore_species_baseline';
-  static const _keyRecoveryMonth  = 'streak_recovery_month';
-  static const _keyRecoveryUsed   = 'streak_recovery_used';
+  static const _keyRecoveryMonth = 'streak_recovery_month';
+  static const _keyRecoveryUsed = 'streak_recovery_used';
 
   final _supabase = Supabase.instance.client;
 
-  bool isLoading          = true;
-  int  readCount          = 0;
-  int  streakDays         = 0;
-  int  totalFactsRead     = 0;
-  int  totalSpecies       = 0;
-  int  quizCorrectPct     = 0;
-  int  streakRecoveryLeft = 0;
-  bool quizDoneToday      = false;
+  bool isLoading = true;
+  int readCount = 0;
+  int streakDays = 0;
+  int totalFactsRead = 0;
+  int totalSpecies = 0;
+  int quizCorrectPct = 0;
+  int streakRecoveryLeft = 0;
+  bool quizDoneToday = false;
 
   String? _lastQuizDate; // cache in-memory
 
   final Set<int> _readIndicesThisSession = {};
 
-  bool _isInitialized        = false;
+  bool _isInitialized = false;
   String _initializedForDate = '';
 
-  List<DailyAnimal>  dailyAnimals  = [];
+  List<DailyAnimal> dailyAnimals = [];
   List<QuizQuestion> quizQuestions = [];
 
-  bool get isQuizUnlocked    => readCount >= 10;
+  bool get isQuizUnlocked => readCount >= 10;
   bool get hasCompletedToday => readCount >= 10;
-  int  get remainingFacts    => (10 - readCount).clamp(0, 10);
+  int get remainingFacts => (10 - readCount).clamp(0, 10);
 
-  // ── Init ─────────────────────────────────────────────────────
+  // Khởi tạo
   Future<void> init() async {
     final today = _todayString();
-    if (_isInitialized && _initializedForDate == today && dailyAnimals.isNotEmpty) {
+    if (_isInitialized &&
+        _initializedForDate == today &&
+        dailyAnimals.isNotEmpty) {
       return;
     }
     isLoading = true;
@@ -139,13 +143,13 @@ class ExploreService extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ── Load stats từ local + server ────────────────────────────
+  // Tải stats từ local + server
   Future<void> _loadStats() async {
     final prefs = await SharedPreferences.getInstance();
 
     totalFactsRead = prefs.getInt(_keyTotalFacts) ?? 0;
-    streakDays     = prefs.getInt(_keyStreak)     ?? 0;
-    _lastQuizDate  = prefs.getString(_keyLastQuizDate);
+    streakDays = prefs.getInt(_keyStreak) ?? 0;
+    _lastQuizDate = prefs.getString(_keyLastQuizDate);
 
     // Server chỉ lưu tổng, local mới lưu được danh sách ID đã đọc.
     // Baseline giữ phần tổng đã có từ server để lần đọc tiếp theo không bị tụt về 1.
@@ -164,7 +168,7 @@ class ExploreService extends ChangeNotifier {
     await _mergeStatsFromSupabase(prefs);
     await _loadQuizPctFromSupabase(prefs);
 
-    final thisMonth  = _monthString();
+    final thisMonth = _monthString();
     final savedMonth = prefs.getString(_keyRecoveryMonth) ?? '';
     if (savedMonth != thisMonth) {
       await prefs.setString(_keyRecoveryMonth, thisMonth);
@@ -188,15 +192,15 @@ class ExploreService extends ChangeNotifier {
 
       if (row == null) return;
 
-      final serverFacts      = (row['total_facts']   as int?) ?? 0;
-      final serverSpecies    = (row['total_species']  as int?) ?? 0;
-      final serverStreak     = (row['streak_days']    as int?) ?? 0;
-      final serverLastPlayed = row['last_played']     as String?;
+      final serverFacts = (row['total_facts'] as int?) ?? 0;
+      final serverSpecies = (row['total_species'] as int?) ?? 0;
+      final serverStreak = (row['streak_days'] as int?) ?? 0;
+      final serverLastPlayed = row['last_played'] as String?;
 
       // Streak server chỉ hợp lệ nếu last_played <= hôm qua (tức quiz gần đây)
       final serverStreakValid =
           serverLastPlayed == _todayString() ||
-              serverLastPlayed == _yesterdayString();
+          serverLastPlayed == _yesterdayString();
 
       if (serverStreakValid && serverStreak > streakDays) {
         streakDays = serverStreak;
@@ -207,8 +211,9 @@ class ExploreService extends ChangeNotifier {
         totalFactsRead = serverFacts;
         await prefs.setInt(_keyTotalFacts, totalFactsRead);
       }
-      final localSpeciesCount =
-          (prefs.getStringList(_keyAllReadSpecies) ?? []).toSet().length;
+      final localSpeciesCount = (prefs.getStringList(_keyAllReadSpecies) ?? [])
+          .toSet()
+          .length;
       final currentBaseline = prefs.getInt(_keySpeciesBaseline) ?? 0;
       final currentTotal = currentBaseline + localSpeciesCount;
       if (serverSpecies > currentTotal) {
@@ -230,7 +235,7 @@ class ExploreService extends ChangeNotifier {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) {
       final a = prefs.getInt('quiz_total_answered') ?? 0;
-      final c = prefs.getInt('quiz_total_correct')  ?? 0;
+      final c = prefs.getInt('quiz_total_correct') ?? 0;
       quizCorrectPct = a > 0 ? ((c / a) * 100).round() : 0;
       return;
     }
@@ -253,49 +258,55 @@ class ExploreService extends ChangeNotifier {
       }
       quizCorrectPct = sumTotal > 0 ? ((sumScore / sumTotal) * 100).round() : 0;
       await prefs.setInt('quiz_total_answered', sumTotal);
-      await prefs.setInt('quiz_total_correct',  sumScore);
+      await prefs.setInt('quiz_total_correct', sumScore);
     } catch (e) {
       debugPrint('[ExploreService] Load quiz pct error: $e');
       final a = prefs.getInt('quiz_total_answered') ?? 0;
-      final c = prefs.getInt('quiz_total_correct')  ?? 0;
+      final c = prefs.getInt('quiz_total_correct') ?? 0;
       quizCorrectPct = a > 0 ? ((c / a) * 100).round() : 0;
     }
   }
 
-  // ── Sync toàn bộ stats lên Supabase ─────────────────────────
+  // Sync toàn bộ stats lên Supabase
   void _syncAllStats() {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) return;
-    _supabase.from('user_stats').upsert({
-      'user_id'      : userId,
-      'streak_days'  : streakDays,
-      'last_played'  : _lastQuizDate ?? _todayString(),
-      'total_facts'  : totalFactsRead,
-      'total_species': totalSpecies,
-      'updated_at'   : DateTime.now().toIso8601String(),
-    }, onConflict: 'user_id').catchError((e) {
-      debugPrint('[ExploreService] Sync all stats error: $e');
-    });
+    _supabase
+        .from('user_stats')
+        .upsert({
+          'user_id': userId,
+          'streak_days': streakDays,
+          'last_played': _lastQuizDate ?? _todayString(),
+          'total_facts': totalFactsRead,
+          'total_species': totalSpecies,
+          'updated_at': DateTime.now().toIso8601String(),
+        }, onConflict: 'user_id')
+        .catchError((e) {
+          debugPrint('[ExploreService] Sync all stats error: $e');
+        });
   }
 
   // Chỉ sync facts/species (không đụng streak/last_played)
   void _syncFactsOnly() {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) return;
-    _supabase.from('user_stats').upsert({
-      'user_id'      : userId,
-      'total_facts'  : totalFactsRead,
-      'total_species': totalSpecies,
-      'updated_at'   : DateTime.now().toIso8601String(),
-    }, onConflict: 'user_id').catchError((e) {
-      debugPrint('[ExploreService] Sync facts error: $e');
-    });
+    _supabase
+        .from('user_stats')
+        .upsert({
+          'user_id': userId,
+          'total_facts': totalFactsRead,
+          'total_species': totalSpecies,
+          'updated_at': DateTime.now().toIso8601String(),
+        }, onConflict: 'user_id')
+        .catchError((e) {
+          debugPrint('[ExploreService] Sync facts error: $e');
+        });
   }
 
-  // ── Check & refresh daily — KHÔNG đụng streak ───────────────
+  // Kiểm tra & refresh daily - KHÔNG đụng streak
   Future<void> _checkAndRefreshDaily() async {
-    final prefs     = await SharedPreferences.getInstance();
-    final today     = _todayString();
+    final prefs = await SharedPreferences.getInstance();
+    final today = _todayString();
     final savedDate = prefs.getString(_keyDate);
 
     // Kiểm tra hôm nay đã làm quiz chưa
@@ -303,18 +314,18 @@ class ExploreService extends ChangeNotifier {
     quizDoneToday = quizDoneDate == today;
 
     if (savedDate != today) {
-      // Sang ngày mới → reset daily progress
+      // Sang ngày mới -> reset daily progress
       _isInitialized = false;
       await prefs.setString(_keyDate, today);
       await prefs.setInt(_keyReadCount, 0);
       await prefs.remove(_keyReadIndices);
       await prefs.remove(_keyAnimalIds);
-      readCount     = 0;
+      readCount = 0;
       quizDoneToday = false;
       _readIndicesThisSession.clear();
-      dailyAnimals  = [];
+      dailyAnimals = [];
 
-      // FIX: Streak reset nếu bỏ ngày quiz (không reset khi chỉ bỏ đọc fact)
+      // Streak reset nếu bỏ ngày quiz (không reset khi chỉ bỏ đọc fact)
       await _checkStreakOnNewDay(prefs);
     } else {
       readCount = prefs.getInt(_keyReadCount) ?? 0;
@@ -337,22 +348,22 @@ class ExploreService extends ChangeNotifier {
     }
   }
 
-  // ── FIX CORE: Streak chỉ reset nếu không làm quiz hôm qua ──
+  // Streak chỉ reset nếu không làm quiz hôm qua
   Future<void> _checkStreakOnNewDay(SharedPreferences prefs) async {
     final lastQuizDate = prefs.getString(_keyLastQuizDate);
-    final yesterday    = _yesterdayString();
+    final yesterday = _yesterdayString();
 
     if (lastQuizDate == null || lastQuizDate.isEmpty) {
-      // Chưa từng làm quiz → streak = 0, không làm gì
+      // Chưa từng làm quiz -> streak = 0, không làm gì
       debugPrint('[Streak] Chưa có quiz → giữ 0');
       return;
     }
 
     if (lastQuizDate == yesterday) {
-      // Làm quiz đúng hôm qua → streak còn sống, chờ làm quiz hôm nay mới tăng
+      // Làm quiz đúng hôm qua -> streak còn sống, chờ làm quiz hôm nay mới tăng
       debugPrint('[Streak] Quiz hôm qua ok → streak còn = $streakDays');
     } else {
-      // Bỏ ít nhất 1 ngày không làm quiz → mất chuỗi
+      // Bỏ ít nhất 1 ngày không làm quiz -> mất chuỗi
       streakDays = 0;
       await prefs.setInt(_keyStreak, streakDays);
       debugPrint('[Streak] Bỏ ngày (last: $lastQuizDate) → reset = 0');
@@ -361,7 +372,7 @@ class ExploreService extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ── FIX CORE: submitQuizResult — streak +1 tại đây ─────────
+  // submitQuizResult - streak +1 tại đây
   Future<void> submitQuizResult({
     required int correctCount,
     required List<String> answeredQuestionIds,
@@ -372,33 +383,34 @@ class ExploreService extends ChangeNotifier {
 
     // Cập nhật quiz correct %
     final totalAnswered = (prefs.getInt('quiz_total_answered') ?? 0) + total;
-    final totalCorrect  = (prefs.getInt('quiz_total_correct')  ?? 0) + correctCount;
+    final totalCorrect =
+        (prefs.getInt('quiz_total_correct') ?? 0) + correctCount;
     await prefs.setInt('quiz_total_answered', totalAnswered);
-    await prefs.setInt('quiz_total_correct',  totalCorrect);
+    await prefs.setInt('quiz_total_correct', totalCorrect);
     quizCorrectPct = totalAnswered > 0
         ? ((totalCorrect / totalAnswered) * 100).round()
         : 0;
 
-    // FIX: Tăng streak — chỉ 1 lần/ngày
+    // Tăng streak - chỉ 1 lần/ngày
     if (!quizDoneToday) {
       final lastQuizDate = prefs.getString(_keyLastQuizDate) ?? '';
-      final yesterday    = _yesterdayString();
+      final yesterday = _yesterdayString();
 
       if (lastQuizDate.isEmpty) {
         // Lần đầu tiên làm quiz
         streakDays = 1;
       } else if (lastQuizDate == yesterday) {
-        // Liên tục ngày hôm qua → tăng
+        // Liên tục ngày hôm qua -> tăng
         streakDays++;
       } else {
-        // Đã bỏ ngày → bắt đầu lại từ 1
+        // Đã bỏ ngày -> bắt đầu lại từ 1
         streakDays = 1;
       }
 
-      quizDoneToday  = true;
-      _lastQuizDate  = today;
+      quizDoneToday = true;
+      _lastQuizDate = today;
       await prefs.setString(_keyQuizDoneToday, today);
-      await prefs.setString(_keyLastQuizDate,  today);
+      await prefs.setString(_keyLastQuizDate, today);
       await prefs.setInt(_keyStreak, streakDays);
       debugPrint('[Streak] Quiz submit → streakDays = $streakDays');
     }
@@ -406,14 +418,20 @@ class ExploreService extends ChangeNotifier {
     // Ghi session vào Supabase
     final userId = _supabase.auth.currentUser?.id;
     if (userId != null) {
-      _supabase.from('quiz_progress').insert({
-        'user_id'     : userId,
-        'quiz_date'   : today,
-        'score'       : correctCount,
-        'total'       : total,
-        'completed'   : true,
-        'completed_at': DateTime.now().toIso8601String(),
-      }).catchError((e) => debugPrint('[ExploreService] Insert quiz_progress error: $e'));
+      _supabase
+          .from('quiz_progress')
+          .insert({
+            'user_id': userId,
+            'quiz_date': today,
+            'score': correctCount,
+            'total': total,
+            'completed': true,
+            'completed_at': DateTime.now().toIso8601String(),
+          })
+          .catchError(
+            (e) =>
+                debugPrint('[ExploreService] Insert quiz_progress error: $e'),
+          );
     }
 
     _updateQuizStats(answeredQuestionIds, correctCount);
@@ -421,24 +439,27 @@ class ExploreService extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> _updateQuizStats(List<String> questionIds, int correctCount) async {
+  Future<void> _updateQuizStats(
+    List<String> questionIds,
+    int correctCount,
+  ) async {
     for (final qid in questionIds) {
       try {
-        await _supabase.rpc('increment_quiz_stats', params: {
-          'question_id': qid,
-          'was_correct': correctCount > 0,
-        });
+        await _supabase.rpc(
+          'increment_quiz_stats',
+          params: {'question_id': qid, 'was_correct': correctCount > 0},
+        );
       } catch (_) {}
     }
   }
 
-  // ── FIX: recoverStreak ───────────────────────────────────────
+  // recoverStreak
   Future<bool> recoverStreak() async {
     if (streakRecoveryLeft <= 0) return false;
 
-    final prefs      = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
     final usedBefore = prefs.getInt(_keyRecoveryUsed) ?? 0;
-    final newUsed    = usedBefore + 1;
+    final newUsed = usedBefore + 1;
 
     await prefs.setInt(_keyRecoveryUsed, newUsed);
     streakRecoveryLeft = (2 - newUsed).clamp(0, 2);
@@ -453,11 +474,13 @@ class ExploreService extends ChangeNotifier {
 
     _syncAllStats();
     notifyListeners();
-    debugPrint('[Streak] Recovery → streakDays = $streakDays, left = $streakRecoveryLeft');
+    debugPrint(
+      '[Streak] Recovery → streakDays = $streakDays, left = $streakRecoveryLeft',
+    );
     return true;
   }
 
-  // ── FIX: markFactRead — Set-based, không nhảy index ─────────
+  // markFactRead - Set-based, không nhảy index
   Future<void> markFactRead(int index) async {
     if (index < 0 || index > 9) return;
     if (_readIndicesThisSession.contains(index)) return;
@@ -477,8 +500,9 @@ class ExploreService extends ChangeNotifier {
     await prefs.setInt(_keyTotalFacts, totalFactsRead);
 
     if (index < dailyAnimals.length) {
-      final animalId      = dailyAnimals[index].id;
-      final allSpeciesSet = (prefs.getStringList(_keyAllReadSpecies) ?? []).toSet();
+      final animalId = dailyAnimals[index].id;
+      final allSpeciesSet = (prefs.getStringList(_keyAllReadSpecies) ?? [])
+          .toSet();
       if (!allSpeciesSet.contains(animalId)) {
         allSpeciesSet.add(animalId);
         await prefs.setStringList(_keyAllReadSpecies, allSpeciesSet.toList());
@@ -496,15 +520,15 @@ class ExploreService extends ChangeNotifier {
     _syncFactsOnly(); // Streak không đổi, không sync streak
   }
 
-  // ── Fetch animals ────────────────────────────────────────────
+  // Fetch animals
   Future<void> _fetchRandom10Animals(SharedPreferences prefs) async {
     try {
       final data = await _supabase
           .from('animals')
           .select(
-        'id, name_vietnamese, name_english, fun_fact_vietnamese, '
+            'id, name_vietnamese, name_english, fun_fact_vietnamese, '
             'image_url, animal_type, primary_habitat, conservation_status',
-      )
+          )
           .not('fun_fact_vietnamese', 'is', null)
           .limit(500);
 
@@ -525,13 +549,13 @@ class ExploreService extends ChangeNotifier {
       final data = await _supabase
           .from('animals')
           .select(
-        'id, name_vietnamese, name_english, fun_fact_vietnamese, '
+            'id, name_vietnamese, name_english, fun_fact_vietnamese, '
             'image_url, animal_type, primary_habitat, conservation_status',
-      )
+          )
           .inFilter('id', ids);
 
       final map = {
-        for (var e in data as List) e['id'] as String: DailyAnimal.fromJson(e)
+        for (var e in data as List) e['id'] as String: DailyAnimal.fromJson(e),
       };
       dailyAnimals = ids.map((id) => map[id]).whereType<DailyAnimal>().toList();
     } catch (e) {
@@ -566,7 +590,7 @@ class ExploreService extends ChangeNotifier {
     }
   }
 
-  // ── Helpers ──────────────────────────────────────────────────
+  // Hàm phụ trợ
   String _todayString() {
     final n = DateTime.now();
     return '${n.year}-${n.month.toString().padLeft(2, '0')}-${n.day.toString().padLeft(2, '0')}';

@@ -18,13 +18,21 @@ class IdentifyHistoryTile extends StatelessWidget {
 
   static const _accentOrange = Color(0xFFEF6C00);
 
-  // Màu & icon theo AI source
+  // Màu và icon theo nguồn nhận diện.
   _AiStyle _aiStyle(String? source, ColorScheme cs) {
     switch (source) {
       case 'gemini':
-        return _AiStyle(color: const Color(0xFF4285F4), label: 'Gemini', icon: Icons.auto_awesome);
+        return _AiStyle(
+          color: const Color(0xFF4285F4),
+          label: 'Gemini',
+          icon: Icons.auto_awesome,
+        );
       case 'groq':
-        return _AiStyle(color: const Color(0xFF7C3AED), label: 'Groq', icon: Icons.bolt);
+        return _AiStyle(
+          color: const Color(0xFF7C3AED),
+          label: 'Groq',
+          icon: Icons.bolt,
+        );
       case 'local_fallback':
         return _AiStyle(color: cs.primary, label: 'Local*', icon: Icons.memory);
       default:
@@ -45,21 +53,23 @@ class IdentifyHistoryTile extends StatelessWidget {
 
   void _openDetail(BuildContext context, LocaleProvider t) {
     if (item.animalId == null) return;
-    final category = AnimalCategory.getById('cat') ??
+    final category =
+        AnimalCategory.getById('cat') ??
         AnimalCategory(
-          id: 'cat', nameVi: t.tr('Mèo'), nameEn: 'Cat',
+          id: 'cat',
+          nameVi: t.tr('Mèo'),
+          nameEn: 'Cat',
           icon: Icons.pets,
           gradient: [const Color(0xFFEC4899), const Color(0xFFDB2777)],
           imageAssetPath: 'assets/animals/cat.jpg',
-          totalExpected: 73, animalType: 'cat',
+          totalExpected: 73,
+          animalType: 'cat',
         );
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => AnimalDetailScreen(
-          animalId: item.animalId!,
-          category: category,
-        ),
+        builder: (_) =>
+            AnimalDetailScreen(animalId: item.animalId!, category: category),
       ),
     );
   }
@@ -86,7 +96,14 @@ class IdentifyHistoryTile extends StatelessWidget {
           children: [
             const Icon(Icons.delete_rounded, color: Colors.redAccent, size: 28),
             const SizedBox(height: 4),
-            Text(t.tr('Xoá'), style: const TextStyle(color: Colors.redAccent, fontSize: 12, fontWeight: FontWeight.bold)),
+            Text(
+              t.tr('Xoá'),
+              style: const TextStyle(
+                color: Colors.redAccent,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ],
         ),
       ),
@@ -98,7 +115,9 @@ class IdentifyHistoryTile extends StatelessWidget {
             color: colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: canNavigate ? colorScheme.primary.withOpacity(0.25) : colorScheme.outlineVariant,
+              color: canNavigate
+                  ? colorScheme.primary.withOpacity(0.25)
+                  : colorScheme.outlineVariant,
               width: 1.5,
             ),
             boxShadow: [
@@ -111,28 +130,34 @@ class IdentifyHistoryTile extends StatelessWidget {
           ),
           child: Row(
             children: [
-              // ── Ảnh ──────────────────────────────────────────────
+              // Ảnh
               Padding(
                 padding: const EdgeInsets.all(10),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(14),
                   child: SizedBox(
-                    width: 72, height: 72,
+                    width: 72,
+                    height: 72,
                     child: item.animalImageUrl != null
                         ? Image.network(
-                      item.animalImageUrl!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _placeholder(colorScheme),
-                    )
+                            item.animalImageUrl!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) =>
+                                _placeholder(colorScheme),
+                          )
                         : _placeholder(colorScheme),
                   ),
                 ),
               ),
 
-              // ── Nội dung ─────────────────────────────────────────
+              // Nội dung
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.only(right: 12, top: 10, bottom: 10),
+                  padding: const EdgeInsets.only(
+                    right: 12,
+                    top: 10,
+                    bottom: 10,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -160,38 +185,58 @@ class IdentifyHistoryTile extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      // Row: badge AI + confidence + thời gian
+                      // Badge nguồn nhận diện, độ tin cậy và thời gian.
                       Row(
                         children: [
-                          // AI badge
+                          // Badge nguồn nhận diện.
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 7,
+                              vertical: 3,
+                            ),
                             decoration: BoxDecoration(
                               color: ai.color.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: ai.color.withOpacity(0.3)),
+                              border: Border.all(
+                                color: ai.color.withOpacity(0.3),
+                              ),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(ai.icon, size: 10, color: ai.color),
                                 const SizedBox(width: 4),
-                                Text(ai.label, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: ai.color)),
+                                Text(
+                                  ai.label,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: ai.color,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
                           const SizedBox(width: 6),
                           // Confidence
-                          if (item.confidence != null && item.confidence != '?') ...[
+                          if (item.confidence != null &&
+                              item.confidence != '?') ...[
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 7,
+                                vertical: 3,
+                              ),
                               decoration: BoxDecoration(
                                 color: _accentOrange.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
                                 '${item.confidence}%',
-                                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: _accentOrange),
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: _accentOrange,
+                                ),
                               ),
                             ),
                             const SizedBox(width: 6),
@@ -202,7 +247,10 @@ class IdentifyHistoryTile extends StatelessWidget {
                               _formatDate(item.createdAt, t),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
                             ),
                           ),
                         ],
@@ -212,7 +260,11 @@ class IdentifyHistoryTile extends StatelessWidget {
                         const SizedBox(height: 6),
                         Text(
                           t.tr('Chưa có trong từ điển'),
-                          style: const TextStyle(fontSize: 11, color: Colors.redAccent, fontWeight: FontWeight.w600),
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Colors.redAccent,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ],
                     ],
@@ -220,23 +272,29 @@ class IdentifyHistoryTile extends StatelessWidget {
                 ),
               ),
 
-              // ── Mũi tên ──────────────────────────────────────────
+              // Mũi tên
               if (canNavigate)
                 Padding(
                   padding: const EdgeInsets.only(right: 12),
-                  child: Icon(Icons.chevron_right_rounded, color: colorScheme.onSurfaceVariant, size: 22),
+                  child: Icon(
+                    Icons.chevron_right_rounded,
+                    color: colorScheme.onSurfaceVariant,
+                    size: 22,
+                  ),
                 ),
             ],
           ),
-        ),      // đóng Container
-      ),      // đóng GestureDetector
+        ), // đóng Container
+      ), // đóng GestureDetector
     );
   }
 
   Widget _placeholder(ColorScheme cs) {
     return Container(
       color: cs.surfaceContainer,
-      child: Center(child: Icon(Icons.pets_rounded, color: cs.outlineVariant, size: 28)),
+      child: Center(
+        child: Icon(Icons.pets_rounded, color: cs.outlineVariant, size: 28),
+      ),
     );
   }
 }
@@ -245,5 +303,9 @@ class _AiStyle {
   final Color color;
   final String label;
   final IconData icon;
-  const _AiStyle({required this.color, required this.label, required this.icon});
+  const _AiStyle({
+    required this.color,
+    required this.label,
+    required this.icon,
+  });
 }

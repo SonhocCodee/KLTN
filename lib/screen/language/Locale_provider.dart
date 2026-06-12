@@ -23,7 +23,9 @@ class LocaleProvider extends ChangeNotifier {
 
   Future<void> loadTranslations() async {
     try {
-      final raw = await rootBundle.loadString('assets/translations/language.json');
+      final raw = await rootBundle.loadString(
+        'assets/translations/language.json',
+      );
       _en = json.decode(raw);
     } catch (e) {
       print("Lỗi load ngôn ngữ: $e");
@@ -37,13 +39,13 @@ class LocaleProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// NATURAL LANGUAGE KEY: Key chính là tiếng Việt
+  // NATURAL LANGUAGE KEY: Key chính là tiếng Việt
   String tr(String key) {
     if (!_isEnglish) return key;
     return _en[key]?.toString() ?? key;
   }
 
-  /// Chuỗi có tham số động
+  // Chuỗi có tham số động
   String trArgs(String key, {required Map<String, String> args}) {
     String text = tr(key);
     args.forEach((k, v) => text = text.replaceAll('{$k}', v));

@@ -32,7 +32,7 @@ class _SettingsNotificationOptionsState
   final _notifService = NotificationService();
   bool _testLoading = false;
 
-  // ── Master toggle state ──
+  // Trạng thái công tắc chính
   bool _allEnabled = true;
   bool _loadingAll = false;
 
@@ -47,29 +47,30 @@ class _SettingsNotificationOptionsState
     if (mounted) setState(() => _allEnabled = all);
   }
 
-  // ── Xử lý master toggle "Tắt tất cả thông báo" ──
+  // Xử lý master toggle "Tắt tất cả thông báo"
   Future<void> _onAllChanged(bool val) async {
     setState(() => _loadingAll = true);
     await _notifService.setAllNotifications(val);
-    if (mounted) setState(() {
-      _allEnabled = val;
-      _loadingAll = false;
-    });
+    if (mounted)
+      setState(() {
+        _allEnabled = val;
+        _loadingAll = false;
+      });
   }
 
-  // ── Xử lý daily toggle — lưu vào SharedPrefs ──
+  // Xử lý daily toggle - lưu vào SharedPrefs
   Future<void> _onDailyChanged(bool val) async {
     await _notifService.setDailyAnimalNotif(val);
     widget.onDailyChanged(val); // cập nhật state cha
   }
 
-  // ── Xử lý streak toggle — lưu vào SharedPrefs ──
+  // Xử lý streak toggle - lưu vào SharedPrefs
   Future<void> _onStreakChanged(bool val) async {
     await _notifService.setStreakNotif(val);
     widget.onStreakChanged(val); // cập nhật state cha
   }
 
-  // ── Nút Test ──
+  // Nút Test
   Future<void> _onTestPressed() async {
     setState(() => _testLoading = true);
 
@@ -78,8 +79,9 @@ class _SettingsNotificationOptionsState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(context.read<LocaleProvider>().tr(
-                'Bạn cần cấp quyền thông báo')),
+            content: Text(
+              context.read<LocaleProvider>().tr('Bạn cần cấp quyền thông báo'),
+            ),
             backgroundColor: Colors.orange,
           ),
         );
@@ -93,8 +95,11 @@ class _SettingsNotificationOptionsState
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(context.read<LocaleProvider>().tr(
-              'Đã gửi thông báo thử nghiệm! 🎉')),
+          content: Text(
+            context.read<LocaleProvider>().tr(
+              'Đã gửi thông báo thử nghiệm! 🎉',
+            ),
+          ),
           backgroundColor: widget.primaryGreen,
           duration: const Duration(seconds: 2),
         ),
@@ -116,36 +121,34 @@ class _SettingsNotificationOptionsState
           primaryGreen: widget.primaryGreen,
         ),
 
-        // ── MASTER TOGGLE ──
+        // Master toggle
         SettingsCard(
           children: [
             _loadingAll
                 ? const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
-              child: Center(child: CircularProgressIndicator()),
-            )
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    child: Center(child: CircularProgressIndicator()),
+                  )
                 : SettingsSwitchTile(
-              title: t.tr('Bật thông báo'),
-              subtitle: _allEnabled
-                  ? t.tr('Tất cả thông báo đang bật')
-                  : t.tr('Tất cả thông báo đang tắt'),
-              icon: _allEnabled
-                  ? Icons.notifications_active_rounded
-                  : Icons.notifications_off_rounded,
-              iconColor: _allEnabled
-                  ? widget.primaryGreen
-                  : Colors.grey,
-              value: _allEnabled,
-              onChanged: _onAllChanged,
-              primaryGreen: widget.primaryGreen,
-              accentOrange: widget.accentOrange,
-            ),
+                    title: t.tr('Bật thông báo'),
+                    subtitle: _allEnabled
+                        ? t.tr('Tất cả thông báo đang bật')
+                        : t.tr('Tất cả thông báo đang tắt'),
+                    icon: _allEnabled
+                        ? Icons.notifications_active_rounded
+                        : Icons.notifications_off_rounded,
+                    iconColor: _allEnabled ? widget.primaryGreen : Colors.grey,
+                    value: _allEnabled,
+                    onChanged: _onAllChanged,
+                    primaryGreen: widget.primaryGreen,
+                    accentOrange: widget.accentOrange,
+                  ),
           ],
         ),
 
         const SizedBox(height: 12),
 
-        // ── CÁC TOGGLE CON — mờ đi khi master tắt ──
+        // CÁC TOGGLE CON - mờ đi khi master tắt
         AnimatedOpacity(
           duration: const Duration(milliseconds: 250),
           opacity: _allEnabled ? 1.0 : 0.4,
@@ -180,7 +183,7 @@ class _SettingsNotificationOptionsState
 
         const SizedBox(height: 16),
 
-        // ── NÚT TEST ──
+        // Nút test
         SizedBox(
           width: double.infinity,
           child: OutlinedButton.icon(
@@ -194,18 +197,17 @@ class _SettingsNotificationOptionsState
             ),
             icon: _testLoading
                 ? SizedBox(
-              width: 18,
-              height: 18,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: widget.accentOrange,
-              ),
-            )
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: widget.accentOrange,
+                    ),
+                  )
                 : const Icon(Icons.notifications_active_rounded),
             label: Text(
               t.tr('Thử thông báo ngay'),
-              style:
-              const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
             ),
             onPressed: _testLoading ? null : _onTestPressed,
           ),

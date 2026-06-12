@@ -12,8 +12,6 @@ import '../Animal_detail/widgets/animal_detail_title.dart';
 import '../Animal_detail/widgets/animal_detail_utils.dart';
 import '../home/animal_category_model.dart';
 
-
-
 class AnimalDetailScreen extends StatefulWidget {
   final String animalId;
   final AnimalCategory category;
@@ -28,7 +26,8 @@ class AnimalDetailScreen extends StatefulWidget {
   State<AnimalDetailScreen> createState() => _AnimalDetailScreenState();
 }
 
-class _AnimalDetailScreenState extends State<AnimalDetailScreen> with TickerProviderStateMixin {
+class _AnimalDetailScreenState extends State<AnimalDetailScreen>
+    with TickerProviderStateMixin {
   final AnimalHomeService _service = AnimalHomeService();
   final ScrollController _scrollController = ScrollController();
 
@@ -43,11 +42,22 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> with TickerProv
   @override
   void initState() {
     super.initState();
-    _fadeController = AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
-    _slideController = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
-    _fadeAnimation = CurvedAnimation(parent: _fadeController, curve: Curves.easeOut);
-    _slideAnimation = Tween<Offset>(begin: const Offset(0, 0.06), end: Offset.zero)
-        .animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
+    _fadeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _slideController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeOut,
+    );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.06),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
     _loadAnimalDetails();
   }
 
@@ -105,16 +115,31 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> with TickerProv
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          AnimalDetailTitle(animal: _animal!, category: widget.category),
+                          AnimalDetailTitle(
+                            animal: _animal!,
+                            category: widget.category,
+                          ),
                           AnimalDetailQuickStats(animal: _animal!),
 
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 24,
+                            ),
                             child: Row(
                               children: [
-                                Container(width: 32, height: 2, color: colorScheme.primary),
+                                Container(
+                                  width: 32,
+                                  height: 2,
+                                  color: colorScheme.primary,
+                                ),
                                 const SizedBox(width: 6),
-                                Expanded(child: Container(height: 1, color: colorScheme.outlineVariant)),
+                                Expanded(
+                                  child: Container(
+                                    height: 1,
+                                    color: colorScheme.outlineVariant,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -147,7 +172,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> with TickerProv
             ],
           ),
 
-          // ── Floating Buttons (Back + Report) ──────────────────
+          // Floating Buttons (Back + Report)
           AnimalDetailFloatingButtons(
             animalId: widget.animalId,
             animal: _animal!,

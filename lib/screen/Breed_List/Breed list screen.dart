@@ -53,6 +53,7 @@ class _BreedListScreenState extends State<BreedListScreen> {
     final ids = await _favoriteService.getFavoriteIds();
     if (mounted) setState(() => _favoriteIds = ids);
   }
+
   Future<void> _saveAnimalsCache(List<Map<String, dynamic>> animals) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -142,7 +143,7 @@ class _BreedListScreenState extends State<BreedListScreen> {
     } catch (e) {
       debugPrint('❌ Error loading animals: $e');
 
-      // 4. Fallback service cũ nếu có thể.
+      // 4. Dự phòng service cũ nếu có thể.
       try {
         final animals = await _service
             .getAnimalsByType(widget.category.id)
@@ -171,7 +172,7 @@ class _BreedListScreenState extends State<BreedListScreen> {
     }
   }
 
-  /// Search trước, rồi filter+sort sau
+  // Search trước, rồi filter+sort sau
   List<Map<String, dynamic>> get _filteredAnimals {
     // 1. Search
     var list = _animals;
@@ -223,22 +224,36 @@ class _BreedListScreenState extends State<BreedListScreen> {
 
               if (_isUsingCache)
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
                   child: Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.orange.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: Colors.orange.withOpacity(0.35)),
+                      border: Border.all(
+                        color: Colors.orange.withOpacity(0.35),
+                      ),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.offline_bolt_rounded, size: 18, color: Colors.orange),
+                        const Icon(
+                          Icons.offline_bolt_rounded,
+                          size: 18,
+                          color: Colors.orange,
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            t.tr('Đang hiển thị dữ liệu đã lưu do không có mạng'),
+                            t.tr(
+                              'Đang hiển thị dữ liệu đã lưu do không có mạng',
+                            ),
                             style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -251,7 +266,7 @@ class _BreedListScreenState extends State<BreedListScreen> {
                   ),
                 ),
 
-              // ── Bộ lọc inline ──
+              // Bộ lọc inline
               BreedListFilterBar(
                 category: widget.category,
                 filterState: _filterState,
@@ -261,18 +276,21 @@ class _BreedListScreenState extends State<BreedListScreen> {
               ),
               const SizedBox(height: 8),
 
-              // ── Kết quả đếm nhỏ (chỉ hiện khi đang filter/search) ──
+              // Kết quả đếm nhỏ (chỉ hiện khi đang filter/search)
               if (_searchQuery.isNotEmpty || _filterState.hasActiveFilters)
                 Padding(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 2,
+                  ),
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
                       '${t.tr('Tìm thấy')} ${_filteredAnimals.length} ${t.tr('loài')}',
                       style: TextStyle(
-                          fontSize: 12,
-                          color: colorScheme.onSurfaceVariant),
+                        fontSize: 12,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ),
                 ),
@@ -299,19 +317,20 @@ class _BreedListScreenState extends State<BreedListScreen> {
                     child: GridView.builder(
                       padding: const EdgeInsets.all(16),
                       gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        childAspectRatio: 0.68,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                      ),
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            childAspectRatio: 0.68,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                          ),
                       itemCount: _filteredAnimals.length,
                       itemBuilder: (context, index) {
                         return BreedListAnimalCard(
                           animal: _filteredAnimals[index],
                           category: widget.category,
-                          isFavorite: _favoriteIds
-                              .contains(_filteredAnimals[index]['id'].toString()),
+                          isFavorite: _favoriteIds.contains(
+                            _filteredAnimals[index]['id'].toString(),
+                          ),
                           onTap: () async {
                             await Navigator.push(
                               context,

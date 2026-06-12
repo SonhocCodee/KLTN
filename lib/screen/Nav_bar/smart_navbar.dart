@@ -37,10 +37,10 @@ class _SmartNavBarState extends State<SmartNavBar>
   }
 
   void _setupAnimations(double targetIndex) {
-    _positionAnimation = Tween<double>(
-      begin: targetIndex,
-      end: targetIndex,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOutCubic));
+    _positionAnimation = Tween<double>(begin: targetIndex, end: targetIndex)
+        .animate(
+          CurvedAnimation(parent: _controller, curve: Curves.easeInOutCubic),
+        );
   }
 
   @override
@@ -48,10 +48,13 @@ class _SmartNavBarState extends State<SmartNavBar>
     super.didUpdateWidget(oldWidget);
     if (oldWidget.currentIndex != widget.currentIndex) {
       final beginPos = _positionAnimation.value;
-      _positionAnimation = Tween<double>(
-        begin: beginPos,
-        end: widget.currentIndex.toDouble(),
-      ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOutCubic));
+      _positionAnimation =
+          Tween<double>(
+            begin: beginPos,
+            end: widget.currentIndex.toDouble(),
+          ).animate(
+            CurvedAnimation(parent: _controller, curve: Curves.easeInOutCubic),
+          );
       _controller
         ..reset()
         ..forward();
@@ -78,7 +81,7 @@ class _SmartNavBarState extends State<SmartNavBar>
     final isDark = theme.brightness == Brightness.dark;
     final t = context.watch<LocaleProvider>();
 
-    // MÀU CHUNG CHO CẢ 2 MODE
+    // Màu chung cho cả 2 mode
     final inactiveColor = isDark ? Colors.white70 : Colors.black87;
     final activeColor = isDark ? Colors.white : Colors.black;
 
@@ -87,14 +90,26 @@ class _SmartNavBarState extends State<SmartNavBar>
       child: ClipRRect(
         borderRadius: BorderRadius.circular(30.r),
         child: isDark
-            ? _buildDarkMode(activeColor, inactiveColor, t) // DARK: CODE CŨ BẠN THÍCH
-            : _buildLightMode(activeColor, inactiveColor, t), // LIGHT: CODE MỚI ĐẸP
+            ? _buildDarkMode(
+                activeColor,
+                inactiveColor,
+                t,
+              ) // Dark: code cũ bạn thích
+            : _buildLightMode(
+                activeColor,
+                inactiveColor,
+                t,
+              ), // Light: code mới đẹp
       ),
     );
   }
 
-  // DARK MODE: DÙNG CODE CŨ BẠN THÍCH (BLUR + MỜ NHẸ)
-  Widget _buildDarkMode(Color activeColor, Color inactiveColor, LocaleProvider t) {
+  // Dark mode: dùng code cũ bạn thích (blur + mờ nhẹ)
+  Widget _buildDarkMode(
+    Color activeColor,
+    Color inactiveColor,
+    LocaleProvider t,
+  ) {
     return BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 9, sigmaY: 9),
       child: AnimatedContainer(
@@ -110,8 +125,12 @@ class _SmartNavBarState extends State<SmartNavBar>
     );
   }
 
-  // LIGHT MODE: DÙNG CODE MỚI ĐẸP (NỀN TRẮNG MỜ + BÓNG ĐỔ)
-  Widget _buildLightMode(Color activeColor, Color inactiveColor, LocaleProvider t) {
+  // Light mode: dùng code mới đẹp (nền trắng mờ + bóng đổ)
+  Widget _buildLightMode(
+    Color activeColor,
+    Color inactiveColor,
+    LocaleProvider t,
+  ) {
     return BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
       child: AnimatedContainer(
@@ -134,8 +153,12 @@ class _SmartNavBarState extends State<SmartNavBar>
     );
   }
 
-  // NỘI DUNG CHUNG CHO CẢ 2 MODE
-  Widget _buildContent(Color activeColor, Color inactiveColor, LocaleProvider t) {
+  // Nội dung chung cho cả 2 mode
+  Widget _buildContent(
+    Color activeColor,
+    Color inactiveColor,
+    LocaleProvider t,
+  ) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final itemWidth = constraints.maxWidth / 5;
@@ -191,13 +214,13 @@ class _SmartNavBarState extends State<SmartNavBar>
   }
 
   Widget _buildItem(
-      String iconPath,
-      String label,
-      int index,
-      Color active,
-      Color inactive,
-      LocaleProvider t,
-      ) {
+    String iconPath,
+    String label,
+    int index,
+    Color active,
+    Color inactive,
+    LocaleProvider t,
+  ) {
     final isActive = index == widget.currentIndex;
     return GestureDetector(
       onTap: () => widget.onTap(index),
@@ -249,7 +272,7 @@ class _SmartNavBarState extends State<SmartNavBar>
       "Khám phá",
       "Nhận diện",
       "Tìm kiếm",
-      "Cài đặt"
+      "Cài đặt",
     ];
     return labels[index];
   }

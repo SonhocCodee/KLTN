@@ -5,23 +5,26 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class FeedbackService {
   final _db = Supabase.instance.client;
 
-  /// Upload file (ảnh hoặc video) lên Supabase Storage bucket 'feedback-media'
-  /// Trả về public URL
+  // Upload file (ảnh hoặc video) lên Supabase Storage bucket 'feedback-media'
+  // Trả về public URL
   Future<String?> uploadMedia(File file, String fileName) async {
     try {
       final ext = fileName.split('.').last.toLowerCase();
-      final path = 'feedback/${DateTime.now().millisecondsSinceEpoch}_$fileName';
+      final path =
+          'feedback/${DateTime.now().millisecondsSinceEpoch}_$fileName';
 
       debugPrint('⬆️ Đang upload: $path');
 
-      await _db.storage.from('feedback-media').upload(
-        path,
-        file,
-        fileOptions: FileOptions(
-          contentType: _mimeType(ext),
-          upsert: false,
-        ),
-      );
+      await _db.storage
+          .from('feedback-media')
+          .upload(
+            path,
+            file,
+            fileOptions: FileOptions(
+              contentType: _mimeType(ext),
+              upsert: false,
+            ),
+          );
 
       final url = _db.storage.from('feedback-media').getPublicUrl(path);
       debugPrint('✅ Upload OK: $url');
@@ -35,20 +38,28 @@ class FeedbackService {
   String _mimeType(String ext) {
     switch (ext) {
       case 'jpg':
-      case 'jpeg': return 'image/jpeg';
-      case 'png':  return 'image/png';
-      case 'gif':  return 'image/gif';
-      case 'webp': return 'image/webp';
-      case 'mp4':  return 'video/mp4';
-      case 'mov':  return 'video/quicktime';
-      case 'avi':  return 'video/avi';
-      default:     return 'application/octet-stream';
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      case 'gif':
+        return 'image/gif';
+      case 'webp':
+        return 'image/webp';
+      case 'mp4':
+        return 'video/mp4';
+      case 'mov':
+        return 'video/quicktime';
+      case 'avi':
+        return 'video/avi';
+      default:
+        return 'application/octet-stream';
     }
   }
 
-  /// Gửi góp ý / báo lỗi vào bảng app_feedbacks
+  // Gửi góp ý / báo lỗi vào bảng app_feedbacks
   Future<void> submitFeedback({
-    required String type,          // 'bug' | 'suggestion' | 'other'
+    required String type, // 'bug' | 'suggestion' | 'other'
     required String description,
     List<String> mediaUrls = const [],
     String? contactEmail,

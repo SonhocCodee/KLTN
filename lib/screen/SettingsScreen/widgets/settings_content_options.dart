@@ -12,7 +12,7 @@ class SettingsContentOptions extends StatelessWidget {
     super.key,
     required this.primaryGreen,
     required this.accentOrange,
-    // 👆 Bỏ selectedUnit + onUnitChanged — giờ đọc thẳng từ UnitProvider
+    // 👆 Bỏ selectedUnit + onUnitChanged - giờ đọc thẳng từ UnitProvider
   });
 
   @override
@@ -35,11 +35,12 @@ class SettingsContentOptions extends StatelessWidget {
               title: Text(
                 t.tr('Đơn vị đo lường'),
                 style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: colorScheme.onSurface),
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurface,
+                ),
               ),
               trailing: DropdownButton<String>(
-                value: u.unit,                          // 👈 đọc từ provider
+                value: u.unit, // 👈 đọc từ provider
                 underline: const SizedBox(),
                 iconEnabledColor: accentOrange,
                 items: [
@@ -48,8 +49,9 @@ class SettingsContentOptions extends StatelessWidget {
                     child: Text(
                       t.tr('Hệ Mét (kg, m)'),
                       style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onSurface),
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
+                      ),
                     ),
                   ),
                   DropdownMenuItem<String>(
@@ -57,13 +59,15 @@ class SettingsContentOptions extends StatelessWidget {
                     child: Text(
                       t.tr('Hệ Anh (lbs, ft)'),
                       style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onSurface),
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
+                      ),
                     ),
                   ),
                 ],
                 onChanged: (val) {
-                  if (val != null) u.setUnit(val); // 👈 lưu vào provider + SharedPreferences
+                  if (val != null)
+                    u.setUnit(val); // 👈 lưu vào provider + SharedPreferences
                 },
               ),
             ),

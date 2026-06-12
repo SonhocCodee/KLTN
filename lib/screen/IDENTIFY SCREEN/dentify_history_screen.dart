@@ -5,8 +5,6 @@ import 'package:provider/provider.dart';
 
 import '../language/Locale_provider.dart';
 
-
-
 class IdentifyHistoryScreen extends StatefulWidget {
   const IdentifyHistoryScreen({super.key});
 
@@ -20,13 +18,17 @@ class _IdentifyHistoryScreenState extends State<IdentifyHistoryScreen> {
   @override
   void initState() {
     super.initState();
-    // Load lịch sử ngay khi màn hình được mở
+    // Tải lịch sử ngay khi màn hình được mở
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<IdentifyService>().loadHistory();
     });
   }
 
-  Future<void> _confirmClearAll(BuildContext context, IdentifyService service, LocaleProvider t) async {
+  Future<void> _confirmClearAll(
+    BuildContext context,
+    IdentifyService service,
+    LocaleProvider t,
+  ) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -35,7 +37,10 @@ class _IdentifyHistoryScreenState extends State<IdentifyHistoryScreen> {
           children: [
             const Icon(Icons.delete_sweep_rounded, color: Colors.redAccent),
             const SizedBox(width: 8),
-            Text(t.tr('Xoá tất cả?'), style: const TextStyle(fontWeight: FontWeight.w900)),
+            Text(
+              t.tr('Xoá tất cả?'),
+              style: const TextStyle(fontWeight: FontWeight.w900),
+            ),
           ],
         ),
         content: Text(t.tr('Toàn bộ lịch sử tìm kiếm sẽ bị xoá vĩnh viễn.')),
@@ -70,7 +75,7 @@ class _IdentifyHistoryScreenState extends State<IdentifyHistoryScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // ── Header ──────────────────────────────────────────────────
+            // Header
             Padding(
               padding: const EdgeInsets.fromLTRB(8, 16, 20, 8),
               child: Row(
@@ -96,12 +101,20 @@ class _IdentifyHistoryScreenState extends State<IdentifyHistoryScreen> {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            const Icon(Icons.history_rounded, color: _accentOrange, size: 26),
+                            const Icon(
+                              Icons.history_rounded,
+                              color: _accentOrange,
+                              size: 26,
+                            ),
                           ],
                         ),
                         Text(
                           t.tr('Các lần nhận diện trước đây'),
-                          style: TextStyle(fontSize: 13, color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500),
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ],
                     ),
@@ -118,14 +131,20 @@ class _IdentifyHistoryScreenState extends State<IdentifyHistoryScreen> {
               ),
             ),
 
-            // ── Số lượng ────────────────────────────────────────────────
+            // Số lượng
             if (!service.isLoadingHistory && service.historyItems.isNotEmpty)
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 4,
+                ),
                 child: Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: _accentOrange.withOpacity(0.12),
                         borderRadius: BorderRadius.circular(10),
@@ -145,7 +164,7 @@ class _IdentifyHistoryScreenState extends State<IdentifyHistoryScreen> {
 
             const SizedBox(height: 8),
 
-            // ── Body ────────────────────────────────────────────────────
+            // Body
             Expanded(
               child: service.isLoadingHistory
                   ? _buildLoading(colorScheme, t)
@@ -166,7 +185,10 @@ class _IdentifyHistoryScreenState extends State<IdentifyHistoryScreen> {
         children: [
           const CircularProgressIndicator(color: _accentOrange, strokeWidth: 3),
           const SizedBox(height: 16),
-          Text(t.tr('Đang tải lịch sử...'), style: TextStyle(color: colorScheme.onSurfaceVariant)),
+          Text(
+            t.tr('Đang tải lịch sử...'),
+            style: TextStyle(color: colorScheme.onSurfaceVariant),
+          ),
         ],
       ),
     );
@@ -183,18 +205,30 @@ class _IdentifyHistoryScreenState extends State<IdentifyHistoryScreen> {
               color: _accentOrange.withOpacity(0.08),
               shape: BoxShape.circle,
             ),
-            child: Icon(Icons.manage_search_rounded, size: 52, color: _accentOrange.withOpacity(0.6)),
+            child: Icon(
+              Icons.manage_search_rounded,
+              size: 52,
+              color: _accentOrange.withOpacity(0.6),
+            ),
           ),
           const SizedBox(height: 20),
           Text(
             t.tr('Chưa có lịch sử'),
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             t.tr('Hãy chụp hoặc chọn ảnh\nđể bắt đầu nhận diện!'),
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, color: colorScheme.onSurfaceVariant, height: 1.5),
+            style: TextStyle(
+              fontSize: 14,
+              color: colorScheme.onSurfaceVariant,
+              height: 1.5,
+            ),
           ),
         ],
       ),

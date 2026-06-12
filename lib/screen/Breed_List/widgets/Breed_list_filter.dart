@@ -3,10 +3,15 @@ import 'package:provider/provider.dart';
 import '../../language/Locale_provider.dart';
 import '../../home/animal_category_model.dart';
 
-// ─────────────────────────────────────────────
 // Model chứa trạng thái bộ lọc
-// ─────────────────────────────────────────────
-enum SortField { nameAZ, nameZA, weightAsc, weightDesc, lifespanAsc, lifespanDesc }
+enum SortField {
+  nameAZ,
+  nameZA,
+  weightAsc,
+  weightDesc,
+  lifespanAsc,
+  lifespanDesc,
+}
 
 class AnimalFilterState {
   final SortField sortField;
@@ -32,7 +37,9 @@ class AnimalFilterState {
   }) {
     return AnimalFilterState(
       sortField: sortField ?? this.sortField,
-      relativeSize: relativeSize == _sentinel ? this.relativeSize : relativeSize as String?,
+      relativeSize: relativeSize == _sentinel
+          ? this.relativeSize
+          : relativeSize as String?,
       dietType: dietType == _sentinel ? this.dietType : dietType as String?,
       conservationStatus: conservationStatus == _sentinel
           ? this.conservationStatus
@@ -44,23 +51,32 @@ class AnimalFilterState {
   static const _sentinel = Object();
 
   bool get hasActiveFilters =>
-      relativeSize != null || dietType != null || conservationStatus != null || showOnlyFavorites;
+      relativeSize != null ||
+      dietType != null ||
+      conservationStatus != null ||
+      showOnlyFavorites;
 
   int get activeFilterCount =>
-      [relativeSize, dietType, conservationStatus].where((e) => e != null).length +
-          (showOnlyFavorites ? 1 : 0);
+      [
+        relativeSize,
+        dietType,
+        conservationStatus,
+      ].where((e) => e != null).length +
+      (showOnlyFavorites ? 1 : 0);
 
-  /// Áp dụng sort + filter lên danh sách
-  /// [favoriteIds] cần truyền vào khi showOnlyFavorites = true
+  // Áp dụng sort + filter lên danh sách
+  // [favoriteIds] cần truyền vào khi showOnlyFavorites = true
   List<Map<String, dynamic>> apply(
-      List<Map<String, dynamic>> animals, {
-        Set<String> favoriteIds = const {},
-      }) {
+    List<Map<String, dynamic>> animals, {
+    Set<String> favoriteIds = const {},
+  }) {
     var list = [...animals];
 
     // Filter yêu thích
     if (showOnlyFavorites) {
-      list = list.where((a) => favoriteIds.contains(a['id'].toString())).toList();
+      list = list
+          .where((a) => favoriteIds.contains(a['id'].toString()))
+          .toList();
     }
 
     // Filter theo relative_size
@@ -86,17 +102,25 @@ class AnimalFilterState {
     list.sort((a, b) {
       switch (sortField) {
         case SortField.nameAZ:
-          return _str(a['name_vietnamese']).compareTo(_str(b['name_vietnamese']));
+          return _str(
+            a['name_vietnamese'],
+          ).compareTo(_str(b['name_vietnamese']));
         case SortField.nameZA:
-          return _str(b['name_vietnamese']).compareTo(_str(a['name_vietnamese']));
+          return _str(
+            b['name_vietnamese'],
+          ).compareTo(_str(a['name_vietnamese']));
         case SortField.weightAsc:
           return _num(a['weight_avg_kg']).compareTo(_num(b['weight_avg_kg']));
         case SortField.weightDesc:
           return _num(b['weight_avg_kg']).compareTo(_num(a['weight_avg_kg']));
         case SortField.lifespanAsc:
-          return _num(a['lifespan_avg_years']).compareTo(_num(b['lifespan_avg_years']));
+          return _num(
+            a['lifespan_avg_years'],
+          ).compareTo(_num(b['lifespan_avg_years']));
         case SortField.lifespanDesc:
-          return _num(b['lifespan_avg_years']).compareTo(_num(a['lifespan_avg_years']));
+          return _num(
+            b['lifespan_avg_years'],
+          ).compareTo(_num(a['lifespan_avg_years']));
       }
     });
 
@@ -107,9 +131,7 @@ class AnimalFilterState {
   double _num(dynamic v) => (v as num?)?.toDouble() ?? 0.0;
 }
 
-// ─────────────────────────────────────────────
 // Widget thanh lọc inline
-// ─────────────────────────────────────────────
 class BreedListFilterBar extends StatelessWidget {
   final AnimalFilterState filterState;
   final ValueChanged<AnimalFilterState> onChanged;
@@ -137,7 +159,7 @@ class BreedListFilterBar extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         children: [
-          // ── Sort chip
+          // Sort chip
           _SortChip(
             filterState: filterState,
             accent: _accent,
@@ -146,7 +168,7 @@ class BreedListFilterBar extends StatelessWidget {
           ),
           const SizedBox(width: 8),
 
-          // ── Chip yêu thích
+          // Chip yêu thích
           if (favoriteIds.isNotEmpty) ...[
             _FavoriteFilterChip(
               isActive: filterState.showOnlyFavorites,
@@ -161,7 +183,7 @@ class BreedListFilterBar extends StatelessWidget {
             const SizedBox(width: 8),
           ],
 
-          // ── Conservation chip
+          // Conservation chip
           _FilterChip2(
             label: 'Bảo tồn',
             icon: Icons.eco,
@@ -169,15 +191,15 @@ class BreedListFilterBar extends StatelessWidget {
             accent: _accent,
             colorScheme: colorScheme,
             options: const [
-              ('Least Concern',       '🟢 Ít lo ngại'),
-              ('Vulnerable',          '🔴 Cực kỳ nguy cấp'),
+              ('Least Concern', '🟢 Ít lo ngại'),
+              ('Vulnerable', '🔴 Cực kỳ nguy cấp'),
               ('Extinct in the Wild', '⚫ Tuyệt chủng ngoài TN'),
             ],
             onSelected: (v) =>
                 onChanged(filterState.copyWith(conservationStatus: v)),
           ),
 
-          // ── Reset nếu có filter đang active
+          // Reset nếu có filter đang active
           if (filterState.hasActiveFilters) ...[
             const SizedBox(width: 8),
             _ResetChip(
@@ -195,9 +217,7 @@ class BreedListFilterBar extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────
 // Chip lọc yêu thích
-// ─────────────────────────────────────────────
 class _FavoriteFilterChip extends StatelessWidget {
   final bool isActive;
   final Color accent;
@@ -225,7 +245,9 @@ class _FavoriteFilterChip extends StatelessWidget {
               : colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isActive ? accent.withOpacity(0.5) : colorScheme.outlineVariant,
+            color: isActive
+                ? accent.withOpacity(0.5)
+                : colorScheme.outlineVariant,
             width: 1,
           ),
         ),
@@ -259,9 +281,7 @@ class _FavoriteFilterChip extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────
 // Sort chip
-// ─────────────────────────────────────────────
 class _SortChip extends StatelessWidget {
   final AnimalFilterState filterState;
   final Color accent;
@@ -306,9 +326,10 @@ class _SortChip extends StatelessWidget {
             Text(
               t.tr(current.$2),
               style: TextStyle(
-                  fontSize: 12,
-                  color: accent,
-                  fontWeight: FontWeight.w600),
+                fontSize: 12,
+                color: accent,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(width: 4),
             Icon(Icons.arrow_drop_down, size: 16, color: accent),
@@ -341,25 +362,31 @@ class _SortChip extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Text(t.tr('Sắp xếp theo'),
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                    color: colorScheme.onSurface)),
+            Text(
+              t.tr('Sắp xếp theo'),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+                color: colorScheme.onSurface,
+              ),
+            ),
             const SizedBox(height: 12),
             ..._options.map((opt) {
               final selected = filterState.sortField == opt.$1;
               return ListTile(
                 dense: true,
-                leading: Icon(opt.$3,
-                    color: selected ? accent : colorScheme.onSurfaceVariant,
-                    size: 20),
-                title: Text(t.tr(opt.$2),
-                    style: TextStyle(
-                        color: selected ? accent : colorScheme.onSurface,
-                        fontWeight: selected
-                            ? FontWeight.w600
-                            : FontWeight.normal)),
+                leading: Icon(
+                  opt.$3,
+                  color: selected ? accent : colorScheme.onSurfaceVariant,
+                  size: 20,
+                ),
+                title: Text(
+                  t.tr(opt.$2),
+                  style: TextStyle(
+                    color: selected ? accent : colorScheme.onSurface,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                  ),
+                ),
                 trailing: selected
                     ? Icon(Icons.check, color: accent, size: 18)
                     : null,
@@ -376,9 +403,7 @@ class _SortChip extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────
 // Generic filter chip với dropdown options
-// ─────────────────────────────────────────────
 class _FilterChip2 extends StatelessWidget {
   final String label;
   final IconData icon;
@@ -403,8 +428,10 @@ class _FilterChip2 extends StatelessWidget {
   String get _displayLabel {
     if (!_isActive) return label;
     return options
-        .firstWhere((o) => o.$1 == selectedValue,
-        orElse: () => (selectedValue!, selectedValue!))
+        .firstWhere(
+          (o) => o.$1 == selectedValue,
+          orElse: () => (selectedValue!, selectedValue!),
+        )
         .$2;
   }
 
@@ -431,17 +458,18 @@ class _FilterChip2 extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon,
-                size: 13,
-                color: _isActive ? accent : colorScheme.onSurfaceVariant),
+            Icon(
+              icon,
+              size: 13,
+              color: _isActive ? accent : colorScheme.onSurfaceVariant,
+            ),
             const SizedBox(width: 5),
             Text(
               t.tr(_displayLabel),
               style: TextStyle(
                 fontSize: 12,
                 color: _isActive ? accent : colorScheme.onSurfaceVariant,
-                fontWeight:
-                _isActive ? FontWeight.w600 : FontWeight.normal,
+                fontWeight: _isActive ? FontWeight.w600 : FontWeight.normal,
               ),
             ),
             const SizedBox(width: 3),
@@ -488,27 +516,33 @@ class _FilterChip2 extends StatelessWidget {
               children: [
                 Icon(icon, size: 18, color: accent),
                 const SizedBox(width: 8),
-                Text(t.tr(label),
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                        color: colorScheme.onSurface)),
+                Text(
+                  t.tr(label),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 12),
-            ...options.map((opt) => ListTile(
-              dense: true,
-              title: Text(t.tr(opt.$2),
-                  style: TextStyle(
-                      fontSize: 13, color: colorScheme.onSurface)),
-              trailing: selectedValue == opt.$1
-                  ? Icon(Icons.check, color: accent, size: 18)
-                  : null,
-              onTap: () {
-                onSelected(opt.$1);
-                Navigator.pop(context);
-              },
-            )),
+            ...options.map(
+              (opt) => ListTile(
+                dense: true,
+                title: Text(
+                  t.tr(opt.$2),
+                  style: TextStyle(fontSize: 13, color: colorScheme.onSurface),
+                ),
+                trailing: selectedValue == opt.$1
+                    ? Icon(Icons.check, color: accent, size: 18)
+                    : null,
+                onTap: () {
+                  onSelected(opt.$1);
+                  Navigator.pop(context);
+                },
+              ),
+            ),
           ],
         ),
       ),
@@ -516,9 +550,7 @@ class _FilterChip2 extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────
 // Reset chip
-// ─────────────────────────────────────────────
 class _ResetChip extends StatelessWidget {
   final Color accent;
   final ColorScheme colorScheme;
@@ -543,19 +575,23 @@ class _ResetChip extends StatelessWidget {
           color: colorScheme.errorContainer.withOpacity(0.3),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-              color: colorScheme.error.withOpacity(0.4), width: 1),
+            color: colorScheme.error.withOpacity(0.4),
+            width: 1,
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.filter_alt_off,
-                size: 13, color: colorScheme.error),
+            Icon(Icons.filter_alt_off, size: 13, color: colorScheme.error),
             const SizedBox(width: 4),
-            Text('${t.tr('Xoá')} ($count)',
-                style: TextStyle(
-                    fontSize: 12,
-                    color: colorScheme.error,
-                    fontWeight: FontWeight.w600)),
+            Text(
+              '${t.tr('Xoá')} ($count)',
+              style: TextStyle(
+                fontSize: 12,
+                color: colorScheme.error,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ],
         ),
       ),

@@ -5,7 +5,7 @@ class ExtendedImageCache {
   static const String _cachePrefix = 'extended_image_';
   static const String _cacheDateKey = 'extended_image_date';
 
-  /// Lưu URL ảnh đã extend
+  // Lưu URL ảnh đã extend
   static Future<void> saveExtendedImage({
     required String originalUrl,
     required String extendedUrl,
@@ -16,18 +16,21 @@ class ExtendedImageCache {
     // Tạo cache key từ original URL
     final cacheKey = _cachePrefix + _hashUrl(originalUrl);
 
-    await prefs.setString(cacheKey, json.encode({
-      'originalUrl': originalUrl,
-      'extendedUrl': extendedUrl,
-      'cachedAt': today,
-    }));
+    await prefs.setString(
+      cacheKey,
+      json.encode({
+        'originalUrl': originalUrl,
+        'extendedUrl': extendedUrl,
+        'cachedAt': today,
+      }),
+    );
 
     await prefs.setString(_cacheDateKey, today);
 
     print('💾 [Cache] Đã lưu ảnh extended: $cacheKey');
   }
 
-  /// Lấy URL ảnh đã extend (nếu có)
+  // Lấy URL ảnh đã extend (nếu có)
   static Future<String?> getExtendedImage(String originalUrl) async {
     final prefs = await SharedPreferences.getInstance();
     final cachedDate = prefs.getString(_cacheDateKey);
@@ -60,7 +63,7 @@ class ExtendedImageCache {
     }
   }
 
-  /// Xóa cache (khi sang ngày mới)
+  // Xóa cache (khi sang ngày mới)
   static Future<void> clearCache() async {
     final prefs = await SharedPreferences.getInstance();
 
@@ -76,12 +79,12 @@ class ExtendedImageCache {
     print('🗑️ [Cache] Đã xóa toàn bộ cache cũ');
   }
 
-  /// Hash URL để tạo cache key ngắn gọn
+  // Hash URL để tạo cache key ngắn gọn
   static String _hashUrl(String url) {
     return url.hashCode.abs().toString();
   }
 
-  /// Kiểm tra xem có cache hợp lệ không
+  // Kiểm tra xem có cache hợp lệ không
   static Future<bool> hasCacheForToday() async {
     final prefs = await SharedPreferences.getInstance();
     final cachedDate = prefs.getString(_cacheDateKey);

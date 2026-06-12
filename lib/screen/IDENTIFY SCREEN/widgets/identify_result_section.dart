@@ -25,7 +25,7 @@ class IdentifyResultSection extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final t = context.watch<LocaleProvider>();
 
-    // ── Ảnh không hợp lệ ─────────────────────────────────────────────────
+    // Ảnh không hợp lệ
     if (service.isNotAnimal) {
       return FadeTransition(
         opacity: fadeAnim,
@@ -36,7 +36,10 @@ class IdentifyResultSection extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.redAccent.withOpacity(0.06),
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Colors.redAccent.withOpacity(0.35), width: 2),
+              border: Border.all(
+                color: Colors.redAccent.withOpacity(0.35),
+                width: 2,
+              ),
             ),
             child: Column(
               children: [
@@ -46,18 +49,32 @@ class IdentifyResultSection extends StatelessWidget {
                     color: Colors.redAccent.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.hide_image_rounded, color: Colors.redAccent, size: 40),
+                  child: const Icon(
+                    Icons.hide_image_rounded,
+                    color: Colors.redAccent,
+                    size: 40,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Text(
                   t.tr('Ảnh không hợp lệ'),
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.redAccent),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.redAccent,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  t.tr('Không tìm thấy động vật trong ảnh này.\nHãy thử lại với ảnh chứa mèo, chó hoặc các loài động vật khác.'),
+                  t.tr(
+                    'Không tìm thấy động vật trong ảnh này.\nHãy thử lại với ảnh chứa mèo, chó hoặc các loài động vật khác.',
+                  ),
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, color: colorScheme.onSurfaceVariant, height: 1.5),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: colorScheme.onSurfaceVariant,
+                    height: 1.5,
+                  ),
                 ),
               ],
             ),
@@ -66,10 +83,10 @@ class IdentifyResultSection extends StatelessWidget {
       );
     }
 
-    // ── Không có kết quả ─────────────────────────────────────────────────
+    // Không có kết quả
     if (service.resultNameVi == null) return const SizedBox.shrink();
 
-    // ── Tên hiển thị theo ngôn ngữ ────────────────────────────────────────
+    // Tên hiển thị theo ngôn ngữ
     // Dòng chính: tiếng Anh khi isEnglish, tiếng Việt khi không
     // Dòng phụ (italic): luôn hiện tên còn lại
     final String primaryName = t.isEnglish
@@ -79,7 +96,7 @@ class IdentifyResultSection extends StatelessWidget {
         ? (service.resultNameVi ?? '')
         : (service.resultNameEn ?? '');
 
-    // ── Kết quả bình thường ───────────────────────────────────────────────
+    // Kết quả bình thường
     final canNavigate = service.resultAnimalId != null;
 
     return FadeTransition(
@@ -128,7 +145,7 @@ class IdentifyResultSection extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    // ── Ảnh ───────────────────────────────────────────────
+                    // Ảnh
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: ClipRRect(
@@ -138,24 +155,30 @@ class IdentifyResultSection extends StatelessWidget {
                           height: 100,
                           child: service.resultImageUrl != null
                               ? Image.network(
-                            service.resultImageUrl!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) =>
-                                _buildPlaceholder(colorScheme),
-                          )
+                                  service.resultImageUrl!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) =>
+                                      _buildPlaceholder(colorScheme),
+                                )
                               : service.selectedImage != null
-                              ? Image.file(service.selectedImage!,
-                              fit: BoxFit.cover)
+                              ? Image.file(
+                                  service.selectedImage!,
+                                  fit: BoxFit.cover,
+                                )
                               : _buildPlaceholder(colorScheme),
                         ),
                       ),
                     ),
 
-                    // ── Thông tin ─────────────────────────────────────────
+                    // Thông tin
                     Expanded(
                       child: Padding(
                         padding: const EdgeInsets.only(
-                            left: 8, right: 16, top: 12, bottom: 12),
+                          left: 8,
+                          right: 16,
+                          top: 12,
+                          bottom: 12,
+                        ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -190,7 +213,9 @@ class IdentifyResultSection extends StatelessWidget {
                               children: [
                                 Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 10, vertical: 4),
+                                    horizontal: 10,
+                                    vertical: 4,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: _accentOrange.withOpacity(0.15),
                                     borderRadius: BorderRadius.circular(8),
@@ -248,8 +273,11 @@ class IdentifyResultSection extends StatelessWidget {
     return Container(
       color: colorScheme.surfaceContainer,
       child: Center(
-        child: Icon(Icons.pets_rounded,
-            color: colorScheme.outlineVariant, size: 36),
+        child: Icon(
+          Icons.pets_rounded,
+          color: colorScheme.outlineVariant,
+          size: 36,
+        ),
       ),
     );
   }

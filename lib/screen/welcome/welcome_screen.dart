@@ -13,15 +13,13 @@ import 'package:kltn_app/screen/welcome/widgets/page_content.dart';
 import '../Auth/auth_screen.dart';
 import '../home/home_wrapper.dart';
 
-
-/// Màn hình chào mừng (Welcome/Onboarding Screen)
-/// Hiển thị 4 trang giới thiệu về ứng dụng với animations và hiệu ứng đẹp mắt
-///
-/// Chức năng chính:
-/// - Cho phép người dùng vuốt qua 4 trang giới thiệu
-/// - Mỗi trang có theme riêng (Underwater, Land, Sky, Ready)
-/// - Có nút "Tiếp theo", "Bỏ qua" và thanh chỉ báo trang
-/// - Hiệu ứng particles, floating animals, gradient backgrounds
+// Màn hình chào mừng (Welcome/Onboarding Screen)
+// Hiển thị 4 trang giới thiệu về ứng dụng với animations và hiệu ứng đẹp mắt
+// Chức năng chính:
+// Cho phép người dùng vuốt qua 4 trang giới thiệu
+// Mỗi trang có theme riêng (Underwater, Land, Sky, Ready)
+// Có nút "Tiếp theo", "Bỏ qua" và thanh chỉ báo trang
+// Hiệu ứng particles, floating animals, gradient backgrounds
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
 
@@ -31,28 +29,27 @@ class WelcomeScreen extends StatefulWidget {
 
 class _WelcomeScreenState extends State<WelcomeScreen>
     with TickerProviderStateMixin {
+  // Controller
 
-  // ==================== CONTROLLERS ====================
-
-  /// Controller để điều khiển PageView (vuốt trang)
+  // Controller để điều khiển PageView (vuốt trang)
   final PageController _pageController = PageController();
 
-  /// Chỉ số trang hiện tại (0-3)
+  // Chỉ số trang hiện tại (0-3)
   int _currentPage = 0;
 
-  /// Controller cho animation chuyển trang
-  /// Duration: 800ms - tốc độ vừa phải, mượt mà
+  // Controller cho animation chuyển trang
+  // Duration: 800ms - tốc độ vừa phải, mượt mà
   late AnimationController _pageTransitionController;
 
-  /// Controller cho hiệu ứng parallax background
-  /// Duration: 20s - chuyển động chậm, tạo cảm giác sâu
-  /// repeat() - lặp vô hạn
+  // Controller cho hiệu ứng parallax background
+  // Duration: 20s - chuyển động chậm, tạo cảm giác sâu
+  // repeat() - lặp vô hạn
   late AnimationController _parallaxController;
 
-  // ==================== DATA ====================
+  // Dữ liệu
 
-  /// Danh sách 4 trang onboarding
-  /// Mỗi trang có: icon, title, subtitle, description, màu gradient, màu particles
+  // Danh sách 4 trang onboarding
+  // Mỗi trang có: icon, title, subtitle, description, màu gradient, màu particles
   final List<OnboardingPage> _pages = [
     // Trang 1: Thế giới dưới nước
     OnboardingPage(
@@ -60,8 +57,11 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       title: 'Thế Giới Dưới Nước',
       subtitle: 'Underwater World',
       description:
-      'Khám phá đại dương kỳ diệu với những sinh vật biển đầy màu sắc và bí ẩn',
-      gradientColors: [Color(0xFF0288D1), Color(0xFF4FC3F7)], // Xanh dương đậm -> nhạt
+          'Khám phá đại dương kỳ diệu với những sinh vật biển đầy màu sắc và bí ẩn',
+      gradientColors: [
+        Color(0xFF0288D1),
+        Color(0xFF4FC3F7),
+      ], // Xanh dương đậm -> nhạt
       particleColor: Color(0xFF4FC3F7),
     ),
 
@@ -71,8 +71,11 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       title: 'Vương Quốc Trên Cạn',
       subtitle: 'Land Kingdom',
       description:
-      'Gặp gỡ những loài động vật hoang dã sống trên đồng cỏ và trong rừng xanh',
-      gradientColors: [Color(0xFF66BB6A), Color(0xFF81C784)], // Xanh lá đậm -> nhạt
+          'Gặp gỡ những loài động vật hoang dã sống trên đồng cỏ và trong rừng xanh',
+      gradientColors: [
+        Color(0xFF66BB6A),
+        Color(0xFF81C784),
+      ], // Xanh lá đậm -> nhạt
       particleColor: Color(0xFF66BB6A),
     ),
 
@@ -82,8 +85,11 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       title: 'Bầu Trời Tự Do',
       subtitle: 'Freedom Sky',
       description:
-      'Chiêm ngưỡng những loài chim bay cao giữa bầu trời xanh thẳm',
-      gradientColors: [Color(0xFF42A5F5), Color(0xFF90CAF9)], // Xanh da trời đậm -> nhạt
+          'Chiêm ngưỡng những loài chim bay cao giữa bầu trời xanh thẳm',
+      gradientColors: [
+        Color(0xFF42A5F5),
+        Color(0xFF90CAF9),
+      ], // Xanh da trời đậm -> nhạt
       particleColor: Color(0xFF42A5F5),
     ),
 
@@ -93,13 +99,13 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       title: 'Sẵn Sàng Khám Phá!',
       subtitle: 'Ready to Explore',
       description:
-      'Hãy bắt đầu hành trình khám phá thế giới động vật đầy màu sắc của bạn ngay bây giờ',
+          'Hãy bắt đầu hành trình khám phá thế giới động vật đầy màu sắc của bạn ngay bây giờ',
       gradientColors: [Color(0xFFFBBF24), Color(0xFFF97316)], // Vàng -> cam
       particleColor: Color(0xFFFBBF24),
     ),
   ];
 
-  // ==================== LIFECYCLE ====================
+  // Vòng đời màn hình
 
   @override
   void initState() {
@@ -127,10 +133,10 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     super.dispose();
   }
 
-  // ==================== EVENT HANDLERS ====================
+  // Xử lý sự kiện
 
-  /// Callback khi người dùng vuốt sang trang khác
-  /// @param page - Chỉ số trang mới
+  // Callback khi người dùng vuốt sang trang khác
+  // @param page - Chỉ số trang mới
   void _onPageChanged(int page) {
     setState(() {
       _currentPage = page;
@@ -140,8 +146,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     _pageTransitionController.forward();
   }
 
-  /// Chuyển sang trang tiếp theo
-  /// Chỉ hoạt động nếu chưa đến trang cuối
+  // Chuyển sang trang tiếp theo
+  // Chỉ hoạt động nếu chưa đến trang cuối
   void _nextPage() {
     if (_currentPage < _pages.length - 1) {
       _pageController.animateToPage(
@@ -152,7 +158,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     }
   }
 
-  /// Bỏ qua và nhảy thẳng đến trang cuối
+  // Bỏ qua và nhảy thẳng đến trang cuối
   void _skipToEnd() {
     _pageController.animateToPage(
       _pages.length - 1,
@@ -161,8 +167,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     );
   }
 
-  /// Xử lý khi người dùng nhấn "Bắt đầu ngay"
-  /// Hiển thị SnackBar chào mừng
+  // Xử lý khi người dùng nhấn "Bắt đầu ngay"
+  // Hiển thị SnackBar chào mừng
   void _getStarted() {
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
@@ -175,7 +181,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     );
   }
 
-  // ==================== BUILD UI ====================
+  // Dựng giao diện
 
   @override
   Widget build(BuildContext context) {
@@ -200,7 +206,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           SafeArea(
             child: Stack(
               children: [
-                // ===== MAIN CONTENT AREA =====
+                // Khu nội dung chính
                 Positioned.fill(
                   child: Stack(
                     children: [
@@ -216,17 +222,14 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                         itemCount: _pages.length,
                         itemBuilder: (context, index) {
                           // Sử dụng widget riêng để build nội dung trang
-                          return PageContent(
-                            page: _pages[index],
-                            index: index,
-                          );
+                          return PageContent(page: _pages[index], index: index);
                         },
                       ),
                     ],
                   ),
                 ),
 
-                // ===== BOTTOM BUTTON AREA =====
+                // Khu nút dưới
                 Align(
                   alignment: Alignment.bottomCenter,
                   child: Container(
@@ -240,18 +243,22 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                           AnimatedSwitcher(
                             duration: const Duration(milliseconds: 500),
                             switchInCurve: Curves.easeOut, // Nút mới xuất hiện
-                            switchOutCurve: Curves.easeIn,  // Nút cũ biến mất
-
+                            switchOutCurve: Curves.easeIn, // Nút cũ biến mất
                             // Định nghĩa cách animation chạy
-                            transitionBuilder: (Widget child, Animation<double> animation) {
-                              return SlideTransition(
-                                position: Tween<Offset>(
-                                  begin: const Offset(0, 2), // Bắt đầu từ dưới xa
-                                  end: Offset.zero,           // Kết thúc tại vị trí gốc
-                                ).animate(animation),
-                                child: child,
-                              );
-                            },
+                            transitionBuilder:
+                                (Widget child, Animation<double> animation) {
+                                  return SlideTransition(
+                                    position: Tween<Offset>(
+                                      begin: const Offset(
+                                        0,
+                                        2,
+                                      ), // Bắt đầu từ dưới xa
+                                      end: Offset
+                                          .zero, // Kết thúc tại vị trí gốc
+                                    ).animate(animation),
+                                    child: child,
+                                  );
+                                },
 
                             // Nút action chính
                             child: CustomButton(
@@ -266,7 +273,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                               icon: _currentPage == _pages.length - 1
                                   ? Icons.check_rounded
                                   : Icons.arrow_forward_rounded,
-                              gradientColors: _pages[_currentPage].gradientColors,
+                              gradientColors:
+                                  _pages[_currentPage].gradientColors,
 
                               // Callback khác nhau cho trang cuối
                               onPressed: _currentPage == _pages.length - 1
@@ -280,7 +288,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   ),
                 ),
 
-                // ===== TOP INDICATOR AREA =====
+                // Chấm trạng thái phía trên
                 // Thanh chỉ báo trang (dots)
                 Align(
                   alignment: Alignment.topCenter,
@@ -303,18 +311,24 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   ),
                 ),
 
-                // ===== SKIP BUTTON (TOP RIGHT) =====
+                // Nút bỏ qua
                 // Chỉ hiện nút "Bỏ qua" khi chưa đến trang cuối
                 if (_currentPage < _pages.length - 1)
                   SlideTransition(
                     // Animation trượt từ phải vào
-                    position: Tween<Offset>(
-                      begin: const Offset(1, 0), // Bắt đầu từ bên phải ngoài màn hình
-                      end: Offset.zero,          // Kết thúc tại vị trí gốc
-                    ).animate(CurvedAnimation(
-                      parent: _pageTransitionController,
-                      curve: Curves.easeOut,
-                    )),
+                    position:
+                        Tween<Offset>(
+                          begin: const Offset(
+                            1,
+                            0,
+                          ), // Bắt đầu từ bên phải ngoài màn hình
+                          end: Offset.zero, // Kết thúc tại vị trí gốc
+                        ).animate(
+                          CurvedAnimation(
+                            parent: _pageTransitionController,
+                            curve: Curves.easeOut,
+                          ),
+                        ),
                     child: Padding(
                       padding: const EdgeInsets.all(0),
                       child: Align(

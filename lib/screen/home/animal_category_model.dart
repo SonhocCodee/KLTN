@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
 class AnimalCategory {
-  final String id;           // key nội bộ: 'dog', 'lion', 'tiger'
-  final String animalType;   // khớp với DB animal_type: 'mammal', 'bird'...
+  final String id; // key nội bộ: 'dog', 'lion', 'tiger'
+  final String animalType; // khớp với DB animal_type: 'mammal', 'bird'...
   final String nameVi;
   final String nameEn;
   final IconData icon;
+  final String emoji;
   final List<Color> gradient;
   final String imageAssetPath;
   final int totalExpected;
@@ -17,6 +18,7 @@ class AnimalCategory {
     required this.nameVi,
     required this.nameEn,
     required this.icon,
+    this.emoji = '🐾',
     required this.gradient,
     required this.imageAssetPath,
     required this.totalExpected,
@@ -30,6 +32,7 @@ class AnimalCategory {
       nameVi: 'Chó',
       nameEn: 'Dog',
       icon: Icons.pets,
+      emoji: '🐶',
       gradient: [Color(0xFFFBBF24), Color(0xFFF97316)],
       imageAssetPath: 'assets/images/Golden-Retrieve.jpg',
       totalExpected: 360,
@@ -41,6 +44,7 @@ class AnimalCategory {
       nameVi: 'Mèo',
       nameEn: 'Cat',
       icon: Icons.pets,
+      emoji: '🐱',
       gradient: [Color(0xFFEC4899), Color(0xFFDB2777)],
       imageAssetPath: 'assets/images/Cat.jpg',
       totalExpected: 73,
@@ -48,10 +52,11 @@ class AnimalCategory {
     ),
     AnimalCategory(
       id: 'tiger',
-      animalType: 'mammal',  // DB dùng 'mammal' cho hổ
+      animalType: 'mammal', // DB dùng 'mammal' cho hổ
       nameVi: 'Hổ',
       nameEn: 'Tiger',
       icon: Icons.close_fullscreen,
+      emoji: '🐯',
       gradient: [Color(0xFFFF6B35), Color(0xFFF7931E)],
       imageAssetPath: 'assets/images/tiger.jpg',
       totalExpected: 9,
@@ -63,6 +68,7 @@ class AnimalCategory {
       nameVi: 'Sư Tử',
       nameEn: 'Lion',
       icon: Icons.stars,
+      emoji: '🦁',
       gradient: [Color(0xFFFFB800), Color(0xFFFF8A00)],
       imageAssetPath: 'assets/images/lion.jpg',
       totalExpected: 5,
@@ -74,6 +80,7 @@ class AnimalCategory {
       nameVi: 'Gấu',
       nameEn: 'Bear',
       icon: Icons.landscape,
+      emoji: '🐻',
       gradient: [Color(0xFF8B4513), Color(0xFF654321)],
       imageAssetPath: 'assets/images/bear.jpg',
       totalExpected: 15,
@@ -85,6 +92,7 @@ class AnimalCategory {
       nameVi: 'Ngựa',
       nameEn: 'Horse',
       icon: Icons.directions_run,
+      emoji: '🐴',
       gradient: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
       imageAssetPath: 'assets/images/horse.jpg',
       totalExpected: 350,
@@ -96,6 +104,7 @@ class AnimalCategory {
       nameVi: 'Bò',
       nameEn: 'Cattle',
       icon: Icons.agriculture,
+      emoji: '🐮',
       gradient: [Color(0xFF10B981), Color(0xFF059669)],
       imageAssetPath: 'assets/images/cow.jpg',
       totalExpected: 800,
@@ -107,18 +116,19 @@ class AnimalCategory {
       nameVi: 'Trâu',
       nameEn: 'Buffalo',
       icon: Icons.water,
+      emoji: '🐃',
       gradient: [Color(0xFF0EA5E9), Color(0xFF0284C7)],
       imageAssetPath: 'assets/images/buffalo.jpg',
       totalExpected: 74,
       isEnabled: true,
     ),
 
-
     AnimalCategory(
       id: 'fish',
       nameVi: 'Cá',
       nameEn: 'Fish',
       icon: Icons.bug_report,
+      emoji: '🐟',
       gradient: [Color(0xFF0077B6), Color(0xFF00B4D8)],
       animalType: 'fish',
       imageAssetPath: 'assets/images/fish.jpeg',
@@ -131,13 +141,12 @@ class AnimalCategory {
       nameVi: 'Chim',
       nameEn: 'Bird',
       icon: Icons.flutter_dash_rounded,
+      emoji: '🐦',
       gradient: [Color(0xFF38BDF8), Color(0xFF0EA5E9)],
       imageAssetPath: 'assets/images/bird.jpg',
       totalExpected: 11131,
       isEnabled: true,
     ),
-
-
   ];
 
   static AnimalCategory? getById(String id) {
@@ -148,7 +157,7 @@ class AnimalCategory {
     }
   }
 
-  /// Tìm category theo animal_type từ DB
+  // Tìm category theo animal_type từ DB
   static AnimalCategory? getByAnimalType(String type) {
     try {
       return allCategories.firstWhere((cat) => cat.animalType == type);

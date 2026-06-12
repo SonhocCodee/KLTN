@@ -25,7 +25,7 @@ class _PulseAnimatedIconState extends State<PulseAnimatedIcon>
   late Animation<double> _orbitAnimation;
   late Animation<double> _glowAnimation;
 
-  // CẤU HÌNH ICON VÀ VỆ TINH THEO TỪNG TRANG
+  // Cấu hình icon và vệ tinh theo từng trang
   final List<Map<String, dynamic>> _iconConfigs = [
     {
       // Trang 0: Nước
@@ -69,9 +69,10 @@ class _PulseAnimatedIconState extends State<PulseAnimatedIcon>
       vsync: this,
     )..repeat();
 
-    _orbitAnimation = Tween<double>(begin: 0, end: 2 * math.pi).animate(
-      _orbitController,
-    );
+    _orbitAnimation = Tween<double>(
+      begin: 0,
+      end: 2 * math.pi,
+    ).animate(_orbitController);
 
     // 3. Phát sáng (Glow)
     _glowController = AnimationController(
@@ -100,7 +101,11 @@ class _PulseAnimatedIconState extends State<PulseAnimatedIcon>
     final List<String> satellites = config['satellites'];
 
     return AnimatedBuilder(
-      animation: Listenable.merge([_pulseController, _orbitController, _glowController]),
+      animation: Listenable.merge([
+        _pulseController,
+        _orbitController,
+        _glowController,
+      ]),
       builder: (context, child) {
         return Transform.scale(
           scale: _pulseAnimation.value,
@@ -110,7 +115,7 @@ class _PulseAnimatedIconState extends State<PulseAnimatedIcon>
             child: Stack(
               alignment: Alignment.center,
               children: [
-                // --- LỚP 1: VÒNG SÁNG LAN TỎA ---
+                // Lớp 1: vòng sáng lan tỏa
                 ...List.generate(3, (index) {
                   return Transform.scale(
                     scale: 1.0 + (index * 0.25) * _glowAnimation.value,
@@ -130,7 +135,7 @@ class _PulseAnimatedIconState extends State<PulseAnimatedIcon>
                   );
                 }),
 
-                // --- LỚP 2: QUỸ ĐẠO MỜ ---
+                // Lớp 2: quỹ đạo mờ
                 Container(
                   width: 210,
                   height: 210,
@@ -144,13 +149,14 @@ class _PulseAnimatedIconState extends State<PulseAnimatedIcon>
                   ),
                 ),
 
-                // --- LỚP 3: VỆ TINH XOAY QUANH (Dynamic) ---
+                // LỚP 3: VỆ TINH XOAY QUANH (Dynamic)
                 ...List.generate(satellites.length, (index) {
                   // Tự động chia đều góc dựa trên số lượng vệ tinh
                   // Nếu 2 con -> cách nhau 180 độ
                   // Nếu 3 con -> cách nhau 120 độ
                   final double angleStep = (2 * math.pi) / satellites.length;
-                  final double currentAngle = _orbitAnimation.value + (index * angleStep);
+                  final double currentAngle =
+                      _orbitAnimation.value + (index * angleStep);
 
                   final radius = 105.0; // Bán kính quỹ đạo
 
@@ -187,7 +193,7 @@ class _PulseAnimatedIconState extends State<PulseAnimatedIcon>
                   );
                 }),
 
-                // --- LỚP 4: ICON CHÍNH (MAIN) ---
+                // Lớp 4: icon chính (main)
                 Container(
                   width: 140,
                   height: 140,
@@ -200,7 +206,9 @@ class _PulseAnimatedIconState extends State<PulseAnimatedIcon>
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: widget.gradientColors[0].withOpacity(0.6 * _glowAnimation.value),
+                        color: widget.gradientColors[0].withOpacity(
+                          0.6 * _glowAnimation.value,
+                        ),
                         blurRadius: 30,
                         spreadRadius: 5,
                         offset: const Offset(0, 5),
@@ -214,10 +222,7 @@ class _PulseAnimatedIconState extends State<PulseAnimatedIcon>
                   child: Center(
                     child: Text(
                       mainIcon,
-                      style: const TextStyle(
-                        fontSize: 65,
-                        height: 1.2,
-                      ),
+                      style: const TextStyle(fontSize: 65, height: 1.2),
                     ),
                   ),
                 ),

@@ -6,6 +6,7 @@ import 'package:kltn_app/screen/Search_smart/widgets/search_smart_widgets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+import '../common/main_page_header.dart';
 import '../language/Locale_provider.dart';
 import 'animal_ai_chat_screen.dart';
 import 'models/search_smart_models.dart';
@@ -27,7 +28,7 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
   bool _isLoading = false;
   bool _showResults = false;
 
-  // ── Search & Sort trên màn hình chọn loài ──
+  // Search & Sort trên màn hình chọn loài
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   bool _sortAZ = false;
@@ -42,7 +43,7 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
   List<QuestionConfig> get _questions => _selectedConfig?.questions ?? [];
   List<OptionConfig> _currentValidOptions = [];
 
-  // ── LOGIC ─────────────────────────────────────────────────────────────────
+  // Logic
   void _reset() {
     setState(() {
       _selectedConfig = null;
@@ -82,7 +83,11 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
     await _advanceToNextUsefulQuestion();
   }
 
-  Future<int> _countResultsWithFilter(Map<String, dynamic> baseFilters, QuestionConfig q, dynamic value) async {
+  Future<int> _countResultsWithFilter(
+    Map<String, dynamic> baseFilters,
+    QuestionConfig q,
+    dynamic value,
+  ) async {
     if (_selectedConfig == null) return 0;
     final testFilters = Map<String, dynamic>.from(baseFilters);
     testFilters[q.column] = value;
@@ -174,11 +179,16 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
       // Dùng animals(...) không có !inner để tránh lỗi khi FK chưa được đặt tên explicit
       var query = _client
           .from(config.dbTable)
-          .select('animal_id, animals(id, name_vietnamese, name_english, scientific_name, image_url, description_short, animal_type)');
+          .select(
+            'animal_id, animals(id, name_vietnamese, name_english, scientific_name, image_url, description_short, animal_type)',
+          );
       for (final entry in filters.entries) {
         final col = entry.key;
         final val = entry.value;
-        final qConfig = _questions.firstWhere((q) => q.column == col, orElse: () => _questions.first);
+        final qConfig = _questions.firstWhere(
+          (q) => q.column == col,
+          orElse: () => _questions.first,
+        );
         if (qConfig.isBool || val is bool) {
           query = query.eq(col, val) as dynamic;
         } else if (qConfig.isArray) {
@@ -191,9 +201,11 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
     }
 
     // Bảng animals thông thường
-    var query = _client.from(config.dbTable).select(
-      'id, name_vietnamese, name_english, scientific_name, image_url, description_short, animal_type',
-    );
+    var query = _client
+        .from(config.dbTable)
+        .select(
+          'id, name_vietnamese, name_english, scientific_name, image_url, description_short, animal_type',
+        );
 
     if (config.dbTable == 'animals') {
       query = query.eq('animal_type', config.animalType) as dynamic;
@@ -202,7 +214,10 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
     for (final entry in filters.entries) {
       final col = entry.key;
       final val = entry.value;
-      final qConfig = _questions.firstWhere((q) => q.column == col, orElse: () => _questions.first);
+      final qConfig = _questions.firstWhere(
+        (q) => q.column == col,
+        orElse: () => _questions.first,
+      );
 
       if (qConfig.isArray) {
         query = query.contains(col, [val]) as dynamic;
@@ -227,18 +242,21 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
         if (isTraitsTable) {
           // Flatten nested animals object lên top-level
           // animals có thể là Map (1-1 FK) hoặc List (nếu Supabase trả array)
-          _results = list.map((row) {
-            final raw = row['animals'];
-            final Map<String, dynamic> animalData;
-            if (raw is Map<String, dynamic>) {
-              animalData = raw;
-            } else if (raw is List && raw.isNotEmpty) {
-              animalData = Map<String, dynamic>.from(raw.first as Map);
-            } else {
-              animalData = {};
-            }
-            return animalData;
-          }).where((a) => a.isNotEmpty).toList();
+          _results = list
+              .map((row) {
+                final raw = row['animals'];
+                final Map<String, dynamic> animalData;
+                if (raw is Map<String, dynamic>) {
+                  animalData = raw;
+                } else if (raw is List && raw.isNotEmpty) {
+                  animalData = Map<String, dynamic>.from(raw.first as Map);
+                } else {
+                  animalData = {};
+                }
+                return animalData;
+              })
+              .where((a) => a.isNotEmpty)
+              .toList();
         } else {
           _results = List<Map<String, dynamic>>.from(list);
         }
@@ -303,7 +321,9 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      animal['name_vietnamese'] ?? animal['name_english'] ?? '—',
+                      animal['name_vietnamese'] ??
+                          animal['name_english'] ??
+                          '—',
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
@@ -322,7 +342,8 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
                       ),
                     ],
                     if (animal['name_english'] != null &&
-                        animal['name_english'] != animal['name_vietnamese']) ...[
+                        animal['name_english'] !=
+                            animal['name_vietnamese']) ...[
                       const SizedBox(height: 2),
                       Text(
                         animal['name_english'],
@@ -350,7 +371,11 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
               ),
               Padding(
                 padding: EdgeInsets.fromLTRB(
-                    16, 20, 16, MediaQuery.of(ctx).padding.bottom + 16),
+                  16,
+                  20,
+                  16,
+                  MediaQuery.of(ctx).padding.bottom + 16,
+                ),
                 child: Row(
                   children: [
                     Expanded(
@@ -359,13 +384,16 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14)),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
                           side: BorderSide(color: colorScheme.outline),
                         ),
                         child: Text(
                           t.tr('Đóng'),
                           style: TextStyle(
-                              fontSize: 16, color: colorScheme.onSurface),
+                            fontSize: 16,
+                            color: colorScheme.onSurface,
+                          ),
                         ),
                       ),
                     ),
@@ -375,17 +403,16 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
                       child: FilledButton.icon(
                         onPressed: () {
                           Navigator.pop(ctx);
-                          final animalType =
-                          (animal['animal_type'] ?? '').toString();
-                          final category = AnimalCategory
-                              .getEnabledCategories()
+                          final animalType = (animal['animal_type'] ?? '')
+                              .toString();
+                          final category = AnimalCategory.getEnabledCategories()
                               .firstWhere(
-                                (c) => c.id
-                                .toLowerCase()
-                                .contains(animalType.toLowerCase()),
-                            orElse: () =>
-                            AnimalCategory.getEnabledCategories().first,
-                          );
+                                (c) => c.id.toLowerCase().contains(
+                                  animalType.toLowerCase(),
+                                ),
+                                orElse: () =>
+                                    AnimalCategory.getEnabledCategories().first,
+                              );
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -397,12 +424,15 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
                           );
                         },
                         icon: const Icon(Icons.open_in_new_rounded, size: 18),
-                        label: Text(t.tr('Xem chi tiết'),
-                            style: const TextStyle(fontSize: 16)),
+                        label: Text(
+                          t.tr('Xem chi tiết'),
+                          style: const TextStyle(fontSize: 16),
+                        ),
                         style: FilledButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14)),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
                         ),
                       ),
                     ),
@@ -416,14 +446,13 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
     );
   }
 
-
   void _openAnimalAiChat() {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const AnimalAiChatScreen()),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const AnimalAiChatScreen()));
   }
 
-  // ── BUILD UI ──────────────────────────────────────────────────────────────
+  // Dựng giao diện
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -438,16 +467,18 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
   Widget _buildBody(ColorScheme colorScheme, LocaleProvider t) {
     if (_selectedConfig == null) return _buildTypeSelection(colorScheme, t);
     if (_isLoading) return const SmartLoadingView();
-    if (_showResults || _questionIndex >= _questions.length) return _buildResults(colorScheme, t);
+    if (_showResults || _questionIndex >= _questions.length)
+      return _buildResults(colorScheme, t);
     return _buildQuestion(colorScheme, t);
   }
 
-  // ── Getter: search + lọc nhóm + sắp xếp danh sách loài ──
+  // Getter: search + lọc nhóm + sắp xếp danh sách loài
   List<AnimalTypeConfig> get _displayedAnimalTypes {
     var list = allAnimalTypes.where((c) {
       if (_searchQuery.isNotEmpty) {
         final q = _searchQuery.toLowerCase();
-        final matchSearch = c.nameVi.toLowerCase().contains(q) ||
+        final matchSearch =
+            c.nameVi.toLowerCase().contains(q) ||
             c.nameEn.toLowerCase().contains(q) ||
             c.key.toLowerCase().contains(q) ||
             c.animalType.toLowerCase().contains(q);
@@ -465,7 +496,8 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
   }
 
   bool _matchTypeFilter(AnimalTypeConfig c) {
-    final key = '${c.key} ${c.animalType} ${c.nameVi} ${c.nameEn}'.toLowerCase();
+    final key = '${c.key} ${c.animalType} ${c.nameVi} ${c.nameEn}'
+        .toLowerCase();
 
     switch (_typeFilter) {
       case _AnimalTypeFilter.all:
@@ -518,45 +550,18 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── Tiêu đề + nút mở chatbot ──
-        Padding(
+        MainPageHeader(
+          title: 'Tìm động vật',
+          highlightedText: 'thông minh',
+          emoji: '🔎',
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      t.tr('Tìm động vật'),
-                      style: TextStyle(
-                          fontSize: 34,
-                          fontWeight: FontWeight.w700,
-                          color: colorScheme.onSurface,
-                          letterSpacing: -0.5),
-                    ).animate().fadeIn(duration: 350.ms),
-                    const SizedBox(height: 4),
-                    Text(
-                      t.tr('Chọn loài bạn muốn khám phá'),
-                      style: TextStyle(
-                          fontSize: 16,
-                          color: colorScheme.onSurfaceVariant,
-                          fontWeight: FontWeight.w400),
-                    ).animate().fadeIn(delay: 100.ms),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              _ChatBotTopButton(onTap: _openAnimalAiChat)
-                  .animate()
-                  .fadeIn(delay: 120.ms)
-                  .scale(begin: const Offset(0.85, 0.85)),
-            ],
-          ),
-        ),
+        ).animate().fadeIn(duration: 350.ms),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+          child: _ChatBotEntryCard(onTap: _openAnimalAiChat),
+        ).animate().fadeIn(delay: 120.ms).slideY(begin: .08, end: 0),
 
-        // ── Search bar ──
+        // Search bar
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Container(
@@ -570,21 +575,33 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
               style: TextStyle(fontSize: 16, color: colorScheme.onSurface),
               decoration: InputDecoration(
                 hintText: t.tr('Tìm loài... (chó, mèo, hổ...)'),
-                hintStyle:
-                TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 15),
-                prefixIcon: Icon(CupertinoIcons.search,
-                    color: colorScheme.onSurfaceVariant, size: 20),
+                hintStyle: TextStyle(
+                  color: colorScheme.onSurfaceVariant,
+                  fontSize: 15,
+                ),
+                prefixIcon: Icon(
+                  CupertinoIcons.search,
+                  color: colorScheme.onSurfaceVariant,
+                  size: 20,
+                ),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? GestureDetector(
-                  onTap: () =>
-                      setState(() { _searchQuery = ''; _searchController.clear(); }),
-                  child: Icon(CupertinoIcons.xmark_circle_fill,
-                      color: colorScheme.onSurfaceVariant, size: 18),
-                )
+                        onTap: () => setState(() {
+                          _searchQuery = '';
+                          _searchController.clear();
+                        }),
+                        child: Icon(
+                          CupertinoIcons.xmark_circle_fill,
+                          color: colorScheme.onSurfaceVariant,
+                          size: 18,
+                        ),
+                      )
                     : null,
                 border: InputBorder.none,
-                contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
               ),
             ),
           ),
@@ -592,19 +609,12 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
 
         const SizedBox(height: 10),
 
-        // ── Filter + Sort chips ──
+        // Filter + Sort chips
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                displayed.isEmpty
-                    ? t.tr('Không tìm thấy loài nào')
-                    : '${displayed.length} ${t.tr('loài')}',
-                style: TextStyle(
-                    fontSize: 13, color: colorScheme.onSurfaceVariant),
-              ),
               const SizedBox(height: 8),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
@@ -614,7 +624,8 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
                     _SortChip(
                       label: t.tr('Mặc định'),
                       icon: CupertinoIcons.square_grid_2x2,
-                      selected: _typeFilter == _AnimalTypeFilter.all && !_sortAZ,
+                      selected:
+                          _typeFilter == _AnimalTypeFilter.all && !_sortAZ,
                       onTap: () => setState(() {
                         _typeFilter = _AnimalTypeFilter.all;
                         _sortAZ = false;
@@ -632,24 +643,26 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
                       label: t.tr('4 chân'),
                       icon: Icons.pets_rounded,
                       selected: _typeFilter == _AnimalTypeFilter.fourLegs,
-                      onTap: () => setState(() =>
-                      _typeFilter = _AnimalTypeFilter.fourLegs),
+                      onTap: () => setState(
+                        () => _typeFilter = _AnimalTypeFilter.fourLegs,
+                      ),
                     ),
                     const SizedBox(width: 8),
                     _SortChip(
                       label: t.tr('Cá'),
                       icon: Icons.water_rounded,
                       selected: _typeFilter == _AnimalTypeFilter.fish,
-                      onTap: () => setState(() =>
-                      _typeFilter = _AnimalTypeFilter.fish),
+                      onTap: () =>
+                          setState(() => _typeFilter = _AnimalTypeFilter.fish),
                     ),
                     const SizedBox(width: 8),
                     _SortChip(
                       label: t.tr('2 chân'),
                       icon: Icons.flutter_dash_rounded,
                       selected: _typeFilter == _AnimalTypeFilter.twoLegs,
-                      onTap: () => setState(() =>
-                      _typeFilter = _AnimalTypeFilter.twoLegs),
+                      onTap: () => setState(
+                        () => _typeFilter = _AnimalTypeFilter.twoLegs,
+                      ),
                     ),
                   ],
                 ),
@@ -660,39 +673,41 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
 
         const SizedBox(height: 10),
 
-        // ── Grid loài ──
+        // Grid loài
         Expanded(
           child: displayed.isEmpty
               ? Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text('🔍', style: TextStyle(fontSize: 48)),
-                const SizedBox(height: 12),
-                Text(t.tr('Không tìm thấy loài nào'),
-                    style: TextStyle(
-                        fontSize: 17,
-                        color: colorScheme.onSurfaceVariant)),
-              ],
-            ),
-          )
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('🔍', style: TextStyle(fontSize: 48)),
+                      const SizedBox(height: 12),
+                      Text(
+                        t.tr('Không tìm thấy loài nào'),
+                        style: TextStyle(
+                          fontSize: 17,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
               : GridView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
-            physics: const BouncingScrollPhysics(),
-            gridDelegate:
-            const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 1.05,
-            ),
-            itemCount: displayed.length,
-            itemBuilder: (context, i) => SmartTypeCard(
-              config: displayed[i],
-              index: i,
-              onTap: () => _selectAnimalType(displayed[i]),
-            ),
-          ),
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
+                  physics: const BouncingScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 1.05,
+                  ),
+                  itemCount: displayed.length,
+                  itemBuilder: (context, i) => SmartTypeCard(
+                    config: displayed[i],
+                    index: i,
+                    onTap: () => _selectAnimalType(displayed[i]),
+                  ),
+                ),
         ),
       ],
     );
@@ -701,7 +716,9 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
   // 2. Câu hỏi Quiz
   Widget _buildQuestion(ColorScheme colorScheme, LocaleProvider t) {
     final q = _questions[_questionIndex];
-    final displayOptions = _currentValidOptions.isNotEmpty ? _currentValidOptions : q.options;
+    final displayOptions = _currentValidOptions.isNotEmpty
+        ? _currentValidOptions
+        : q.options;
     final progress = (_filters.length) / _questions.length.toDouble();
 
     return Column(
@@ -714,10 +731,14 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
                 setState(() {
                   _filters.remove(lastKey);
                   _currentValidOptions = [];
-                  final prevIdx = _questions.indexWhere((q) => q.column == lastKey);
+                  final prevIdx = _questions.indexWhere(
+                    (q) => q.column == lastKey,
+                  );
                   if (prevIdx >= 0) _questionIndex = prevIdx;
                 });
-                _fetchResults(_filters).then((_) => _advanceToNextUsefulQuestion());
+                _fetchResults(
+                  _filters,
+                ).then((_) => _advanceToNextUsefulQuestion());
               } else {
                 _reset();
               }
@@ -726,13 +747,29 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(CupertinoIcons.back, color: colorScheme.primary, size: 22),
-                Text(t.tr('Quay lại'), style: TextStyle(color: colorScheme.primary, fontSize: 17)),
+                Text(
+                  t.tr('Quay lại'),
+                  style: TextStyle(color: colorScheme.primary, fontSize: 17),
+                ),
               ],
             ),
           ),
-          title: Text('${t.tr(_selectedConfig!.nameVi)} ${_selectedConfig!.emoji}', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: colorScheme.onSurface)),
+          title: Text(
+            '${t.tr(_selectedConfig!.nameVi)} ${_selectedConfig!.emoji}',
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface,
+            ),
+          ),
           trailing: (_results.isNotEmpty && _filters.isNotEmpty)
-              ? GestureDetector(onTap: () => setState(() => _showResults = true), child: Text('${t.tr('Xem')} ${_results.length}', style: TextStyle(color: colorScheme.primary, fontSize: 17)))
+              ? GestureDetector(
+                  onTap: () => setState(() => _showResults = true),
+                  child: Text(
+                    '${t.tr('Xem')} ${_results.length}',
+                    style: TextStyle(color: colorScheme.primary, fontSize: 17),
+                  ),
+                )
               : const SizedBox.shrink(),
         ),
         Padding(
@@ -754,7 +791,10 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
                 _filters.isEmpty
                     ? t.tr('Trả lời để tìm loài phù hợp')
                     : '${_results.length} ${t.tr('kết quả đang khớp')}',
-                style: TextStyle(fontSize: 13, color: colorScheme.onSurfaceVariant),
+                style: TextStyle(
+                  fontSize: 13,
+                  color: colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),
@@ -764,9 +804,20 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Column(
             children: [
-              Text(q.emoji, style: const TextStyle(fontSize: 44)).animate().scale(begin: const Offset(0.7, 0.7), duration: 300.ms),
+              Text(q.emoji, style: const TextStyle(fontSize: 44))
+                  .animate()
+                  .scale(begin: const Offset(0.7, 0.7), duration: 300.ms),
               const SizedBox(height: 12),
-              Text(t.tr(q.question), textAlign: TextAlign.center, style: TextStyle(fontSize: 26, fontWeight: FontWeight.w700, color: colorScheme.onSurface, letterSpacing: -0.3)).animate().fadeIn(duration: 300.ms).slideY(begin: -0.15),
+              Text(
+                t.tr(q.question),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w700,
+                  color: colorScheme.onSurface,
+                  letterSpacing: -0.3,
+                ),
+              ).animate().fadeIn(duration: 300.ms).slideY(begin: -0.15),
             ],
           ),
         ),
@@ -781,12 +832,22 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
                   decoration: BoxDecoration(
                     color: colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(12),
-                    boxShadow: [BoxShadow(color: colorScheme.shadow.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 2))],
+                    boxShadow: [
+                      BoxShadow(
+                        color: colorScheme.shadow.withOpacity(0.05),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
                   child: Column(
                     children: displayOptions.asMap().entries.map((entry) {
                       return SmartOptionRow(
-                        question: q, option: entry.value, isLast: entry.key == displayOptions.length - 1, index: entry.key, onTap: () => _answer(q, entry.value.value),
+                        question: q,
+                        option: entry.value,
+                        isLast: entry.key == displayOptions.length - 1,
+                        index: entry.key,
+                        onTap: () => _answer(q, entry.value.value),
                       );
                     }).toList(),
                   ),
@@ -800,9 +861,23 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
                     decoration: BoxDecoration(
                       color: colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(12),
-                      boxShadow: [BoxShadow(color: colorScheme.shadow.withOpacity(0.04), blurRadius: 6, offset: const Offset(0, 2))],
+                      boxShadow: [
+                        BoxShadow(
+                          color: colorScheme.shadow.withOpacity(0.04),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                    child: Text(t.tr('Không chắc, bỏ qua'), textAlign: TextAlign.center, style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 16, fontWeight: FontWeight.w400)),
+                    child: Text(
+                      t.tr('Không chắc, bỏ qua'),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: colorScheme.onSurfaceVariant,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -824,18 +899,37 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(CupertinoIcons.house, color: colorScheme.primary, size: 20),
+                Icon(
+                  CupertinoIcons.house,
+                  color: colorScheme.primary,
+                  size: 20,
+                ),
                 const SizedBox(width: 4),
-                Text(t.tr('Trang chủ'), style: TextStyle(color: colorScheme.primary, fontSize: 17)),
+                Text(
+                  t.tr('Trang chủ'),
+                  style: TextStyle(color: colorScheme.primary, fontSize: 17),
+                ),
               ],
             ),
           ),
           title: Text(
-            _results.isEmpty ? t.tr('Không tìm thấy') : '${_results.length} ${t.tr('kết quả')}',
-            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: colorScheme.onSurface),
+            _results.isEmpty
+                ? t.tr('Không tìm thấy')
+                : '${_results.length} ${t.tr('kết quả')}',
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface,
+            ),
           ),
           trailing: _results.isNotEmpty
-              ? GestureDetector(onTap: () => _selectAnimalType(_selectedConfig!), child: Text(t.tr('Tìm lại'), style: TextStyle(color: colorScheme.primary, fontSize: 17)))
+              ? GestureDetector(
+                  onTap: () => _selectAnimalType(_selectedConfig!),
+                  child: Text(
+                    t.tr('Tìm lại'),
+                    style: TextStyle(color: colorScheme.primary, fontSize: 17),
+                  ),
+                )
               : const SizedBox.shrink(),
         ),
         if (_results.isNotEmpty)
@@ -843,71 +937,110 @@ class _SmartQuizPageState extends State<SmartQuizPage> {
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
             child: Row(
               children: [
-                Text(t.tr('Chọn một con để xem chi tiết'), style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 13)),
+                Text(
+                  t.tr('Chọn một con để xem chi tiết'),
+                  style: TextStyle(
+                    color: colorScheme.onSurfaceVariant,
+                    fontSize: 13,
+                  ),
+                ),
               ],
             ),
           ),
         Expanded(
           child: _results.isEmpty
-              ? SmartNoResultsView(onRetry: () => _selectAnimalType(_selectedConfig!))
+              ? SmartNoResultsView(
+                  onRetry: () => _selectAnimalType(_selectedConfig!),
+                )
               : GridView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
-            physics: const BouncingScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 0.72,
-            ),
-            itemCount: _results.length,
-            itemBuilder: (context, i) => SmartResultCard(
-              animal: _results[i], index: i, selectedConfig: _selectedConfig, onTap: () => _showDetail(_results[i], t),
-            ),
-          ),
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
+                  physics: const BouncingScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 0.72,
+                  ),
+                  itemCount: _results.length,
+                  itemBuilder: (context, i) => SmartResultCard(
+                    animal: _results[i],
+                    index: i,
+                    selectedConfig: _selectedConfig,
+                    onTap: () => _showDetail(_results[i], t),
+                  ),
+                ),
         ),
       ],
     );
   }
 }
 
-
-// ════════════════════════════════════════════════════════════
-// WIDGET: Nút mở chatbot AI ở góc trên bên phải
-// ════════════════════════════════════════════════════════════
-class _ChatBotTopButton extends StatelessWidget {
+class _ChatBotEntryCard extends StatelessWidget {
   final VoidCallback onTap;
 
-  const _ChatBotTopButton({required this.onTap});
+  const _ChatBotEntryCard({required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Tooltip(
-      message: 'Hỏi AI',
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(18),
-          child: Container(
-            width: 54,
-            height: 54,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  colorScheme.primary,
-                  colorScheme.primary.withOpacity(0.78),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(18),
-              boxShadow: [
-                BoxShadow(
-                  color: colorScheme.primary.withOpacity(0.28),
-                  blurRadius: 16,
-                  offset: const Offset(0, 8),
+    final t = context.watch<LocaleProvider>();
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: colorScheme.primaryContainer.withOpacity(0.55),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: colorScheme.primary.withOpacity(0.18)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: colorScheme.primary,
+                  borderRadius: BorderRadius.circular(13),
                 ),
-              ],
-            ),
-            child: Icon(Icons.smart_toy_rounded, color: colorScheme.onPrimary),
+                child: Icon(
+                  Icons.smart_toy_rounded,
+                  color: colorScheme.onPrimary,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      t.tr('Trợ lý động vật'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      t.tr('Hỏi nhanh khi bạn chưa biết nên tìm loài nào'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right_rounded, color: colorScheme.primary),
+            ],
           ),
         ),
       ),
@@ -915,9 +1048,7 @@ class _ChatBotTopButton extends StatelessWidget {
   }
 }
 
-// ════════════════════════════════════════════════════════════
 // WIDGET: Sort chip
-// ════════════════════════════════════════════════════════════
 class _SortChip extends StatelessWidget {
   final String label;
   final IconData? icon;
@@ -940,7 +1071,9 @@ class _SortChip extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: selected ? colorScheme.primary : colorScheme.surfaceContainerHighest,
+          color: selected
+              ? colorScheme.primary
+              : colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: selected ? colorScheme.primary : colorScheme.outlineVariant,
@@ -950,8 +1083,13 @@ class _SortChip extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (icon != null) ...[
-              Icon(icon, size: 13,
-                  color: selected ? colorScheme.onPrimary : colorScheme.onSurfaceVariant),
+              Icon(
+                icon,
+                size: 13,
+                color: selected
+                    ? colorScheme.onPrimary
+                    : colorScheme.onSurfaceVariant,
+              ),
               const SizedBox(width: 4),
             ],
             Text(
@@ -959,7 +1097,9 @@ class _SortChip extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: selected ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
+                color: selected
+                    ? colorScheme.onPrimary
+                    : colorScheme.onSurfaceVariant,
               ),
             ),
           ],

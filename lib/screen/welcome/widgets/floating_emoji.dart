@@ -1,19 +1,16 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 
-/// Widget hiển thị các động vật trôi nổi/bay lượn làm nền (Background Animation).
-/// Thay đổi loại động vật và kiểu chuyển động dựa trên [pageIndex].
+// Widget hiển thị các động vật trôi nổi/bay lượn làm nền (Background Animation).
+// Thay đổi loại động vật và kiểu chuyển động dựa trên [pageIndex].
 class FloatingAnimals extends StatefulWidget {
-  /// Index xác định môi trường:
-  /// 0: Dưới nước (Cá bơi)
-  /// 1: Trên cạn (Thú đi/nhảy)
-  /// 2: Bầu trời (Chim bay)
+  // Index xác định môi trường:
+  // 0: Dưới nước (Cá bơi)
+  // 1: Trên cạn (Thú đi/nhảy)
+  // 2: Bầu trời (Chim bay)
   final int pageIndex;
 
-  const FloatingAnimals({
-    super.key,
-    required this.pageIndex,
-  });
+  const FloatingAnimals({super.key, required this.pageIndex});
 
   @override
   State<FloatingAnimals> createState() => _FloatingAnimalsState();
@@ -52,20 +49,59 @@ class _FloatingAnimalsState extends State<FloatingAnimals>
     }
   }
 
-  /// Hàm tạo danh sách ngẫu nhiên các động vật và thông số chuyển động của chúng
+  // Hàm tạo danh sách ngẫu nhiên các động vật và thông số chuyển động của chúng
   void _generateAnimals() {
     List<String> icons;
 
     // 1. Chọn bộ icon dựa trên môi trường (pageIndex)
     switch (widget.pageIndex) {
       case 0: // Môi trường nước
-        icons = ['🐟', '🐠', '🐡', '🦈', '🐙', '🦑', '🐚', '🦀', '🐋', '🐬', '🦐', '🐢'];
+        icons = [
+          '🐟',
+          '🐠',
+          '🐡',
+          '🦈',
+          '🐙',
+          '🦑',
+          '🐚',
+          '🦀',
+          '🐋',
+          '🐬',
+          '🦐',
+          '🐢',
+        ];
         break;
       case 1: // Môi trường đất liền
-        icons = ['🦁', '🐯', '🐘', '🦒', '🦓', '🐆', '🦌', '🐎', '🐂', '🐃', '🐄', '🦘'];
+        icons = [
+          '🦁',
+          '🐯',
+          '🐘',
+          '🦒',
+          '🦓',
+          '🐆',
+          '🦌',
+          '🐎',
+          '🐂',
+          '🐃',
+          '🐄',
+          '🦘',
+        ];
         break;
       case 2: // Môi trường bầu trời
-        icons = ['🦅', '🦆', '🦉', '🦜', '🕊️', '🦚', '🐦', '🦩', '🦢', '🦅', '🦇', '🐔'];
+        icons = [
+          '🦅',
+          '🦆',
+          '🦉',
+          '🦜',
+          '🕊️',
+          '🦚',
+          '🐦',
+          '🦩',
+          '🦢',
+          '🦅',
+          '🦇',
+          '🐔',
+        ];
         break;
       default:
         icons = ['🐾'];
@@ -76,11 +112,16 @@ class _FloatingAnimalsState extends State<FloatingAnimals>
       return AnimalIcon(
         icon: icons[_random.nextInt(icons.length)],
         startX: _random.nextDouble(), // Vị trí bắt đầu ngang (0.0 -> 1.0)
-        startY: _random.nextDouble() * 0.7 + 0.15, // Vị trí dọc: Giới hạn từ 15% đến 85% chiều cao màn hình
+        startY:
+            _random.nextDouble() * 0.7 +
+            0.15, // Vị trí dọc: Giới hạn từ 15% đến 85% chiều cao màn hình
         speed: _random.nextDouble() * 0.4 + 0.3, // Tốc độ di chuyển
         size: _random.nextDouble() * 25 + 35, // Kích thước: 35 -> 60
         amplitude: _random.nextDouble() * 60 + 40, // Biên độ dao động (sóng)
-        phase: _random.nextDouble() * 2 * pi, // Pha dao động (để các con vật không chuyển động đồng bộ)
+        phase:
+            _random.nextDouble() *
+            2 *
+            pi, // Pha dao động (để các con vật không chuyển động đồng bộ)
       );
     });
   }
@@ -107,54 +148,66 @@ class _FloatingAnimalsState extends State<FloatingAnimals>
             double x, y;
             double rotation = 0; // Góc xoay mặc định
 
-            // --- LOGIC TÍNH TOÁN VỊ TRÍ THEO MÔI TRƯỜNG ---
+            // Logic tính toán vị trí theo môi trường
 
             if (widget.pageIndex == 0) {
-              // === CASE 0: DƯỚI NƯỚC ===
+              // Case 0: dưới nước
               // Chuyển động: Bơi ngang + Lên xuống nhẹ nhàng (Sóng Sine)
 
               // X: Di chuyển từ trái qua phải, lặp lại khi vượt quá màn hình
               // (modulo 1.2 - 0.1 để vật thể đi hẳn ra ngoài màn hình mới quay lại)
-              x = ((animal.startX + progress * animal.speed * 0.5) % 1.2 - 0.1) * screenSize.width;
+              x =
+                  ((animal.startX + progress * animal.speed * 0.5) % 1.2 -
+                      0.1) *
+                  screenSize.width;
 
               // Y: Vị trí gốc + Dao động Sine
-              y = screenSize.height * animal.startY +
+              y =
+                  screenSize.height * animal.startY +
                   sin(progress * 2 * pi + animal.phase) * animal.amplitude;
 
               // Rotation: Lắc lư nhẹ theo nhịp bơi
               rotation = sin(progress * 2 * pi + animal.phase) * 0.2;
-
             } else if (widget.pageIndex == 1) {
-              // === CASE 1: ĐẤT LIỀN ===
+              // Case 1: đất liền
               // Chuyển động: Đi ngang + Nhảy tưng tưng
 
               // X: Di chuyển ngang chậm hơn dưới nước (hệ số 0.3)
-              x = ((animal.startX + progress * animal.speed * 0.3) % 1.2 - 0.1) * screenSize.width;
+              x =
+                  ((animal.startX + progress * animal.speed * 0.3) % 1.2 -
+                      0.1) *
+                  screenSize.width;
 
               // Y: Tạo hiệu ứng nhảy bằng cách chỉ lấy phần dương của hàm Sine
               final jumpValue = sin(progress * 4 * pi + animal.phase);
-              y = screenSize.height * animal.startY -
+              y =
+                  screenSize.height * animal.startY -
                   (jumpValue > 0 ? jumpValue * animal.amplitude * 0.4 : 0);
 
               // Rotation: 0 (Động vật trên cạn thường giữ thăng bằng, không xoay)
-
             } else {
-              // === CASE 2: BẦU TRỜI ===
+              // Case 2: bầu trời
               // Chuyển động: Bay lượn tự do theo đường cong phức tạp (Sin + Cos)
 
               // X: Bay nhanh nhất (hệ số 0.6)
-              x = ((animal.startX + progress * animal.speed * 0.6) % 1.2 - 0.1) * screenSize.width;
+              x =
+                  ((animal.startX + progress * animal.speed * 0.6) % 1.2 -
+                      0.1) *
+                  screenSize.width;
 
               // Y: Kết hợp Sin và Cos để tạo đường bay lượn sóng tự nhiên hơn
-              y = screenSize.height * animal.startY +
-                  sin(progress * 2 * pi + animal.phase) * animal.amplitude * 0.8 +
+              y =
+                  screenSize.height * animal.startY +
+                  sin(progress * 2 * pi + animal.phase) *
+                      animal.amplitude *
+                      0.8 +
                   cos(progress * 3 * pi + animal.phase) * 30;
 
               // Rotation: Nghiêng người theo hướng bay
               rotation = sin(progress * 2 * pi + animal.phase) * 0.3;
             }
 
-            // --- RENDER WIDGET ---
+            // Render widget
             return Positioned(
               left: x,
               top: y,
@@ -191,15 +244,15 @@ class _FloatingAnimalsState extends State<FloatingAnimals>
   }
 }
 
-/// Class model lưu trữ thông số riêng biệt cho từng con vật
+// Class model lưu trữ thông số riêng biệt cho từng con vật
 class AnimalIcon {
-  final String icon;       // Emoji con vật
-  final double startX;     // Vị trí X ban đầu (tỉ lệ 0-1)
-  final double startY;     // Vị trí Y ban đầu (tỉ lệ 0-1)
-  final double speed;      // Tốc độ di chuyển
-  final double size;       // Kích thước font chữ
-  final double amplitude;  // Biên độ dao động (độ cao sóng/nhảy)
-  final double phase;      // Pha dao động (độ lệch thời gian)
+  final String icon; // Emoji con vật
+  final double startX; // Vị trí X ban đầu (tỉ lệ 0-1)
+  final double startY; // Vị trí Y ban đầu (tỉ lệ 0-1)
+  final double speed; // Tốc độ di chuyển
+  final double size; // Kích thước font chữ
+  final double amplitude; // Biên độ dao động (độ cao sóng/nhảy)
+  final double phase; // Pha dao động (độ lệch thời gian)
 
   AnimalIcon({
     required this.icon,

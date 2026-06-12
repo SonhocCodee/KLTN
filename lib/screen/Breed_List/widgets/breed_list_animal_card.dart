@@ -27,7 +27,8 @@ class BreedListAnimalCard extends StatelessWidget {
     final nameEn = animal['name_english'] ?? '';
 
     final dynamic imageUrlRaw = animal['image_url'];
-    final String imageUrl = (imageUrlRaw != null && imageUrlRaw.toString().isNotEmpty)
+    final String imageUrl =
+        (imageUrlRaw != null && imageUrlRaw.toString().isNotEmpty)
         ? imageUrlRaw.toString()
         : '';
 
@@ -41,7 +42,7 @@ class BreedListAnimalCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: category.gradient[0].withOpacity(0.2),
+              color: category.gradient[0].withValues(alpha: 0.2),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -62,26 +63,27 @@ class BreedListAnimalCard extends StatelessWidget {
                       Positioned.fill(
                         child: imageUrl.isNotEmpty
                             ? CachedNetworkImage(
-                          imageUrl: imageUrl,
-                          cacheKey: imageUrl,
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) => Center(
-                            child: CircularProgressIndicator(
-                              color: category.gradient[0],
-                              strokeWidth: 2,
-                            ),
-                          ),
-                          errorWidget: (context, url, error) {
-                            return _buildPlaceholderImage();
-                          },
-                          httpHeaders: const {
-                            'User-Agent': 'MyAnimalApp/1.0 (son623200@gmail.com)',
-                          },
-                          maxWidthDiskCache: 600,
-                          maxHeightDiskCache: 600,
-                          memCacheHeight: 600,
-                          memCacheWidth: 600,
-                        )
+                                imageUrl: imageUrl,
+                                cacheKey: imageUrl,
+                                fit: BoxFit.cover,
+                                placeholder: (context, url) => Center(
+                                  child: CircularProgressIndicator(
+                                    color: category.gradient[0],
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                                errorWidget: (context, url, error) {
+                                  return _buildPlaceholderImage();
+                                },
+                                httpHeaders: const {
+                                  'User-Agent':
+                                      'MyAnimalApp/1.0 (son623200@gmail.com)',
+                                },
+                                maxWidthDiskCache: 600,
+                                maxHeightDiskCache: 600,
+                                memCacheHeight: 600,
+                                memCacheWidth: 600,
+                              )
                             : _buildPlaceholderImage(),
                       ),
                       Positioned.fill(
@@ -92,7 +94,7 @@ class BreedListAnimalCard extends StatelessWidget {
                               end: Alignment.bottomCenter,
                               colors: [
                                 Colors.transparent,
-                                Colors.black.withOpacity(0.3),
+                                Colors.black.withValues(alpha: 0.3),
                               ],
                             ),
                           ),
@@ -105,10 +107,14 @@ class BreedListAnimalCard extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.all(4),
                             decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.35),
+                              color: Colors.black.withValues(alpha: 0.35),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.favorite, color: Colors.red, size: 16),
+                            child: const Icon(
+                              Icons.favorite,
+                              color: Colors.red,
+                              size: 16,
+                            ),
                           ),
                         ),
                       if (isEndangered)
@@ -116,18 +122,29 @@ class BreedListAnimalCard extends StatelessWidget {
                           top: 8,
                           right: 8,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
-                              color: Colors.red.withOpacity(0.9),
+                              color: Colors.red.withValues(alpha: 0.9),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(
                               children: [
-                                const Icon(Icons.warning_amber, color: Colors.white, size: 12),
+                                const Icon(
+                                  Icons.warning_amber,
+                                  color: Colors.white,
+                                  size: 12,
+                                ),
                                 const SizedBox(width: 4),
                                 Text(
                                   t.tr('Nguy cấp'),
-                                  style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ],
                             ),
@@ -137,7 +154,7 @@ class BreedListAnimalCard extends StatelessWidget {
                   ),
                 ),
 
-                // Info — dùng IntrinsicHeight để tự co giãn theo cỡ chữ
+                // Info - dùng IntrinsicHeight để tự co giãn theo cỡ chữ
                 Padding(
                   padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
                   child: Column(
@@ -145,7 +162,9 @@ class BreedListAnimalCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        t.tr(nameVi), // Dịch tên tiếng Việt nếu có trong từ điển
+                        t.tr(
+                          nameVi,
+                        ), // Dịch tên tiếng Việt nếu có trong từ điển
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w800,
@@ -168,9 +187,12 @@ class BreedListAnimalCard extends StatelessWidget {
                       if (conservationStatus.isNotEmpty) ...[
                         const SizedBox(height: 6),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
                           decoration: BoxDecoration(
-                            color: category.gradient[0].withOpacity(0.1),
+                            color: category.gradient[0].withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
@@ -206,10 +228,13 @@ class BreedListAnimalCard extends StatelessWidget {
         ),
       ),
       child: Center(
-        child: Icon(
-          category.icon,
-          size: 50,
-          color: Colors.white.withOpacity(0.5),
+        child: Text(
+          category.emoji,
+          style: TextStyle(
+            fontSize: 50,
+            color: Colors.white.withValues(alpha: 0.7),
+            height: 1,
+          ),
         ),
       ),
     );

@@ -13,8 +13,8 @@ import '../core/app_navigator.dart';
 import '../firebase_options.dart';
 import '../screen/update/update_screen.dart';
 
-/// BẮT BUỘC phải là top-level function.
-/// Hàm này chạy khi app ở background/terminated và nhận data message.
+// BẮT BUỘC phải là top-level function.
+// Hàm này chạy khi app ở background/terminated và nhận data message.
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   try {
@@ -25,7 +25,9 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     // Firebase có thể đã init rồi, bỏ qua.
   }
 
-  debugPrint('[FCM background] messageId=${message.messageId}, data=${message.data}');
+  debugPrint(
+    '[FCM background] messageId=${message.messageId}, data=${message.data}',
+  );
 }
 
 class PushNotificationService {
@@ -33,7 +35,8 @@ class PushNotificationService {
   static final PushNotificationService instance = PushNotificationService._();
 
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
-  final FlutterLocalNotificationsPlugin _local = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _local =
+      FlutterLocalNotificationsPlugin();
   final SupabaseClient _db = Supabase.instance.client;
 
   bool _initialized = false;
@@ -77,8 +80,10 @@ class PushNotificationService {
       },
     );
 
-    final androidImpl = _local.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final androidImpl = _local
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
 
     await androidImpl?.createNotificationChannel(
       const AndroidNotificationChannel(
@@ -128,21 +133,20 @@ class PushNotificationService {
       final packageInfo = await PackageInfo.fromPlatform();
       final user = _db.auth.currentUser;
 
-      await _db.from('user_push_tokens').upsert(
-        {
-          'token': token,
-          'user_id': user?.id,
-          'platform': _platformName,
-          'app_version': packageInfo.version,
-          'build_number': packageInfo.buildNumber,
-          'enabled': true,
-          'last_seen_at': DateTime.now().toUtc().toIso8601String(),
-          'updated_at': DateTime.now().toUtc().toIso8601String(),
-        },
-        onConflict: 'token',
-      );
+      await _db.from('user_push_tokens').upsert({
+        'token': token,
+        'user_id': user?.id,
+        'platform': _platformName,
+        'app_version': packageInfo.version,
+        'build_number': packageInfo.buildNumber,
+        'enabled': true,
+        'last_seen_at': DateTime.now().toUtc().toIso8601String(),
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      }, onConflict: 'token');
 
-      debugPrint('[Push] token saved: ${token.substring(0, token.length > 12 ? 12 : token.length)}...');
+      debugPrint(
+        '[Push] token saved: ${token.substring(0, token.length > 12 ? 12 : token.length)}...',
+      );
     } catch (e) {
       debugPrint('[Push] save token error: $e');
     }
@@ -164,18 +168,26 @@ class PushNotificationService {
 
   void _listenForegroundMessages() {
     FirebaseMessaging.onMessage.listen((message) async {
-      debugPrint('[Push foreground] ${message.notification?.title} | ${message.data}');
+      debugPrint(
+        '[Push foreground] ${message.notification?.title} | ${message.data}',
+      );
       await _showForegroundNotification(message);
     });
   }
 
   Future<void> _showForegroundNotification(RemoteMessage message) async {
-    final title = message.notification?.title ?? message.data['title'] ?? 'ZooTrek';
-    final body = message.notification?.body ?? message.data['body'] ?? 'Bạn có thông báo mới';
+    final title =
+        message.notification?.title ?? message.data['title'] ?? 'ZooTrek';
+    final body =
+        message.notification?.body ??
+        message.data['body'] ??
+        'Bạn có thông báo mới';
     final type = message.data['type']?.toString() ?? 'general';
 
     final channelId = type == 'update' ? updateChannelId : generalChannelId;
-    final channelName = type == 'update' ? 'Cập nhật ứng dụng' : 'Thông báo chung';
+    final channelName = type == 'update'
+        ? 'Cập nhật ứng dụng'
+        : 'Thông báo chung';
 
     await _local.show(
       DateTime.now().millisecondsSinceEpoch ~/ 1000,
@@ -232,9 +244,7 @@ class PushNotificationService {
     final nav = AppNavigator.navigatorKey.currentState;
     if (nav == null) return;
 
-    nav.push(
-      MaterialPageRoute(builder: (_) => const UpdateScreen()),
-    );
+    nav.push(MaterialPageRoute(builder: (_) => const UpdateScreen()));
   }
 
   String get _platformName {
